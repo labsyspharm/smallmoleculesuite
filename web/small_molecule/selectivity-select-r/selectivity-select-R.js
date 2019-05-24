@@ -1,0 +1,1 @@
+$('.top.menu .item').tab();
