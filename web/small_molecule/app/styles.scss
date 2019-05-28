@@ -137,12 +137,25 @@ form {
   }
 }
 @media (max-width: 893px) {
+  .menu {
+    .item {
+      font-size: 14px;
+      margin: 0 !important;
+      text-align: center;
+      justify-content: center;
+
+      .icon:not(.github){
+        display: none !important;
+      }
+    }
+  }
+
   .ui.grid > [class*="two column"].row > .column {
     width: 100% !important;
   }
 
   .wrapper {
-    margin: 0 auto 0px;
+    margin: 0 auto;
   }
 
   .footer,
