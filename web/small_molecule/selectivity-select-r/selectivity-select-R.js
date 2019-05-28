@@ -1,1 +1,1 @@
-$('.top.menu .item').tab();
+
