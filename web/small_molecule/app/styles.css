@@ -7,10 +7,6 @@ html {
   height: 100%;
 }
 
-.three-column__link:hover h2 {
-  color: #404040;
-}
-
 .wrapper {
   min-height: 100vh;
   height: auto !important;

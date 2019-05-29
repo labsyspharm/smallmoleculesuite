@@ -13,7 +13,7 @@
 
 <body>
   <div class="container">
-    <div class="ui top borderless stackable header menu">
+    <div class="ui top borderless stackable menu inverted header">
       <a href="http://sorger.med.harvard.edu/" class="header item">
         <img src="../../../assets/img/logo.png">
       </a>
@@ -53,6 +53,12 @@
                         <div class="item" data-value="1">Male</div>
                         <div class="item" data-value="0">Female</div>
                       </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="ui toggle checkbox">
+                      <input type="checkbox" name="public">
+                      <label>Include non-human genes</label>
                     </div>
                   </div>
                   <!-- Apparently Semantic doesn't have a slider component. I'm using a janky custom slider as a placeholder -->
@@ -98,7 +104,7 @@
         </div>
       </div>
     </div>
-    <div class="ui bottom fixed borderless stackable menu pusher">
+    <div class="ui bottom fixed borderless stackable menu inverted footer">
       <a class="right item">About</a>
       <a class="item">Contact us</a>
       <a class="item">

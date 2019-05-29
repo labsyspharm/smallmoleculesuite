@@ -1,5 +1,8 @@
 $harvard-color-black: #000;
 $harvard-color-white: #FFF;
+$harvard-color-pink: #EC4353;
+$harvard-color-green: #00AC9F;
+$harvard-color-orange: orange;
 
 * {
   margin: 0;
@@ -10,13 +13,31 @@ html {
   height: 100%;
 }
 
-.three-column__link {
-  &:hover {
-    h2 {
-      color: mix($harvard-color-black, $harvard-color-white, 75%);
-    }
-  }
-}
+// .three-column__link {
+//   .selectivity--pink {
+//     color: $harvard-color-pink;
+//
+//     &:hover {
+//       color: mix($harvard-color-pink, $harvard-color-white, 50%);
+//     }
+//   }
+//
+//   .similarity--green {
+//     color: $harvard-color-green;
+//
+//     &:hover {
+//       color: mix($harvard-color-green, $harvard-color-white, 50%);
+//     }
+//   }
+//
+//   .library--orange {
+//     color: $harvard-color-orange;
+//
+//     &:hover {
+//       color: mix($harvard-color-orange, $harvard-color-white, 50%);
+//     }
+//   }
+// }
 
 .wrapper {
   min-height: 100vh;
@@ -144,7 +165,7 @@ form {
       text-align: center;
       justify-content: center;
 
-      .icon:not(.github){
+      .icon:not(.github) {
         display: none !important;
       }
     }
