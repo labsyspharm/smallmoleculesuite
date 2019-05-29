@@ -7,6 +7,10 @@ html {
   height: 100%;
 }
 
+.three-column__text {
+  text-align: left;
+}
+
 .wrapper {
   min-height: 100vh;
   height: auto !important;
@@ -15,30 +19,7 @@ html {
 
 .container {
   height: 100%;
-}
-
-.header {
-  flex: 0 0 auto;
-}
-
-.footer {
-  flex: 0 0 auto;
-  position: absolute;
-  bottom: 0;
-}
-
-.footer,
-.push {
-  height: 60px;
-  /* .push must be the same height as .footer */
-}
-
-.main {
-  flex: 1;
-  position: relative;
-  /* need this to position inner content */
-  overflow-y: auto;
-  margin: 0 auto -60px;
+  width: 100% !important;
 }
 
 #instructions {
@@ -51,6 +32,11 @@ html {
 
 form {
   position: relative;
+}
+
+.main {
+  min-height: calc(100vh - 100px);
+  border-radius: 0 !important;
 }
 
 .placeholder {
@@ -132,15 +118,6 @@ form {
 
   .ui.grid > [class*="two column"].row > .column {
     width: 100% !important;
-  }
-
-  .wrapper {
-    margin: 0 auto;
-  }
-
-  .footer,
-.push {
-    height: 115px;
   }
 }
 
