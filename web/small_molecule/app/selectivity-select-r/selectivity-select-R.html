@@ -35,10 +35,67 @@
         <div class="two column row">
           <div class="stackable column">
             <div class="ui top attached tabular menu">
-              <a href="../selectivity-select-r/filters/filters.html" class="item">Filters</a>
-              <a href="../selectivity-select-r/instructions/instructions.html" class="active item">Instructions</a>
+              <div class="item" data-tab="filters-tab">Filters</div>
+              <div class="active item" data-tab="instructions-tab">Instructions</div>
             </div>
-            <div class="ui bottom attached active tab segment">
+            <div class="ui bottom attached tab segment" data-tab="filters-tab">
+              <div id="filters">
+                <h3>SelectivitySelectR</h3>
+                <p>Search for a gene target using the dropdown, then use sliders to adjust data.</p>
+                <form class="ui form">
+                  <div class="field">
+                    <label>Select gene target</label>
+                    <div class="ui selection dropdown">
+                      <input type="hidden" name="gene-target">
+                      <i class="dropdown icon"></i>
+                      <div class="default text">Select gene target</div>
+                      <div class="menu">
+                        <div class="item" data-value="1">Male</div>
+                        <div class="item" data-value="0">Female</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="ui toggle checkbox">
+                      <input type="checkbox" name="public">
+                      <label>Include non-human genes</label>
+                    </div>
+                  </div>
+                  <!-- Apparently Semantic doesn't have a slider component. I'm using a janky custom slider as a placeholder -->
+                  <div class="field">
+                    <label>Minimum/maximum affinity</label>
+                    <div class="slidecontainer">
+                      <div class="rs">
+                        <span class="rs-min">.001</span> <span class="rs-max">10,000,000,000</span>
+                        <input type="range" min=".001" max="10000000000" value="50" class="slider">
+                        <!-- <span class="setvalue">Select value</span> -->
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Maximum std. dev. of affinity</label>
+                    <div class="slidecontainer">
+                      <div class="rs">
+                        <span class="rs-min">.001</span> <span class="rs-max">10,000,000,000</span>
+                        <input type="range" min=".001" max="10000000000" value="50" class="slider">
+                        <!-- <span class="setvalue">Select value</span> -->
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Minimum number of measurements</label>
+                    <div class="slidecontainer">
+                      <div class="rs">
+                        <span class="rs-min">.001</span> <span class="rs-max">10,000,000,000</span>
+                        <input type="range" step="1" min=".001" max="10000000000" value="Enter value" class="slider">
+                        <!-- <span class="setvalue">Select value</span> -->
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <div class="ui bottom attached active tab segment" data-tab="instructions-tab">
               <div id="instructions" class="ui container">
                 <div class="ui fluid placeholder">
                   <div class="image header">
