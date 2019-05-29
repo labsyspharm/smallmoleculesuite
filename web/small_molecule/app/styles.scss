@@ -3,6 +3,7 @@ $harvard-color-white: #FFF;
 $harvard-color-pink: #EC4353;
 $harvard-color-green: #00AC9F;
 $harvard-color-orange: orange;
+$harvard-color-crimson: #c90016;
 
 * {
   margin: 0;
@@ -11,36 +12,6 @@ $harvard-color-orange: orange;
 body,
 html {
   height: 100%;
-}
-
-// .three-column__link {
-//   .selectivity--pink {
-//     color: $harvard-color-pink;
-//
-//     &:hover {
-//       color: mix($harvard-color-pink, $harvard-color-white, 50%);
-//     }
-//   }
-//
-//   .similarity--green {
-//     color: $harvard-color-green;
-//
-//     &:hover {
-//       color: mix($harvard-color-green, $harvard-color-white, 50%);
-//     }
-//   }
-//
-//   .library--orange {
-//     color: $harvard-color-orange;
-//
-//     &:hover {
-//       color: mix($harvard-color-orange, $harvard-color-white, 50%);
-//     }
-//   }
-// }
-
-.three-column__text {
-  text-align: left;
 }
 
 .wrapper {
@@ -54,11 +25,33 @@ html {
   width: 100% !important;
 }
 
-#instructions {
+.three-column__link {
+  :hover {
+  opacity: .8;
+  }
+}
+
+.harvard--crimson {
+  color: $harvard-color-crimson !important;
+}
+
+.selectivity--pink {
+  color: $harvard-color-pink !important;
+}
+
+.similarity--green {
+  color: $harvard-color-green !important;
+}
+
+.library--orange {
+  color: $harvard-color-orange !important;
+}
+
+.three-column__text {
   text-align: left;
 }
 
-#filters {
+.tabs-content {
   text-align: left;
 }
 

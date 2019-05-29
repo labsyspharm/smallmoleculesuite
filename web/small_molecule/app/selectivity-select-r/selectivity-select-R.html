@@ -20,29 +20,28 @@
             <img src="../../assets/img/logo.png">
           </a>
           <a href="../home.html" class="right item">
-            <i class="home icon"></i>Home
+            <i class="home icon harvard--crimson"></i>Home
           </a>
           <a href="../selectivity-select-r/selectivity-select-R.html" class="item active">
-            <i class="circle icon"></i>SelectivitySelectR
+            <i class="circle icon selectivity--pink"></i>SelectivitySelectR
           </a>
           <a href="../similarity-select-r/similarity-select-R.html" class="item">
-            <i class="circle icon"></i>SimilaritySelectR
+            <i class="circle icon similarity--green"></i>SimilaritySelectR
           </a>
           <a href="../library-r/library-R.html" class="item">
-            <i class="circle icon"></i>LibraryR
+            <i class="circle icon library--orange"></i>LibraryR
           </a>
         </div>
       </div>
       <div class="ui main center aligned attached segment">
-        <div class="ui grid" style="width: 100%; padding: 0; margin: 0;">
-          <div class="two column row">
-            <div class="stackable column">
+        <div class="ui stackable two column grid" style="width: 100%; padding: 0; margin: 0;">
+            <div class="six wide column">
               <div class="ui top attached tabular menu">
                 <div class="item" data-tab="filters-tab">Filters</div>
                 <div class="active item" data-tab="instructions-tab">Instructions</div>
               </div>
               <div class="ui bottom attached tab segment" data-tab="filters-tab">
-                <div id="filters">
+                <div class="tabs-content">
                   <h3>SelectivitySelectR</h3>
                   <p>Search for a gene target using the dropdown, then use sliders to adjust data.</p>
                   <form class="ui form">
@@ -99,7 +98,7 @@
                 </div>
               </div>
               <div class="ui bottom attached active tab segment" data-tab="instructions-tab">
-                <div id="instructions" class="ui container">
+                <div class="tabs-content">
                   <div class="ui fluid placeholder">
                     <div class="image header">
                       <div class="medium line"></div>
@@ -142,14 +141,37 @@
                 </div>
               </div>
             </div>
-            <div class="stackable column">
-              <div>
-                <div class="ui placeholder">
-                  <div class="image graph"></div>
-                </div>
+            <div class="ten wide column">
+              <div class="ui placeholder">
+                <div class="image graph"></div>
               </div>
+              <table class="ui celled table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Job</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td data-label="Name">James</td>
+                    <td data-label="Age">24</td>
+                    <td data-label="Job">Engineer</td>
+                  </tr>
+                  <tr>
+                    <td data-label="Name">Jill</td>
+                    <td data-label="Age">26</td>
+                    <td data-label="Job">Engineer</td>
+                  </tr>
+                  <tr>
+                    <td data-label="Name">Elyse</td>
+                    <td data-label="Age">24</td>
+                    <td data-label="Job">Designer</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </div>
         </div>
       </div>
       <div class="ui bottom inverted attached footer segment" style="width: 100%; padding: 0; margin: 0;">

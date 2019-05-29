@@ -7,10 +7,6 @@ html {
   height: 100%;
 }
 
-.three-column__text {
-  text-align: left;
-}
-
 .wrapper {
   min-height: 100vh;
   height: auto !important;
@@ -22,11 +18,31 @@ html {
   width: 100% !important;
 }
 
-#instructions {
+.three-column__link :hover {
+  opacity: 0.8;
+}
+
+.harvard--crimson {
+  color: #c90016 !important;
+}
+
+.selectivity--pink {
+  color: #EC4353 !important;
+}
+
+.similarity--green {
+  color: #00AC9F !important;
+}
+
+.library--orange {
+  color: orange !important;
+}
+
+.three-column__text {
   text-align: left;
 }
 
-#filters {
+.tabs-content {
   text-align: left;
 }
 
