@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  
+  {{ headContent() }}
+  
+  {{ shiny.semantic:::get_dependencies() }}
+  
+  <link rel="stylesheet" type="text/css" href="css/main.css">
+  
+  <script>
+    $(function() {
+      $("a[data-tab]").tab({
+        deactivate: "all",
+        history: false
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="ui container">
+      <div class="ui top header" style="width: 100%; margin: 0;">
+        <div class="ui borderless attached inverted stackable menu">
+          <a href="http://sorger.med.harvard.edu/" class="header item">
+            <img src="assets/img/logo.png">
+          </a>
+          <a data-tab="home"
+             class="right item active">
+            <i class="home icon harvard--crimson"></i>Home
+          </a>
+          <a data-tab="selectivity"
+             class="item">
+            <i class="circle icon selectivity--pink"></i>SelectivitySelectR
+          </a>
+          <a data-tab="similarity"
+             class="item">
+            <i class="circle icon similarity--green"></i>SimilaritySelectR
+          </a>
+          <a data-tab="library"
+             class="item">
+            <i class="circle icon library--orange"></i>LibraryR
+          </a>
+        </div>
+      </div>
+      <div data-tab="home"
+           class="ui main center aligned attached segment active tab">
+        <h1 style="margin: 0px;">The small molecule suite</h1>
+        <p style="max-width: 500px; margin: 0 auto;">
+          Dolore singulis philosophari. Si non transferrem, quibusdam nam multos. An in
+          instituendarum. Senserit duis quis de quae ea ipsum quo ullamco, aliquip a quis
+          ea si ullamco distinguantur. Incurreret cillum consequat. Ne ad legam.
+        <p>
+        <div class="ui three column equal doubling stackable grid container">
+          <div class="column">
+            <a data-tab="selectivity"
+               class="three-column__link item">
+              <h2 class="ui center aligned icon header selectivity--pink">
+                <i class="circle icon"></i>
+                SelectivitySelectR
+              </h2>
+            </a>
+            <p class="three-column__text">
+              Appellat iis aliquip. Ex ne minim tamen minim non ab ea dolor labore ipsum,
+              officia legam noster constias culpa se consequat aute voluptate possumus.
+              Voluptate in minim doctrina. Proident despicationes a vidisse.
+              An sed labore expetendis, occaecat e probant hic ne sint nam fore qui incurreret e constias.
+              Vidisse quis cupidatat, aut do arbitrantur, est labore aliquip excepteur exadmodum eruditionem non consequat. Et dolore ingeniis quamquam, nostrud minim mentitum si quamquam e elit de hic proident tractavissent. 
+              Proident quem fore est cillum se aliqua despicationes mentitum quid incididunt.
+            </p>
+          </div>
+          <div class="column">
+            <a data-tab="similarity" 
+               class="three-column__link item">
+              <h2 class="ui center aligned icon header similarity--green">
+                <i class="circle icon"></i>
+                SimilaritySelectR
+              </h2>
+            </a>
+            <p class="three-column__text">
+              Appellat iis aliquip. Ex ne minim tamen minim non ab ea dolor labore ipsum,
+              officia legam noster constias culpa se consequat aute voluptate possumus.
+              Voluptate in minim doctrina. Proident despicationes a vidisse.An sed labore
+              expetendis, occaecat e probant hic ne sint nam fore qui incurreret e constias.
+              Vidisse quis cupidatat, aut do arbitrantur, est labore aliquip excepteur ex
+              admodum eruditionem non consequat. Et dolore ingeniis quamquam, nostrud minim
+              mentitum si quamquam e elit de hic proident tractavissent. Proident quem fore
+              est cillum se aliqua despicationes mentitum quid incididunt.</p>
+          </div>
+          <div class="column">
+            <a data-tab="library"
+               class="three-column__link item">
+              <h2 class="ui center aligned icon header library--orange">
+                <i class="circle icon"></i>
+                LibraryR
+              </h2>
+            </a>
+            <p class="three-column__text">
+              Appellat iis aliquip. Ex ne minim tamen minim non ab ea dolor labore ipsum,
+              officia legam noster constias culpa se consequat aute voluptate possumus.
+              Voluptate in minim doctrina. Proident despicationes a vidisse.An sed labore
+              expetendis, occaecat e probant hic ne sint nam fore qui incurreret e constias.
+              Vidisse quis cupidatat, aut do arbitrantur, est labore aliquip excepteur ex
+              admodum eruditionem non consequat. Et dolore ingeniis quamquam, nostrud minim
+              mentitum si quamquam e elit de hic proident tractavissent. Proident quem fore
+              est cillum se aliqua despicationes mentitum quid incididunt.</p>
+          </div>
+        </div>
+      </div><!-- end home -->
+      <div data-tab="selectivity"
+           class="ui tab segment">
+        {{ selectivity }}
+      </div>
+      <div data-tab="similarity"
+           class="ui tab segment">
+        {{ similarity }}
+      </div>
+      <div data-tab="library"
+           class="ui tab segment">
+        {{ library }}
+      </div>
+      <div class="ui bottom inverted attached footer segment"
+           style="width: 100%; padding: 0; margin: 0;">
+        <div class="ui inverted borderless menu">
+          <a class="right item">About</a>
+          <a class="item">Contact us</a>
+          <a class="item">
+            <i class="github icon"></i>Github
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
