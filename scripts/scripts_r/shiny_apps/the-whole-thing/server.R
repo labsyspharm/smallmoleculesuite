@@ -1,5 +1,9 @@
 function(input, output, session) {
-  callModule(
+  selectivity <- callModule(
     selectivityServer, "select"
   )  
+  
+  onBookmarked(function(url) {
+    
+  })
 }
