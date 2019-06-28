@@ -1,9 +1,6 @@
 htmlTemplate(
   "templates/home.html",
-  document_ = FALSE,
-  selectivity = htmlTemplate(
-    "templates/selectivity.html"
-  ),
+  selectivity = selectivityUI("select"),
   similarity = htmlTemplate(
     "templates/similarity.html"
   ),
