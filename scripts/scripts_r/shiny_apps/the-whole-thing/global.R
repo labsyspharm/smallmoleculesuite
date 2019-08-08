@@ -41,3 +41,5 @@ zipped_csv <- function(df_list, zippedfile, filenames, stamp) {
 makeQueryString <- function(lst) {
   paste0("?", paste0(names(lst), "=", unlist(lst), collapse = "&"))
 }
+
+`%||%` <- function(a, b) if (is.null(a)) b else a
