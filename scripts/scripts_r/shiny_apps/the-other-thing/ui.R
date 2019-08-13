@@ -61,15 +61,81 @@ list(
         id = "page_home",
         columns(
           column(
-            width = 2
-          ),
-          column(
-            h3("The Small Molecule Suite") %>% 
+            d3("The Small Molecule Suite") %>% 
               font(align = "center"),
             p("Developed by the Harvard Initiative in Therapeutic Sciences (HiTS)") %>% 
               font(align = "center") %>% 
               margin(b = 5),
             columns(
+              column(
+                width = 12,
+                h1("Use cases") %>% 
+                  margin(bottom = 3) %>% 
+                  font(align = "center")
+              ),
+              column(
+                width = 12,
+                deck(
+                  card(
+                    h5("I want pre-calculated libraries—"),
+                    p(
+                      tags$a(
+                        href = "assets/docs/LSP_OptimalKinase_educationSheet.docx",
+                        "Kinases", icon("file-download")
+                      )
+                    ),
+                    p(
+                      tags$a(
+                        href = "assets/docs/LSP_MoA_educationSheet.docx",
+                        "MOA", icon("file-download")
+                      )
+                    )
+                  ),
+                  card(
+                    h5("I have a gene and—"),
+                    p(
+                      linkInput(
+                        id = "goto_selectivity_1",
+                        label = "I need a full list of small molecules"
+                      )
+                    ),
+                    p(
+                      linkInput(
+                        id = "goto_selectivity_2",
+                        label = "I need two orthogonal small molecules"
+                      )
+                    )
+                  ),
+                  card(
+                    h5("I have a compound and—"),
+                    p(
+                      linkInput(
+                        id = "goto_similarity_1",
+                        label = "I would like to know what compounds are similar"
+                      )
+                    ),
+                    p(
+                      linkInput(
+                        id = "goto_similarity_2",
+                        label = "What are the targets?"
+                      )
+                    )
+                  ),
+                  card(
+                    h5("I have a more complex case—"),
+                    p("See application links below.")
+                  )
+                )
+              )
+            ) %>% 
+              margin(bottom = 5),
+            columns(
+              column(
+                width = 12,
+                h1("Applications") %>% 
+                  margin(bottom = 3) %>% 
+                  font(align = "center")
+              ),
               column(
                 linkInput(
                   id = "link_selectivity",
@@ -116,12 +182,9 @@ list(
                 flex(direction = "column") %>% 
                 font(align = "center")
             )
-          ),
-          column(
-            width = 2
           )
         ) %>% 
-          margin(top = 5)
+          margin(top = 5, bottom = 5)
       ),
       # selectivity ----
       navPane(

@@ -39,10 +39,15 @@ libraryUI <- function(id) {
                       inputId = ns("gene_list"),
                       label = NULL,
                       rows = 5
+                    ),
+                    help = div(
+                      "This tool uses HUGO names. Please see ", 
+                      tags$a(target = "_blank", href = "genenames.org", "genenames.org"),
+                      " for help."
                     )
                   ),
                   formSubmit(
-                    label = "Load genes"
+                    label = "Pre-defined gene sets"
                   ) %>% 
                     background("orange")
                 ) %>% 
@@ -121,32 +126,41 @@ libraryUI <- function(id) {
                 ),
                 formGroup(
                   label = tags$h6("Maximum Kd for query target (nM)") %>% margin(b = 0),
-                  sliderInput(
-                    inputId = ns("filter_affinity"), 
-                    label = NULL,
-                    min = log10(10),
-                    max = log10(10000), 
-                    value = log10(1000)
+                  div(
+                    class = "logify-slider active--orange",
+                    shiny::sliderInput(
+                      inputId = ns("filter_affinity"), 
+                      label = NULL,
+                      min = log10(10),
+                      max = log10(10000), 
+                      value = log10(1000)
+                    )
                   )
                 ),
                 formGroup(
                   label = tags$h6("Minimum number of measurements") %>% margin(b = 0),
-                  sliderInput(
-                    inputId = ns("filter_measurement"), 
-                    label = NULL,
-                    min = log10(1), 
-                    max = log10(40),
-                    value = log10(2)
-                  ) 
+                  div(
+                    class = "active--orange",
+                    shiny::sliderInput(
+                      inputId = ns("filter_measurement"), 
+                      label = NULL,
+                      min = 1, 
+                      max = 40,
+                      value = 2
+                    )
+                  )
                 ),
                 formGroup(
                   label = tags$h6("Maximum std. dev. of Kd (nM)") %>% margin(b = 0),
-                  sliderInput(
-                    inputId = ns("filter_sd"), 
-                    label = NULL,
-                    min = log10(10), 
-                    max = log10(100000), 
-                    value = log10(100)
+                  div(
+                    class = "logify-slider active--orange",
+                    shiny::sliderInput(
+                      inputId = ns("filter_sd"), 
+                      label = NULL,
+                      min = log10(10), 
+                      max = log10(100000), 
+                      value = log10(100)
+                    )
                   )
                 )
               )
@@ -285,7 +299,7 @@ libraryServer <- function(input, output, session) {
     
     this <- data_selection_selectivity %>%
       dplyr::filter(symbol %in% r_gene_known()) 
-
+    
     if (!is.null(input$filter_probes)) {
       this <- this %>% 
         dplyr::filter(source %in% input$filter_probes)
@@ -305,7 +319,7 @@ libraryServer <- function(input, output, session) {
         dplyr::filter(source %in% input$filter_phase)
     }
     
-      # sliders "sd" and "affinity" are in log10 scale
+    # sliders "sd" and "affinity" are in log10 scale
     this %>% 
       dplyr::filter(mean_Kd <= 10 ^ input$filter_affinity) %>%
       dplyr::filter(is.na(SD_aff) | SD_aff <= 10 ^ input$filter_sd) %>% 
@@ -418,7 +432,7 @@ libraryServer <- function(input, output, session) {
       )
   })   
   
-  output$table_results <- DT::renderDataTable({
+  r_tbl <- reactive({
     req(input$table_display)
     
     DT::datatable({
@@ -428,11 +442,18 @@ libraryServer <- function(input, output, session) {
         r_table_compound()
       }
     },
+    extensions = c("Buttons"),
     fillContainer = TRUE,
     filter = "top",
     rownames = FALSE,
     options = list(
       autoWidth = TRUE,
+      buttons = list(
+        list(extend = "copy"),
+        list(extend = "csv", filename = "sm-library-compounds"),
+        list(extend = "excel", filename = "sm-library-compounds"),
+        list(extend = "colvis")
+      ),
       columnDefs = if (input$table_display == "compound") {
         list(list(targets = 0, visible = FALSE))
       },
@@ -445,5 +466,10 @@ libraryServer <- function(input, output, session) {
       scrollX = TRUE
     ))
   })
+  
+  output$table_results <- DT::renderDataTable(
+    r_tbl(),
+    server = FALSE
+  )
   
 }

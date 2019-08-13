@@ -34,35 +34,44 @@ selectivityUI <- function(id) {
             ),
             formGroup(
               label = "Minimum/maximum affinity",
-              sliderInput(
-                inputId = ns("affinity"),
-                label = NULL, 
-                min = -3,
-                max = 10,
-                step = 1,
-                value = c(-3, 6)
+              input = div(
+                class = "logify-slider active--pink",
+                shiny::sliderInput(
+                  inputId = ns("affinity"),
+                  label = NULL, 
+                  min = -3,
+                  max = 10,
+                  step = 1,
+                  value = c(-3, 6)
+                )
               )
             ),
             formGroup(
               label = "Maximum std. dev. of affinity",
-              sliderInput(
-                inputId = ns("sd"),
-                label = NULL, 
-                min = 0,
-                max = 10,
-                step = 1,
-                value = 5
+              input = div(
+                class = "logify-slider active--pink",
+                shiny::sliderInput(
+                  inputId = ns("sd"),
+                  label = NULL, 
+                  min = 0,
+                  max = 10,
+                  step = 1,
+                  value = 5
+                )
               )
             ),
             formGroup(
               label = "Minimum number of measurements",
-              sliderInput(
-                inputId = ns("min_measurements"),
-                label = NULL, 
-                min = 1,
-                max = 15,
-                step = 1,
-                value = 2
+              input = div(
+                class = "logify-slider active--pink",
+                shiny::sliderInput(
+                  inputId = ns("min_measurements"),
+                  label = NULL, 
+                  min = 1,
+                  max = 15,
+                  step = 1,
+                  value = 2
+                )
               )
             )
           ),
@@ -103,43 +112,21 @@ selectivityUI <- function(id) {
       card(
         h3("Affinity and selectivity reference"),
         div(
-        columns(
-          column(
-            width = 3,
-            listGroupInput(
-              id = ns("select_gene"),
-              class = "active--pink"
-            )
-          ),
-          column(
-            navContent(
-              navPane(
-                id = ns("pane_select_1"),
-                fade = FALSE,
-                dataTableOutput(
-                  outputId = ns("select_1"),
-                  height = "500px"
-                )
-              ),
-              navPane(
-                id = ns("pane_select_2"),
-                fade = FALSE,
-                dataTableOutput(
-                  outputId = ns("select_2"),
-                  height = "500px"
-                )
-              ),
-              navPane(
-                id = ns("pane_select_3"),
-                fade = FALSE,
-                dataTableOutput(
-                  outputId = ns("select_3"),
-                  height = "500px"
-                )
+          columns(
+            column(
+              width = 3,
+              listGroupInput(
+                id = ns("select_gene"),
+                class = "active--pink"
+              )
+            ),
+            column(
+              dataTableOutput(
+                outputId = ns("selection_table"),
+                height = "500px"
               )
             )
           )
-        )
         )
       ) %>% 
         margin(b = 2)
@@ -289,76 +276,116 @@ selectivityServer <- function(input, output, session) {
   })
   
   # output_table ----
-  data_tbl <- reactive({
+  tbl_data <- reactive({
     c_binding_data() %>%
       dplyr::select(-selectivity_plot)
   })
   
-  output$output_table <- DT::renderDataTable(
-    expr = data_tbl(),
-    server = TRUE,
-    extensions = 'Buttons',
-    fillContainer = TRUE,
-    rownames = FALSE,
-    options = list(
-      autoWidth = TRUE,
-      buttons = c('copy', 'csv', 'excel', 'colvis'),
-      columnDefs = list(
-        list(
-          visible = FALSE,
-          targets = match(c("investigation_bias", "wilcox_pval", "IC50_diff"), names(c_binding_data())) - 1
+  tbl_table <- reactive({
+    tbl_data() %>% 
+      dplyr::mutate(
+        name = glue(
+          "<a target='_blank' 
+              href='https://www.ebi.ac.uk/chembl/g/#search_results/compounds/query={ name }'
+            >{ name }<sup class='ml-1'><i class='fa fa-external-link'></i></sup>
+           </a>"
+        ),
+        name = lapply(name, HTML),
+        ` ` = NA_character_
+      ) %>% 
+      dplyr::select(` `, dplyr::everything()) %>% 
+      DT::datatable(
+        extensions = c('Buttons', "Select"),
+        fillContainer = TRUE,
+        rownames = FALSE,
+        selection = "multiple",
+        options = list(
+          autoWidth = TRUE,
+          buttons = list(
+            list(extend = "copy"),
+            list(extend = "csv"),
+            list(extend = "excel"),
+            list(
+              extend = "colvis",
+              columns = ":not(.select-checkbox)"
+            )
+          ),
+          columnDefs = list(
+            list(
+              className = "select-checkbox",
+              orderable = FALSE,
+              targets = 0
+            ),
+            list(
+              visible = FALSE,
+              targets = match(c("investigation_bias", "wilcox_pval", "IC50_diff"), names(c_binding_data())) - 1
+            )
+          ),
+          dom = 'lfrtipB',
+          pagingType = "numbers",
+          scrollX = TRUE,
+          searchHighlight = TRUE,
+          select = list(
+            style = "os",
+            selector = "td.select-checkbox"
+          )
         )
-      ),
-      dom = 'lfrtipB',
-      pagingType = "numbers",
-      scrollX = TRUE,
-      searchHighlight = TRUE
-    )
+      )
+  })
+  
+  output$output_table <- DT::renderDataTable(
+    tbl_table(),
+    server = FALSE
   )
   
   # table row selection ----
-  observe({
-    if (is.null(input$output_table_rows_selected)) {
-      hideNavPane(ns("pane_selections"))
-    } else if (!is.null(input$output_table_rows_selected)) {
-      showNavPane(ns("pane_selections"))
-    }
+  tbl_selection <- reactive({
+    sort(input$output_table_rows_selected)
   })
   
   r_selection_drugs <- reactive({
-    req(data_tbl(), cancelOutput = FALSE)
-    
-    if (is.null(input$output_table_rows_selected)) {
+    if (is.null(tbl_selection())) {
       return(NULL)
     }
     
-    drug_names <- data_tbl()$name[input$output_table_rows_selected]
+    drug_names <- tbl_data()$name[tbl_selection()]
     
     head(drug_names, 3)
   })
   
-  observeEvent(r_selection_drugs(), {
+  r_selection_titles <- reactive({
+    req(r_selection_drugs())
+    
+    hms_id <- head(tbl_data()$hms_id[tbl_selection()], 3)
+    
+    paste0(hms_id, "; ", r_selection_drugs())
+  })
+  
+  observeEvent(r_selection_drugs(), ignoreNULL = FALSE, {
+    if (is.null(r_selection_drugs())) {
+      updateListGroupInput(
+        id = "select_gene",
+        choices = "N/A",
+        values = "",
+        session = session
+      )
+      
+      return()
+    }
+    
     if (isTRUE(input$select_gene %in% r_selection_drugs())) {
       x_selected <- input$select_gene
     } else {
-      x_selected <- r_selection_drugs()[1]
+      x_selected <- tail(r_selection_drugs(), 1)
     }
     
     updateListGroupInput(
       id = "select_gene",
-      choices = r_selection_drugs(),
+      choices = r_selection_titles(),
+      values = r_selection_drugs(),
       selected = x_selected,
       session = session
     )
-  })
-  
-  observe({
-    if (is.null(input$query_gene)) {
-      showNavPane(ns("pane_select_1"))
-    } else {
-      i <- which(input$select_gene == r_selection_drugs())
-      showNavPane(ns(paste0("pane_select_", i)))
-    }
   })
   
   get_selection_data <- function(drug) {
@@ -382,47 +409,33 @@ selectivityServer <- function(input, output, session) {
       dplyr::select(symbol, selectivity_class, `mean_Kd_(nM)`)
   }
   
-  selection_tbl_options <- list(
-    dom = 'tpB',
-    buttons = c('copy', 'csv', 'excel', 'colvis'),
-    language = list(
-      emptyTable = "Please select row(s) from the data above."
-    ),
-    pagingType = "numbers",
-    scrollX = TRUE
-    # autoWidth = TRUE
-  )
+  tbl_selection_table <- reactive({
+    get_selection_data(input$select_gene) %>% 
+      DT::datatable(
+        rownames = FALSE,
+        options = list(
+          dom = "tpB",
+          buttons = c("copy", "csv", "excel"),
+          language = list(
+            emptyTable = if (is.null(tbl_selection())) {
+              "Please select row(s) from the data above."
+            } else {
+              if (is.null(input$select_gene)) {
+                "Please make a selection."
+              } else {
+                "No data available."
+              }
+            }
+          ),
+          pagingType = "numbers",
+          scrollX = TRUE
+          # autoWidth = TRUE
+        )
+      )
+  })
   
-  r_selection_data_1 <- reactive({
-    get_selection_data(r_selection_drugs()[1])
-  })
-  output$select_1 <- DT::renderDataTable(
-    r_selection_data_1(),
-    extensions = "Buttons",
-    rownames = FALSE,
-    options = selection_tbl_options
+  output$selection_table <- DT::renderDataTable(
+    tbl_selection_table(),
+    server = FALSE
   )
-  outputOptions(output, "select_1", suspendWhenHidden = FALSE)
-
-  r_selection_data_2 <- reactive({
-    get_selection_data(r_selection_drugs()[2])
-  })
-  output$select_2 <- DT::renderDataTable(
-    r_selection_data_2(),
-    extensions = "Buttons",
-    rownames = FALSE,
-    options = selection_tbl_options
-  )
-  outputOptions(output, "select_2", suspendWhenHidden = FALSE)
-
-  r_selection_data_3 <- reactive({
-    get_selection_data(r_selection_drugs()[3])
-  })
-  output$select_3 <- DT::renderDataTable(
-    r_selection_data_3(),
-    extensions = "Buttons",
-    rownames = FALSE,
-    options = selection_tbl_options
-  )
-  outputOptions(output, "select_3", suspendWhenHidden = FALSE)
 }

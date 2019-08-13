@@ -21,7 +21,10 @@ html {
   color: #EC4353 !important;
 }
 
-.active--pink .active {
+.active--pink .active,
+.active--pink .irs-bar,
+.active--pink .irs-bar-edge, 
+.active--pink .irs-slider {
   background-color: #ec4353 !important;
   border-color: #ec4353 !important;
 }
@@ -30,13 +33,24 @@ html {
   color: #00AC9F !important;
 }
 
-.active--green .active {
+.active--green .active,
+.active--green .irs-bar,
+.active--green .irs-bar-edge, 
+.active--green .irs-slider {
   background-color: #00ac9f !important;
   border-color: #00ac9f !important;
 }
 
 .library--orange {
   color: #ff9800 !important;
+}
+
+.active--orange .active,
+.active--orange .irs-bar,
+.active--orange .irs-bar-edge,
+.active--orange .irs-slider {
+  background-color: #ff9800 !important;
+  border-color: #ff9800 !important;
 }
 
 .navbar .nav-link {
@@ -72,6 +86,14 @@ table.dataTable tbody td {
 
 .dataTables_wrapper {
   overflow: hidden !important;
+}
+
+table.dataTable tr.selected td.select-checkbox::after {
+  margin-top: -14px !important;
+}
+
+.datatables .selectize-dropdown {
+  width: auto !important;
 }
 
 .slider::-webkit-slider-thumb {

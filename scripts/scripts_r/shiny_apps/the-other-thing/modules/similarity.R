@@ -24,24 +24,30 @@ similarityUI <- function(id) {
             ),
             formGroup(
               label = "Number of biological assays in common with reference compound",
-              input = shiny::sliderInput(
-                inputId = ns("n_common"),
-                label = NULL,
-                min = 0,
-                max = 8,
-                step = 1,
-                value = 0
+              input = div(
+                class = "logify-slider active--green",
+                shiny::sliderInput(
+                  inputId = ns("n_common"),
+                  label = NULL,
+                  min = 0,
+                  max = 8,
+                  step = 1,
+                  value = 0
+                )
               )
             ),
             formGroup(
               label = "Number of phenotypic assays in common with reference compound",
-              input = shiny::sliderInput(
-                inputId = ns("n_pheno"),
-                label = NULL,
-                min = 0,
-                max = 8,
-                step = 1,
-                value = 0
+              input = div(
+                class = "logify-slider active--green",
+                shiny::sliderInput(
+                  inputId = ns("n_pheno"),
+                  label = NULL,
+                  min = 0,
+                  max = 8,
+                  step = 1,
+                  value = 0
+                )
               )
             ),
             div(
@@ -141,16 +147,9 @@ similarityUI <- function(id) {
             ),
             column(
               width = 9,
-              navContent(
-                lapply(1:5, function(i) {
-                  navPane(
-                    id = ns(paste0("pane_selection_", i)),
-                    dataTableOutput(
-                      outputId = ns(paste0("table_selection_", i)),
-                      height = "500px"
-                    )
-                  )
-                })
+              dataTableOutput(
+                outputId = ns("table_selection"),
+                height = "500px"
               )
             )
           )
@@ -240,27 +239,26 @@ similarityServer <- function(input, output, session) {
         selectivity_class = factor(selectivity_class, SELECTIVITY_ORDER)
       ) %>%
       dplyr::arrange(selectivity_class, `mean_Kd_(nM)`)
-      
+  })
+  
+  r_sim_selection <- reactive({
+    sort(input$table_sim_compound_rows_selected)
   })
   
   r_selection_drugs <- reactive({
-    if (is.null(input$table_sim_compound_rows_selected)) {
+    if (is.null(r_sim_selection())) {
       return(NULL)
     }
     
-    r_sim_data()$name_2[input$table_sim_compound_rows_selected]
+    r_sim_data()$name_2[r_sim_selection()]
   })
   
   r_selection_titles <- reactive({
-    hms_id <- r_sim_data() %>% 
-      dplyr::distinct(hmsID_1) %>% 
-      dplyr::pull()
+    req(r_selection_drugs())
     
-    name <- r_sim_data() %>% 
-      dplyr::distinct(name_1) %>% 
-      dplyr::pull()
+    hms_id <- r_sim_data()$hmsID_1[r_sim_selection()]
     
-    paste0(hms_id, "; ", name)
+    paste0(hms_id, "; ", r_selection_drugs())
   })
   
   r_selection_data <- reactive({
@@ -279,20 +277,40 @@ similarityServer <- function(input, output, session) {
       searchHighlight = TRUE
     ),
     rownames = FALSE,
-    selection = "none"
+    selection = "none",
+    server = FALSE
   )
   
   # output_table
   output$table_sim_compound = DT::renderDataTable(
-    r_sim_data(),
-    extensions = 'Buttons',
+    r_sim_data() %>% 
+      dplyr::mutate(
+        ` ` = NA
+      ) %>% 
+      dplyr::select(` `, dplyr::everything()),
+    extensions = c('Buttons', "Select"),
     # fillContainer = TRUE,
     rownames = FALSE, 
     server = TRUE,
     # style = "bootstrap",
     options = list(
       autoWidth = TRUE,
-      buttons = c('copy', 'csv', 'excel', 'colvis'),
+      buttons = list(
+        list(extend = "copy"),
+        list(extend = "csv"),
+        list(extend = "excel"),
+        list(
+          extend = "colvis",
+          columns = ":not(.select-checkbox)"
+        )
+      ),
+      columnDefs = list(
+        list(
+          className = "select-checkbox",
+          orderable = FALSE,
+          targets = 0
+        )
+      ),
       dom = 'lfrtipB',
       pagingType = "numbers",
       scrollCollapse = TRUE,
@@ -470,39 +488,32 @@ similarityServer <- function(input, output, session) {
     
     # p %>% layout(dragmode = "select")
   })
-  
+
   observeEvent(r_selection_drugs(), ignoreNULL = FALSE, {
     if (is.null(r_selection_drugs())) {
       updateListGroupInput(
         id = "compound_selection",
-        choices = NULL,
-        values = NULL,
+        choices = "N/A",
+        values = "",
         session = session
-      )  
+      )
+      
       return()
     }
     
     if (isTRUE(input$compound_selection %in% r_selection_drugs())) {
-      x_selected <- which(input$compound_selection == r_selection_drugs())
+      x_selected <- input$compound_selection
     } else {
-      x_selected <- 1
+      x_selected <- tail(r_selection_drugs(), 1)
     }
-    
-    x_choices <- lapply(r_selection_drugs(), function(d) {
-      paste0(get_hms_id_2(d), "; ", d)
-    })
     
     updateListGroupInput(
       id = "compound_selection",
-      choices = x_choices,
-      values = seq_along(r_selection_drugs()),
+      choices = r_selection_titles(),
+      values = r_selection_drugs(),
       selected = x_selected,
       session = session
     )
-  })
-  
-  observeEvent(input$compound_selection, {
-    showNavPane(ns(paste0("pane_selection_", input$compound_selection)))
   })
   
   get_hms_id_2 <- function(drug) {
@@ -518,7 +529,11 @@ similarityServer <- function(input, output, session) {
   
   get_compound_selection <- function(drug) {
     if (is.null(drug) || is.na(drug) || length(drug) < 1) {
-      return(NULL)
+      return(
+        data_affinity_selectivity %>% 
+          dplyr::select(symbol, selectivity_class, `mean_Kd_(nM)`) %>% 
+          dplyr::slice(0)
+      )
     }
     
     data_affinity_selectivity %>%
@@ -530,47 +545,28 @@ similarityServer <- function(input, output, session) {
       dplyr::arrange(selectivity_class, `mean_Kd_(nM)`)
   }
   
-  selection_table_options <- list(
-    # autoWidth = TRUE,
-    dom = "tp",
-    scrollX = TRUE,
-    pagingType = "numbers"
-  )
+  selection_table_options <- reactive({
+    list(
+      # autoWidth = TRUE,
+      dom = "tp",
+      language = list(
+        emptyTable = if (is.null(r_sim_selection())) {
+          "Please select row(s) from the data above."
+        } else {
+          "No data available"
+        }
+      ),
+      scrollX = TRUE,
+      pagingType = "numbers"
+    )
+  })
   
-  output$table_selection_1 <- DT::renderDataTable(
-    get_compound_selection(r_selection_drugs()[1]),
+  output$table_selection <- DT::renderDataTable(
+    get_compound_selection(input$compound_selection),
     options = selection_table_options,
-    rownames = FALSE
+    rownames = FALSE,
+    server = FALSE
   )
-  outputOptions(output, "table_selection_1", suspendWhenHidden = FALSE)
-  
-  output$table_selection_2 <- DT::renderDataTable(
-    get_compound_selection(r_selection_drugs()[2]),
-    options = selection_table_options,
-    rownames = FALSE
-  )
-  outputOptions(output, "table_selection_2", suspendWhenHidden = FALSE)
-  
-  output$table_selection_3 <- DT::renderDataTable(
-    get_compound_selection(r_selection_drugs()[3]),
-    options = selection_table_options,
-    rownames = FALSE
-  )
-  outputOptions(output, "table_selection_3", suspendWhenHidden = FALSE)
-  
-  output$table_selection_4 <- DT::renderDataTable(
-    get_compound_selection(r_selection_drugs()[4]),
-    options = selection_table_options,
-    rownames = FALSE
-  )
-  outputOptions(output, "table_selection_4", suspendWhenHidden = FALSE)
-  
-  output$table_selection_5 <- DT::renderDataTable(
-    get_compound_selection(r_selection_drugs()[5]),
-    options = selection_table_options,
-    rownames = FALSE
-  )
-  outputOptions(output, "table_selection_4", suspendWhenHidden = FALSE)
 }
   
 function() {
