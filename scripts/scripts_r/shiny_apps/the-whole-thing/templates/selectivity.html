@@ -1,119 +1,101 @@
 <div class="ui stackable two column grid" 
      style="width: 100%; padding: 0; margin: 0;">
   <div class="six wide column">
-    <div class="ui top attached tabular menu">
-      <div class="item" data-tab="filters-tab">Filters</div>
-      <div class="active item" data-tab="instructions-tab">Instructions</div>
-    </div>
-    <div class="ui bottom attached tab segment" data-tab="filters-tab">
-      <div class="tabs-content">
-        <h3>SelectivitySelectR</h3>
-        <p>Search for a gene target using the dropdown, then use sliders to adjust data.</p>
-        <form class="ui form">
-          <div class="field">
-            <label>Select gene target</label>
-            <div class="ui selection dropdown">
-              <input type="hidden" name="gene-target">
-              <i class="dropdown icon"></i>
-              <div class="default text">Select gene target</div>
-              <div class="menu">
-                <div class="item" data-value="1">Male</div>
-                <div class="item" data-value="0">Female</div>
-              </div>
-            </div>
-          </div>
-          <div class="field">
-            <div class="ui toggle checkbox">
-              <input type="checkbox" name="public">
-              <label>Include non-human genes</label>
-            </div>
-          </div>
-          <!-- Apparently Semantic doesn't have a slider component. I'm using a janky custom slider as a placeholder -->
-          <div class="field">
-            {{ affinity }}
-          </div>
-          <div class="field">
-            {{ stddev }}
-          </div>
-          <div class="field">
-            {{ measurements }}
-          </div>
-        </form>
+    <div class="ui fluid raised card">
+      <div class="header">
+        <div class="ui secondary pointing menu">
+          <div class="item" data-tab="filters-tab">Filters</div>
+          <div class="active item" data-tab="instructions-tab">Instructions</div>
+        </div>
       </div>
-    </div>
-    <div class="ui bottom attached active tab segment" data-tab="instructions-tab">
-      <div class="tabs-content">
-        <div class="ui fluid placeholder">
-          <div class="image header">
-            <div class="medium line"></div>
-            <div class="full line"></div>
-          </div>
-          <div class="paragraph">
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-          </div>
-          <div class="paragraph">
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-          </div>
-          <div class="image header">
-            <div class="medium line"></div>
-            <div class="full line"></div>
-          </div>
-          <div class="paragraph">
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-          </div>
+      <div class="ui content tab" data-tab="filters-tab" style="border-top: none !important;">
+        <!--<h3>SelectivitySelectR</h3>-->
+
+        <div class="description">
+          <form class="ui form">
+            <div class="field">
+              {{ affinity }}
+            </div>
+            <div class="field">
+              {{ stddev }}
+            </div>
+            <div class="field">
+              {{ measurements }}
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="ui content tab active" data-tab="instructions-tab">
+        <div class="description">
+          <p>
+            To find compounds, first select your target of interest from the 
+            box below. Non-human genes may be optionally included.
+          </p>
+          <form class="ui form">
+            <div class="field">
+              {{ genes }}
+            </div>
+            <div class="field">
+              {{ include }}
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
   <div class="ten wide column">
-    <div class="ui placeholder">
-      <div class="image graph"></div>
+    <div class="ui fluid card">
+      <div class="content">
+        <div class="sub header">
+          {{ graph_title }}
+        </div>
+        <div class="description">
+          {{ graph_content }}
+        </div>
+      </div>
     </div>
-    <table class="ui celled table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Age</th>
-          <th>Job</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td data-label="Name">James</td>
-          <td data-label="Age">24</td>
-          <td data-label="Job">Engineer</td>
-        </tr>
-        <tr>
-          <td data-label="Name">Jill</td>
-          <td data-label="Age">26</td>
-          <td data-label="Job">Engineer</td>
-        </tr>
-        <tr>
-          <td data-label="Name">Elyse</td>
-          <td data-label="Age">24</td>
-          <td data-label="Job">Designer</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="ui fluid card">
+      <div class="content">
+        <div class="sub header">
+          {{ table_title }}
+        </div>
+        <div class="meta">
+          {{ table_subtitle }}
+        </div>
+        <div class="description">
+          {{ table_content }}
+        </div>
+      </div>
+    </div>
+    <div class="ui grid">
+      <div class="four wide column">
+        <div class="ui vertical fluid tabular menu">
+          <a class="item active" data-tab="selectivity-selection-1">
+            {{ selection_title_1 }}
+          </a>
+          <a class="item" data-tab="selectivity-selection-2">
+            {{ selection_title_2 }}
+          </a>
+          <a class="item" data-tab="selectivity-selection-3">
+            {{ selection_title_3 }}
+          </a>
+        </div>
+      </div>
+      <div class="twelve wide stretched column">
+        <div class="ui fluid card">
+          <div class="content">
+            <div class="ui tab active" data-tab="selectivity-selection-1">
+                {{ selection_table_1 }}
+            </div>
+            <div class="ui tab" data-tab="selectivity-selection-2">
+                {{ selection_table_2 }}
+            </div>
+            <div class="ui tab" data-tab="selectivity-selection-3">
+                {{ selection_table_3 }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

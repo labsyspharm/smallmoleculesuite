@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   
   {{ headContent() }}
   
   {{ shiny.semantic:::get_dependencies() }}
   
+  {{ tags$script(src = shiny.semantic:::get_default_semantic_js()) }}
+  
   <link rel="stylesheet" type="text/css" href="css/slider.css">
+  <link rel="stylesheet" type="text/css" href="css/semantic-hacks.css">
   <link rel="stylesheet" type="text/css" href="css/main.css">
   
   <script src="js/main.js"></script>
 </head>
-
 <body>
   <div class="wrapper">
     <div class="ui container">

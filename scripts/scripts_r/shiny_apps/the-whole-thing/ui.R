@@ -1,6 +1,6 @@
 htmlTemplate(
   "templates/home.html",
-  selectivity = selectivityUI("select"),
+  selectivity = selectivityUI("selectivity"),
   similarity = htmlTemplate(
     "templates/similarity.html"
   ),

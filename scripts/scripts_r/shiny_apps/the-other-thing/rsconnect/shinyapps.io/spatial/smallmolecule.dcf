@@ -1,0 +1,10 @@
+name: smallmolecule
+title:
+username:
+account: spatial
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1063638
+bundleId: 2300947
+url: https://spatial.shinyapps.io/smallmolecule/
+when: 1565272579.85081
