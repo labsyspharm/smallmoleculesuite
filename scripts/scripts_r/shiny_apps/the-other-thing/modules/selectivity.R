@@ -173,17 +173,24 @@ selectivityServer <- function(input, output, session) {
     req(input$query_gene)
     
     data_aff <- data_affinity_selectivity %>%
-      filter(symbol == input$query_gene) %>%
-      filter(`mean_Kd_(nM)` >= (10 ^ input$affinity[1]) | is.na(`mean_Kd_(nM)`)) %>%
-      filter(`mean_Kd_(nM)` <= (10 ^ input$affinity[2]) | is.na(`mean_Kd_(nM)`)) %>%
-      filter(`SD_Kd_(nM)` <= (10 ^ input$sd) | is.na(`SD_Kd_(nM)`)) %>%
-      filter(n_measurements >= input$min_measurements) %>%
-      mutate(selectivity_class = factor(selectivity_class, levels = SELECTIVITY_ORDER)) %>%
-      arrange(selectivity_class, `mean_Kd_(nM)`) %>%
-      mutate(selectivity_plot = coalesce(selectivity, -0.5))
+      dplyr::filter(
+        symbol == input$query_gene
+      ) %>% 
+      dplyr::mutate(
+        is_filter_match = 
+          (`mean_Kd_(nM)` >= (10 ^ input$affinity[1]) | is.na(`mean_Kd_(nM)`)) &
+          (`mean_Kd_(nM)` <= (10 ^ input$affinity[2]) | is.na(`mean_Kd_(nM)`)) &
+          (`SD_Kd_(nM)` <= (10 ^ input$sd) | is.na(`SD_Kd_(nM)`)) &
+          (n_measurements >= input$min_measurements)
+      ) %>%
+      dplyr::mutate(
+        selectivity_class = factor(selectivity_class, SELECTIVITY_ORDER)
+      ) %>%
+      dplyr::arrange(selectivity_class, `mean_Kd_(nM)`) %>%
+      dplyr::mutate(selectivity_plot = coalesce(selectivity, -0.5))
     
     if (!include_non_human()) {
-      data_aff <- filter(data_aff, tax_id == 9606)
+      data_aff <- dplyr::filter(data_aff, tax_id == 9606)
     }
     
     data_aff
@@ -224,13 +231,28 @@ selectivityServer <- function(input, output, session) {
   
   # mainplot ----
   output$mainplot <- renderPlotly({
-    p <- data_shared() %>%
-      plot_ly(
+    p <- plot_ly() %>% 
+      add_markers(
+        data = dplyr::filter(c_binding_data(), !is_filter_match),
+        x = ~ selectivity_plot,
+        y = ~ `mean_Kd_(nM)`,
+        type = "scatter",
+        mode = "markers",
+        color = I("black"),
+        hoverinfo = "skip",
+        showlegend = FALSE,
+        marker = list(
+          opacity = 0.25,
+          size = 8
+        )
+      ) %>% 
+      add_markers(
+        data = dplyr::filter(c_binding_data(), is_filter_match),
         x = ~ selectivity_plot, 
         y = ~ `mean_Kd_(nM)`, 
         type = "scatter",
-        mode = "markers", 
-        source = "Z",
+        mode = "markers",
+        hoverinfo = "text",
         color = ~ selectivity_class, 
         text = ~ paste(
           sep = "",
@@ -239,11 +261,13 @@ selectivityServer <- function(input, output, session) {
           "Gene symbol: ", symbol,"\n", 
           "x: ", selectivity, "\n",
           "y: ", `mean_Kd_(nM)`
-        ), 
-        hoverinfo = "text"
+        ),
+        marker = list(
+          size = 8
+        )
       ) %>%
       layout(
-        showlegend = T,
+        showlegend = TRUE,
         shapes = list(
           list(
             type='line', x0= -0.5, x1= -0.5,
@@ -278,6 +302,7 @@ selectivityServer <- function(input, output, session) {
   # output_table ----
   tbl_data <- reactive({
     c_binding_data() %>%
+      dplyr::filter(is_filter_match) %>% 
       dplyr::select(-selectivity_plot)
   })
   
