@@ -81,50 +81,67 @@ list(
                     p(
                       tags$a(
                         href = "assets/docs/LSP_OptimalKinase_educationSheet.docx",
-                        "Kinases", icon("file-download")
+                        icon("file-download"), 
+                        "Kinases" 
                       )
                     ),
                     p(
                       tags$a(
                         href = "assets/docs/LSP_MoA_educationSheet.docx",
-                        "MOA", icon("file-download")
+                        icon("file-download"),
+                        "MOA"
                       )
                     )
-                  ),
+                  ) %>% 
+                    shadow(),
                   card(
                     h5("I have a gene and—"),
                     p(
                       linkInput(
                         id = "goto_selectivity_1",
-                        label = "I need a full list of small molecules"
+                        label = list(
+                          icon("share"),
+                          "I need a full list of small molecules"
+                        )
                       )
                     ),
                     p(
                       linkInput(
                         id = "goto_selectivity_2",
-                        label = "I need two orthogonal small molecules"
+                        label = list(
+                          icon("share"), 
+                          "I need two orthogonal small molecules"
+                        )
                       )
                     )
-                  ),
+                  ) %>% 
+                    shadow(),
                   card(
                     h5("I have a compound and—"),
                     p(
                       linkInput(
                         id = "goto_similarity_1",
-                        label = "I would like to know what compounds are similar"
+                        label = list(
+                          icon("share"),
+                          "I would like to know what compounds are similar"
+                        )
                       )
                     ),
                     p(
                       linkInput(
                         id = "goto_similarity_2",
-                        label = "What are the targets?"
+                        label = list(
+                          icon("share"),
+                          "What are the targets?"
+                        )
                       )
                     )
-                  ),
-                  card(
-                    h5("I have a more complex case—"),
-                    p("See application links below.")
-                  )
+                  ) %>% 
+                    shadow()
+                  # card(
+                  #   h5("I have a more complex case—"),
+                  #   p("See application links below.")
+                  # )
                 )
               )
             ) %>% 

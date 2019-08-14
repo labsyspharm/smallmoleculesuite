@@ -45,6 +45,20 @@ function(input, output, session) {
     )
   })
   
+  observe({
+    req(c(input$goto_selectivity_1, input$goto_selectivity_2))
+    
+    updateNavInput("nav", selected = "selectivity")
+    showNavPane("page_selectivity")
+  })
+  
+  observe({
+    req(c(input$goto_similarity_1, input$goto_similarity_2))
+    
+    updateNavInput("nav", selected = "similarity")
+    showNavPane("page_similarity")
+  })
+  
   callModule(
     module = selectivityServer,
     id = "select"
