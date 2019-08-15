@@ -58,7 +58,13 @@ similarityUI <- function(id) {
               dataTableOutput(
                 # binding_data
                 outputId = ns("table_ref_compound")
-              )
+              ),
+              downloadButton(
+                class = "similarity--green",
+                outputId = ns("export_ref_data"),
+                label = "Export compound data"
+              ) %>% 
+                margin(top = 3)
             )
           ),
           navPane(
@@ -266,6 +272,29 @@ similarityServer <- function(input, output, session) {
       dplyr::select(name_1, name_2, structural_similarity, PFP, TAS)
       # SharedData$new("name_2")
   })
+  
+  output$export_ref_data <- downloadHandler(
+    filename = function() {
+      paste0("binding-data-", input$query_compound, ".zip")
+    },
+    content = function(path) {
+      contents <- list(
+        dplyr::filter(data_affinity_selectivity, name == input$query_compound)
+      )
+      names(contents) <- paste0(input$query_compound, ".csv")
+      
+      if (!is.null(r_sim_selection())) {
+        ids <- r_sim_data()$hmsID_1[r_sim_selection()]
+        names(ids) <- paste0(r_sim_data()$name_2[r_sim_selection()], ".csv")
+        
+        contents <- c(contents, lapply(ids, function(id) {
+          dplyr::filter(data_affinity_selectivity, hms_id == id)
+        }))
+      }
+      
+      write_zip(contents, path)
+    }
+  )
   
   output$table_ref_compound <- DT::renderDataTable(
     r_ref_data(),

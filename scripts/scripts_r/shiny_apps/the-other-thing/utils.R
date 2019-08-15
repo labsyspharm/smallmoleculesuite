@@ -1,24 +1,19 @@
-zipped_csv <- function(df_list, zippedfile, filenames, stamp) {
-  dir = tempdir()
-  mkdir = paste0("mkdir ", dir, "/", stamp)
-  system(mkdir)
-  len = length(df_list)
-  for (i in 1:len) {
-    # filename in temp directory 
-    assign(paste0("temp",i), paste0(dir, "/", stamp, "/", filenames[i], ".csv"))
-    # write temp csv
-    write_csv(df_list[[i]], path=get(paste0("temp",i)))
-  }
+write_zip <- function(contents, path) {
+  stopifnot(class(contents) == "list")
   
-  # zip temp csv
-  print(dir)
-  print(filenames)
+  contents_paths <- Map(df = contents, file = names(contents), function(df, file) {
+    temp_file <- fs::path_temp(file)
+    readr::write_csv(df, temp_file)
+    temp_file
+  })
   
-  zip(zippedfile, paste0(dir,"/", stamp, "/", filenames, ".csv"), flags = "-j" )
-  # delete temp csv
-  for(i in 1:len) {
-    unlink( paste0("temp",i) )
-  }
+  contents_paths <- vapply(contents_paths, as.character, character(1))
+  
+  on.exit({
+    fs::file_delete(contents_paths)
+  })
+  
+  zip(path, contents_paths, flags = "-j")
 }
 
 makeQueryString <- function(lst) {

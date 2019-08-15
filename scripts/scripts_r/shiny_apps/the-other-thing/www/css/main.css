@@ -33,6 +33,11 @@ html {
   color: #00AC9F !important;
 }
 
+.similarity--green.btn {
+  background-color: #00ac9f !important;
+  color: white !important;
+}
+
 .active--green .active,
 .active--green .irs-bar,
 .active--green .irs-bar-edge, 
