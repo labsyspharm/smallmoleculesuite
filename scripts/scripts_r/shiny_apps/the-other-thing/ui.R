@@ -157,7 +157,9 @@ list(
                 linkInput(
                   id = "link_selectivity",
                   label = list(
-                    icon("circle", class = "fa-6x selectivity--pink"),
+                    tags$img(src = "assets/img/helix.png") %>% 
+                      height(10),
+                    # icon("circle", class = "fa-6x selectivity--pink"),
                     h4("Selectivity") %>% 
                       font(color = "black") %>% 
                       margin(top = 2)
@@ -172,7 +174,9 @@ list(
                 linkInput(
                   id = "link_similarity",
                   label = list(
-                    icon("circle", class = "fa-6x similarity--green"),
+                    tags$img(src = "assets/img/molecule.png") %>% 
+                      height(10),
+                    # icon("circle", class = "fa-6x similarity--green"),
                     h4("Similarity") %>% 
                       font(color = "black") %>% 
                       margin(top = 2)
@@ -187,7 +191,9 @@ list(
                 linkInput(
                   id = "link_library",
                   label = list(
-                    icon("circle", class = "fa-6x text-orange"),
+                    tags$img(src = "assets/img/flask.png") %>% 
+                      height(10),
+                    # icon("circle", class = "fa-6x text-orange"),
                     h4("Library") %>% 
                       font(color = "black") %>% 
                       margin(top = 2)
