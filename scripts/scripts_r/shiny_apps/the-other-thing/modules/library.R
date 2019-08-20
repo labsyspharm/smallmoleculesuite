@@ -131,9 +131,9 @@ libraryUI <- function(id) {
                     shiny::sliderInput(
                       inputId = ns("filter_affinity"), 
                       label = NULL,
-                      min = log10(10),
-                      max = log10(10000), 
-                      value = log10(1000)
+                      min = 0,
+                      max = 5, 
+                      value = 3
                     )
                   )
                 ),
@@ -157,9 +157,10 @@ libraryUI <- function(id) {
                     shiny::sliderInput(
                       inputId = ns("filter_sd"), 
                       label = NULL,
-                      min = log10(10), 
-                      max = log10(100000), 
-                      value = log10(100)
+                      min = 0, 
+                      max = 5, 
+                      step = 1,
+                      value = 2
                     )
                   )
                 )

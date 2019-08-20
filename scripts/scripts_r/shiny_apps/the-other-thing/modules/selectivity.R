@@ -63,12 +63,12 @@ selectivityUI <- function(id) {
             formGroup(
               label = "Minimum number of measurements",
               input = div(
-                class = "logify-slider active--pink",
+                class = "active--pink",
                 shiny::sliderInput(
                   inputId = ns("min_measurements"),
                   label = NULL, 
                   min = 1,
-                  max = 15,
+                  max = 40,
                   step = 1,
                   value = 2
                 )
