@@ -101,7 +101,7 @@ list(
                         id = "goto_selectivity_1",
                         label = list(
                           icon("share"),
-                          "I need a full list of small molecules"
+                          "I need a full list of small molecules that target a gene of interest."
                         )
                       )
                     ),
@@ -123,7 +123,7 @@ list(
                         id = "goto_similarity_1",
                         label = list(
                           icon("share"),
-                          "I would like to know what compounds are similar"
+                          "I would like to know which small molecules are similar to a small molecule of interest"
                         )
                       )
                     ),
