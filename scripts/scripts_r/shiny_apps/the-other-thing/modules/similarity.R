@@ -62,7 +62,7 @@ similarityUI <- function(id) {
               downloadButton(
                 class = "similarity--green",
                 outputId = ns("export_ref_data"),
-                label = "Export compound data"
+                label = "Download binding data"
               ) %>% 
                 margin(top = 3)
             )
