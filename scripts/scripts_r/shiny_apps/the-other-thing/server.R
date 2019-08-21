@@ -2,10 +2,10 @@ function(input, output, session) {
   observe({
     switch(
       input$nav,
-      home = showNavPane("page_home"),
-      selectivity = showNavPane("page_selectivity"),
-      similarity = showNavPane("page_similarity"),
-      library = showNavPane("page_library")
+      home = pushRoute("/home"),
+      selectivity = pushRoute("/selectivity"),
+      similarity = pushRoute("/similarity"),
+      library = pushRoute("/library")
     )
   }) 
 
@@ -21,7 +21,15 @@ function(input, output, session) {
     )
   })
   
-  observeEvent(input$link_selectivity, {
+  observeRoute("/home", {
+    showNavPane("page_home")
+  })
+  
+  observeEvent(c(input$link_selectivity, input$goto_selectivity_1), {
+    pushRoute("/selectivity")
+  })
+  
+  observeRoute("/selectivity", {
     showNavPane("page_selectivity")
     updateNavInput(
       id = "nav",
@@ -29,7 +37,11 @@ function(input, output, session) {
     )
   })
   
-  observeEvent(input$link_similarity, {
+  observeEvent(c(input$link_similarity, input$goto_similarity_1, input$goto_similarity_2), {
+    pushRoute("/similarity")
+  })
+  
+  observeRoute("/similarity", {
     showNavPane("page_similarity")
     updateNavInput(
       id = "nav",
@@ -37,26 +49,16 @@ function(input, output, session) {
     )
   })
   
-  observeEvent(input$link_library, {
+  observeEvent(c(input$link_library, input$goto_library_1), {
+    pushRoute("/library")
+  })
+  
+  observeRoute("/library", {
     showNavPane("page_library")
     updateNavInput(
       id = "nav",
       selected = "library"
     )
-  })
-  
-  observe({
-    req(c(input$goto_selectivity_1, input$goto_selectivity_2))
-    
-    updateNavInput("nav", selected = "selectivity")
-    showNavPane("page_selectivity")
-  })
-  
-  observe({
-    req(c(input$goto_similarity_1, input$goto_similarity_2))
-    
-    updateNavInput("nav", selected = "similarity")
-    showNavPane("page_similarity")
   })
   
   callModule(

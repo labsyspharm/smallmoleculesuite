@@ -11,6 +11,7 @@ library(glue)
 library(aws.s3)
 library(fs)
 
+library(blaze)
 library(yonder)
 
 source("modules/selectivity.R", local = TRUE)

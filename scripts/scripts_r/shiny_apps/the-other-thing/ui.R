@@ -7,6 +7,7 @@ list(
   DT:::DTDependency("default"),
   DT:::extDependency("Buttons", "default", list()),
   tags$head(
+    tags$script(src = "blaze/js/blaze.js"),
     tags$link(href="https://fonts.googleapis.com/css?family=Lato:400,700&display=swap", rel="stylesheet"),
     tags$link(rel = "stylesheet", type = "text/css", href = "css/slider.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "css/main.css"),
@@ -107,10 +108,10 @@ list(
                     ),
                     p(
                       linkInput(
-                        id = "goto_selectivity_2",
+                        id = "goto_library_1",
                         label = list(
                           icon("share"), 
-                          "I need two orthogonal small molecules"
+                          "I need two orthogonal small molecules for a set of targets"
                         )
                       )
                     )
