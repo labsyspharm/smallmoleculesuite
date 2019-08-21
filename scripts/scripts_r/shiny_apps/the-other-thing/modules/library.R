@@ -15,53 +15,41 @@ libraryUI <- function(id) {
         navContent(
           navPane(
             id = ns("pane_filters"),
-            radiobarInput(
-              id = ns("gene_nav"),
-              choices = c("Gene input", "Results"),
-              values = c("input", "results"),
-              selected = "input"
-            ) %>% 
-              width("full") %>% 
-              margin(bottom = 3) %>% 
-              active("orange"),
-            navContent(
-              navPane(
-                id = ns("pane_input"),
-                p(
-                  "Type or paste gene symbols in the text box below to generate a downloadable table of drugs targetting those genes.",
-                  "One gene per line."
+            p(
+              "Type or paste gene symbols in the text box below to generate a downloadable table of drugs targetting those genes.",
+              "One gene per line."
+            ),
+            formInput(
+              id = ns("gene_form"),
+              formGroup(
+                label = "Genes (target drugs)",
+                input = shiny::textAreaInput(
+                  inputId = ns("gene_list"),
+                  label = NULL,
+                  rows = 5
                 ),
-                formInput(
-                  id = ns("gene_form"),
-                  formGroup(
-                    label = "Genes (target drugs)",
-                    input = shiny::textAreaInput(
-                      inputId = ns("gene_list"),
-                      label = NULL,
-                      rows = 5
-                    ),
-                    help = div(
-                      "This tool uses HUGO names. Please see ", 
-                      tags$a(target = "_blank", href = "genenames.org", "genenames.org"),
-                      " for help."
-                    )
-                  ),
-                  formSubmit(
-                    label = "Pre-defined gene sets"
-                  ) %>% 
-                    background("orange")
-                ) %>% 
-                  margin(bottom = 3),
-                formGroup(
-                  label = "Example gene lists",
-                  input = selectInput(
-                    id = ns("gene_example"),
-                    choices = names(data_genes), # data/load.R
-                    selected = names(data_genes)[1]
-                  ),
-                  help = "Selecting a choice will populate the input above with an example list of genes."
+                help = div(
+                  "This tool uses HUGO names. Please see ", 
+                  tags$a(target = "_blank", href = "genenames.org", "genenames.org"),
+                  " for help."
                 )
               ),
+              formSubmit(
+                label = "Pre-defined gene sets"
+              ) %>% 
+                background("orange")
+            ) %>% 
+              margin(bottom = 3),
+            formGroup(
+              label = "Example gene lists",
+              input = selectInput(
+                id = ns("gene_example"),
+                choices = names(data_genes), # data/load.R
+                selected = names(data_genes)[1]
+              ),
+              help = "Selecting a choice will populate the input above with an example list of genes."
+            ),
+            navContent(
               navPane(
                 id = ns("pane_results"),
                 p(
@@ -229,14 +217,6 @@ libraryServer <- function(input, output, session) {
     )
   })
   
-  observeEvent(input$gene_nav, {
-    switch(
-      input$gene_nav,
-      input = showNavPane(ns("pane_input")),
-      results = showNavPane(ns("pane_results"))
-    )
-  })
-  
   # Load an example gene list
   observeEvent(input$gene_example, {
     shiny::updateTextAreaInput(
@@ -248,14 +228,6 @@ libraryServer <- function(input, output, session) {
   })
   
   observeEvent(input$gene_form, {
-    updateRadiobarInput(
-      id = "gene_nav", 
-      choices = c("Gene input", "Results"),
-      values = c("input", "results"),
-      selected = "results",
-      session = session
-    )
-    
     showNavPane(ns("pane_results"))
   })
   
