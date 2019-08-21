@@ -298,7 +298,7 @@ similarityServer <- function(input, output, session) {
   
   output$table_ref_compound <- DT::renderDataTable(
     r_ref_data(),
-    class = "font-size-sm",
+    class = "font-size-sm datatable--compact",
     options = list(
       # autoWidth = TRUE,
       dom = "t",
