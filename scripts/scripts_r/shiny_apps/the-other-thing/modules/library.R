@@ -45,7 +45,7 @@ libraryUI <- function(id) {
               input = selectInput(
                 id = ns("gene_example"),
                 choices = names(data_genes), # data/load.R
-                selected = names(data_genes)[1]
+                selected = "Dark_Kinome"
               ),
               help = "Selecting a choice will populate the input above with an example list of genes."
             ),
