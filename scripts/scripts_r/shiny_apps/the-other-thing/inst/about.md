@@ -9,11 +9,18 @@ Nienke Moret, Nicholas A. Clark, Marc Hafner, Yuan Wang, Eugen Lounkine, Mario M
 ### Development and links
 
 Design/idea by [Nienke Moret](https://scholar.harvard.edu/nienkemoret) and [Marc Hafner](https://scholar.harvard.edu/hafner) (HMS - LINCS data and signature generation center)<br>
-R code by [Nienke Moret](https://scholar.harvard.edu/nienkemoret) (HMS - LINCS data and signature generation center)<br>
-Shiny/R web application development by [Nicholas Clark](https://github.com/NicholasClark) (U of Cincinnati - LINCS data coordination and integration center)<br>
-Supervision by [Peter Sorger](https://sorger.med.harvard.edu/people/peter-sorger-phd/) (HMS - LINCS data and signature generation center)<br>
-Icon design and development by [Vasileios Stathias](http://ccs.miami.edu/team_member/vasileios-vas-stathias/) (U of Miami - LINCS data coordination and integration center)<br>
-Project <a href = "https://github.com/labsyspharm/smallmoleculesuite">github repository <img src="assets/img/GitHub-Mark-32px.png"></a> and <a href="https://hub.docker.com/r/ucbd2k/smallmoleculesuite/">docker image <img src="assets/img/moby.png" height="40px"></a><br>
+R code by [Nienke Moret](https://scholar.harvard.edu/nienkemoret) (HMS - LINCS data and signature generation center)
+<br>
+Shiny/R web application development by [Nicholas Clark](https://github.com/NicholasClark) (U of Cincinnati - LINCS data coordination and integration center)
+<br>
+Supervision by [Peter Sorger](https://sorger.med.harvard.edu/people/peter-sorger-phd/) (HMS - LINCS data and signature generation center)
+<br>
+Icon design and development by [Vasileios Stathias](http://ccs.miami.edu/team_member/vasileios-vas-stathias/) (U of Miami - LINCS data coordination and integration center)
+<br>
+Project <a href="https://github.com/labsyspharm/smallmoleculesuite">github repository <img src="assets/img/GitHub-Mark-32px.png"></a>,
+<a href="https://hub.docker.com/r/ucbd2k/smallmoleculesuite/">docker image <img src="assets/img/moby.png" height="40px"></a>, 
+and [RDKit](https://rdkit.org).
+<br>
 This work was supported by NIH grants **U54-HL127365**, **U24-DK116204** and **U54-HL127624**.
 
 ### Related web-tools
