@@ -185,7 +185,7 @@ similarityServer <- function(input, output, session) {
     updateSelectInput(
       id = "query_compound",
       choices = x_compounds,
-      selected = x_compounds[1],
+      selected = "Nilotinib",
       session = session
     )
   })
