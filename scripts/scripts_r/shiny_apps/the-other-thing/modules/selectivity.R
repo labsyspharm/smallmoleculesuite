@@ -157,7 +157,7 @@ selectivityServer <- function(input, output, session) {
       id = "query_gene",
       choices = selection_genes(),
       values = selection_genes(),
-      selected = input$query_gene %||% selection_genes()[1],
+      selected = input$query_gene %||% "BRAF",
       session = session
     )
   })
