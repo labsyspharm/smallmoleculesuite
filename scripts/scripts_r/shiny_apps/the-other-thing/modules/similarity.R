@@ -320,7 +320,7 @@ similarityServer <- function(input, output, session) {
     extensions = c('Buttons', "Select"),
     # fillContainer = TRUE,
     rownames = FALSE, 
-    server = TRUE,
+    server = FALSE,
     # style = "bootstrap",
     options = list(
       autoWidth = TRUE,
