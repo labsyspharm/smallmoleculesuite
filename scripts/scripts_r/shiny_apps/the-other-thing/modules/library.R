@@ -22,7 +22,7 @@ libraryUI <- function(id) {
             formInput(
               id = ns("gene_form"),
               formGroup(
-                label = "Genes (target drugs)",
+                label = "Gene name of target drug",
                 input = shiny::textAreaInput(
                   inputId = ns("gene_list"),
                   label = NULL,
