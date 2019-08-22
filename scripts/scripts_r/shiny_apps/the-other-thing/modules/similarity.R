@@ -53,7 +53,11 @@ similarityUI <- function(id) {
             div(
               tags$label(
                 `for` = ns("table_ref_compound"),
-                "Reference compound"
+                # "Reference compound"
+                textOutput(
+                  outputId = ns("title_ref_compound"),
+                  inline = TRUE
+                )
               ),
               dataTableOutput(
                 # binding_data
@@ -209,6 +213,14 @@ similarityServer <- function(input, output, session) {
       "Compound similarities for", input$query_compound, 
       "from HMS LINCS small molecule library"
     )
+  })
+  
+  output$title_ref_compound <- renderText({
+    if (is.null(input$query_compound)) {
+      "Select compound"
+    } else {
+      paste(input$query_compound, "reference")
+    }
   })
   
   r_sim_data <- reactive({
