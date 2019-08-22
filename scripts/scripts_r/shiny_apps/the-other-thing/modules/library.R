@@ -417,7 +417,7 @@ libraryServer <- function(input, output, session) {
     DT::datatable(
       .data,
       extensions = c("Buttons"),
-      fillContainer = TRUE,
+      fillContainer = FALSE,
       filter = "top",
       rownames = FALSE,
       options = list(

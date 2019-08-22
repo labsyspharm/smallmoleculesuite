@@ -307,7 +307,7 @@ selectivityServer <- function(input, output, session) {
   })
   
   tbl_table <- reactive({
-    tbl_data() %>% 
+    .data <- tbl_data() %>% 
       dplyr::mutate(
         name = glue(
           "<a target='_blank' 
@@ -318,44 +318,54 @@ selectivityServer <- function(input, output, session) {
         name = lapply(name, HTML),
         ` ` = NA_character_
       ) %>% 
-      dplyr::select(` `, dplyr::everything()) %>% 
-      DT::datatable(
-        extensions = c('Buttons', "Select"),
-        fillContainer = TRUE,
-        rownames = FALSE,
-        selection = "multiple",
-        options = list(
-          autoWidth = TRUE,
-          buttons = list(
-            list(extend = "copy"),
-            list(extend = "csv"),
-            list(extend = "excel"),
-            list(
-              extend = "colvis",
-              columns = ":not(.select-checkbox)"
-            )
-          ),
-          columnDefs = list(
-            list(
-              className = "select-checkbox",
-              orderable = FALSE,
-              targets = 0
-            ),
-            list(
-              visible = FALSE,
-              targets = match(c("investigation_bias", "wilcox_pval", "IC50_diff"), names(c_binding_data())) - 1
-            )
-          ),
-          dom = 'lfrtipB',
-          pagingType = "numbers",
-          scrollX = FALSE,
-          searchHighlight = TRUE,
-          select = list(
-            style = "os",
-            selector = "td.select-checkbox"
+      dplyr::select(` `, dplyr::everything())
+    
+    DT::datatable(
+      .data,
+      extensions = c('Buttons', "Select"),
+      fillContainer = FALSE,
+      rownames = FALSE,
+      selection = "multiple",
+      options = list(
+        autoWidth = TRUE,
+        buttons = list(
+          list(extend = "copy"),
+          list(extend = "csv"),
+          list(extend = "excel"),
+          list(
+            extend = "colvis",
+            columns = ":not(.select-checkbox)"
           )
+        ),
+        columnDefs = list(
+          list(
+            className = "select-checkbox",
+            orderable = FALSE,
+            targets = 0
+          ),
+          list(
+            targets = grep(
+              pattern = "^( |name|symbol|selectivity_class|On_target_Q1|off_target_Q1)$", 
+              x = names(.data),
+              invert = TRUE
+            ) - 1,
+            visible = FALSE
+          ),
+          list(
+            visible = FALSE,
+            targets = match(c("investigation_bias", "wilcox_pval", "IC50_diff"), names(.data)) - 1
+          )
+        ),
+        dom = 'lfrtipB',
+        pagingType = "numbers",
+        scrollX = FALSE,
+        searchHighlight = TRUE,
+        select = list(
+          style = "os",
+          selector = "td.select-checkbox"
         )
       )
+    )
   })
   
   output$output_table <- DT::renderDataTable(
