@@ -37,6 +37,12 @@ list(
         )
       ) %>% 
         margin(left = "auto"),
+      # buttonInput(
+      #   id = "bookmark",
+      #   label = icon("link")
+      # ) %>% 
+      #   background("black") %>% 
+      #   font(color = "white"),
       buttonInput(
         id = "about",
         label = "About"

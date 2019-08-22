@@ -75,4 +75,12 @@ function(input, output, session) {
     module = libraryServer,
     id = "lib"
   )
+  
+  # observeEvent(input$bookmark, {
+  #   session$doBookmark()
+  # })
+  # 
+  # onBookmarked(function(url) {
+  #   updateQueryString(url)
+  # })
 }
