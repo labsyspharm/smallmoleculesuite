@@ -39,6 +39,7 @@ $(function() {
     var $dt = $(e.currentTarget);
     
     $dt.find(".dt-paginate span").addClass("btn-group");
+    $dt.find("table").wrap("<div class='table-responsive'></div>");
   });
   
   Shiny.addCustomMessageHandler("click.library.sm", function(msg) {
@@ -47,8 +48,14 @@ $(function() {
     }, 100);
   });
   
-  $document.on("user-select", ".datatables", function(e) {
-    console.log(e);
-    // e.stopPropagation();
-  });
+/*  $document.on("shiny:recalculated", ".datatables", function(e) {
+    $(e.currentTarget).find("table").wrap(function(i) {
+      var $this = $(this);
+      
+      console.log($this);
+      
+      $this.wrap("<div class='table-responsive'></div>");
+    });
+  });*/
+  
 });

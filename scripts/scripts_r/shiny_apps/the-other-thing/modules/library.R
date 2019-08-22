@@ -408,36 +408,38 @@ libraryServer <- function(input, output, session) {
   r_tbl <- reactive({
     req(input$table_display)
     
-    DT::datatable({
-      if (input$table_display == "entry") {
-        r_table_entry()
-      } else if (input$table_display == "compound") {
-        r_table_compound()
-      }
-    },
-    extensions = c("Buttons"),
-    fillContainer = TRUE,
-    filter = "top",
-    rownames = FALSE,
-    options = list(
-      autoWidth = TRUE,
-      buttons = list(
-        list(extend = "copy"),
-        list(extend = "csv", filename = "sm-library-compounds"),
-        list(extend = "excel", filename = "sm-library-compounds"),
-        list(extend = "colvis")
-      ),
-      columnDefs = if (input$table_display == "compound") {
-        list(list(targets = 0, visible = FALSE))
-      },
-      dom = "lfrtipB",
-      fixedHeader = list(
-        header = TRUE
-      ),
-      pagingType = "numbers",
-      searchHighlight = TRUE,
-      scrollX = TRUE
-    ))
+    .data <- if (input$table_display == "entry") {
+      r_table_entry()
+    } else if (input$table_display == "compound") {
+      r_table_compound()
+    }
+    
+    DT::datatable(
+      .data,
+      extensions = c("Buttons"),
+      fillContainer = TRUE,
+      filter = "top",
+      rownames = FALSE,
+      options = list(
+        autoWidth = TRUE,
+        buttons = list(
+          list(extend = "copy"),
+          list(extend = "csv", filename = "sm-library-compounds"),
+          list(extend = "excel", filename = "sm-library-compounds"),
+          list(extend = "colvis")
+        ),
+        columnDefs = if (input$table_display == "compound") {
+          list(list(targets = 0, visible = FALSE))
+        },
+        dom = "lfrtipB",
+        fixedHeader = list(
+          header = TRUE
+        ),
+        pagingType = "numbers",
+        searchHighlight = TRUE,
+        scrollX = FALSE
+      )
+    )
   })
   
   output$table_results <- DT::renderDataTable(

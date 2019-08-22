@@ -348,7 +348,7 @@ selectivityServer <- function(input, output, session) {
           ),
           dom = 'lfrtipB',
           pagingType = "numbers",
-          scrollX = TRUE,
+          scrollX = FALSE,
           searchHighlight = TRUE,
           select = list(
             style = "os",
@@ -453,7 +453,7 @@ selectivityServer <- function(input, output, session) {
             }
           ),
           pagingType = "numbers",
-          scrollX = TRUE
+          scrollX = FALSE
           # autoWidth = TRUE
         )
       )

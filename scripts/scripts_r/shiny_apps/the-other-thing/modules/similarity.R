@@ -311,42 +311,59 @@ similarityServer <- function(input, output, session) {
   )
   
   # output_table
-  output$table_sim_compound = DT::renderDataTable(
-    r_sim_data() %>% 
+  r_tbl_sim_compound <- reactive({
+    .data <- r_sim_data() %>% 
       dplyr::mutate(
         ` ` = NA
       ) %>% 
-      dplyr::select(` `, dplyr::everything()),
-    extensions = c('Buttons', "Select"),
-    # fillContainer = TRUE,
-    rownames = FALSE, 
-    server = FALSE,
-    # style = "bootstrap",
-    options = list(
-      autoWidth = TRUE,
-      buttons = list(
-        list(extend = "copy"),
-        list(extend = "csv"),
-        list(extend = "excel"),
-        list(
-          extend = "colvis",
-          columns = ":not(.select-checkbox)"
-        )
-      ),
-      columnDefs = list(
-        list(
-          className = "select-checkbox",
-          orderable = FALSE,
-          targets = 0
-        )
-      ),
-      dom = 'lfrtipB',
-      pagingType = "numbers",
-      scrollCollapse = TRUE,
-      scrollX = TRUE,
-      searchHighlight = TRUE,
-      stateSave = TRUE
+      dplyr::select(` `, dplyr::everything())
+    
+    DT::datatable(
+      .data,
+      extensions = c('Buttons', "Select"),
+      # fillContainer = TRUE,
+      rownames = FALSE, 
+      # style = "bootstrap",
+      options = list(
+        autoWidth = TRUE,
+        buttons = list(
+          list(extend = "copy"),
+          list(extend = "csv"),
+          list(extend = "excel"),
+          list(
+            extend = "colvis",
+            columns = ":not(.select-checkbox)"
+          )
+        ),
+        columnDefs = list(
+          list(
+            targets = grep(
+              pattern = "^( |name_1|name_2|structural_similarity|PFP|TAS)$",
+              x = names(.data),
+              invert = TRUE
+            ) - 1,
+            visible = FALSE
+          ),
+          list(
+            className = "select-checkbox",
+            orderable = FALSE,
+            visible = TRUE,
+            targets = 0
+          )
+        ),
+        dom = 'lfrtipB',
+        pagingType = "numbers",
+        scrollCollapse = TRUE,
+        scrollX = FALSE,
+        searchHighlight = TRUE,
+        stateSave = TRUE
+      )
     )
+  })
+  
+  output$table_sim_compound = DT::renderDataTable(
+    r_tbl_sim_compound(),
+    server = FALSE
   )
   
   # mainplot1
@@ -585,7 +602,7 @@ similarityServer <- function(input, output, session) {
           "No data available"
         }
       ),
-      scrollX = TRUE,
+      scrollX = FALSE,
       pagingType = "numbers"
     )
   })
