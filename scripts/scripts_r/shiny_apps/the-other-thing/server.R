@@ -9,16 +9,14 @@ function(input, output, session) {
     )
   }) 
 
-  .modal_body <- HTML(htmltools::includeMarkdown("inst/about.md"))  
+  .modal_body <- modal(
+    id = NULL,
+    size = "lg",
+    header = h5("About"),
+    HTML(htmltools::includeMarkdown("inst/about.md"))
+  )
   observeEvent(input$about, {
-    showModal(
-      modal(
-        id = NULL,
-        size = "lg",
-        title = "About",
-        .modal_body
-      )
-    )
+    showModal(.modal_body)
   })
   
   observeRoute("/home", {
@@ -76,11 +74,40 @@ function(input, output, session) {
     id = "lib"
   )
   
-  # observeEvent(input$bookmark, {
-  #   session$doBookmark()
-  # })
-  # 
-  # onBookmarked(function(url) {
-  #   updateQueryString(url)
-  # })
+  .modal_bookmark <- modal(
+    # id = "modal_bookmark",
+    id = NULL,
+    textInput(
+      id = "bookmark_name",
+      value = "my_save"
+    ),
+    buttonInput(id = "bookmark_done", "Done")
+  )
+  
+  observeEvent(input$bookmark_begin, {
+    showModal(.modal_bookmark)
+  })
+  
+  observeEvent(input$bookmark_done, {
+    closeModal()
+    session$doBookmark()
+  })
+  
+  onRestored(function(state) {
+    qs <- getQueryString()
+    
+    save_name <- qs$q
+    
+    if (!is.null(.SAVE_STATE[[save_name]])) {
+      print(.SAVE_STATE[[save_name]])
+    }
+  })
+
+  onBookmarked(function(url) {
+    save_name <- input$bookmark_name
+    
+    .SAVE_STATE[[save_name]] <- reactiveValuesToList(input)
+    
+    updateQueryString(paste0("?q=", save_name), "replace")
+  })
 }

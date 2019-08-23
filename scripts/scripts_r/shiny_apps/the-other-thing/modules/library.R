@@ -252,7 +252,7 @@ libraryServer <- function(input, output, session) {
     showModal(
       modal(
         id = NULL,
-        title = "Unqualified targets",
+        header = h5("Unqualified targets"),
         p("The following targets do not have a known qualifying ligand, please check HUGO name: "),
         p(paste(r_gene_unknown(), collapse = ", "))
       )
