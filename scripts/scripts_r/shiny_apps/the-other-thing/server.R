@@ -90,7 +90,14 @@ function(input, output, session) {
   
   observeEvent(input$bookmark_done, {
     closeModal()
-    session$doBookmark()
+    
+    f_name <- paste0(paste(replicate(4, sample(1000, 1)), collapse = ""), ".rds")
+    
+    f_path <- fs::file_create(fs::path_home("Downloads", f_name))
+    
+    saveRDS(shiny::reactiveValuesToList(path), path)
+    
+    pushQuery(bookmark = )
   })
   
   onRestored(function(state) {
