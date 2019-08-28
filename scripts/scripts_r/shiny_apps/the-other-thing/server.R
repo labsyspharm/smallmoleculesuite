@@ -1,12 +1,11 @@
 function(input, output, session) {
-  observe({
-    switch(
-      input$nav,
-      home = pushRoute("/home"),
-      selectivity = pushRoute("/selectivity"),
-      similarity = pushRoute("/similarity"),
-      library = pushRoute("/library")
-    )
+  navToPage <- function(name) {
+    updateNavInput("nav", selected = name)
+    showNavPane(paste0("page_", name))
+  }
+  
+  observeEvent(input$nav, {
+    navToPage(input$nav)
   }) 
 
   .modal_body <- modal(
@@ -19,44 +18,16 @@ function(input, output, session) {
     showModal(.modal_body)
   })
   
-  observeRoute("/home", {
-    showNavPane("page_home")
-  })
-  
   observeEvent(c(input$link_selectivity, input$goto_selectivity_1), {
-    pushRoute("/selectivity")
-  })
-  
-  observeRoute("/selectivity", {
-    showNavPane("page_selectivity")
-    updateNavInput(
-      id = "nav",
-      selected = "selectivity"
-    )
+    navToPage("selectivity")
   })
   
   observeEvent(c(input$link_similarity, input$goto_similarity_1, input$goto_similarity_2), {
-    pushRoute("/similarity")
-  })
-  
-  observeRoute("/similarity", {
-    showNavPane("page_similarity")
-    updateNavInput(
-      id = "nav",
-      selected = "similarity"
-    )
+    navToPage("similarity")
   })
   
   observeEvent(c(input$link_library, input$goto_library_1), {
-    pushRoute("/library")
-  })
-  
-  observeRoute("/library", {
-    showNavPane("page_library")
-    updateNavInput(
-      id = "nav",
-      selected = "library"
-    )
+    navToPage("library")
   })
   
   callModule(
@@ -74,47 +45,69 @@ function(input, output, session) {
     id = "lib"
   )
   
-  .modal_bookmark <- modal(
-    # id = "modal_bookmark",
-    id = NULL,
-    textInput(
-      id = "bookmark_name",
-      value = "my_save"
-    ),
-    buttonInput(id = "bookmark_done", "Done")
-  )
-  
   observeEvent(input$bookmark_begin, {
-    showModal(.modal_bookmark)
-  })
-  
-  observeEvent(input$bookmark_done, {
     closeModal()
     
-    f_name <- paste0(paste(replicate(4, sample(1000, 1)), collapse = ""), ".rds")
+    bookmark_id <- create_bookmark_id()
+    bookmark_url <- paste0("?bookmark=", bookmark_id)
+
+    input_list <- reactiveValuesToList(input, all.names = TRUE)
     
-    f_path <- fs::file_create(fs::path_home("Downloads", f_name))
+    # input_list_save = input_list[c("filter_button",
+    #                                "probes", "clinical", "legacy",
+    #                                "affinity", "meas", "sd"
+    # )]
     
-    saveRDS(shiny::reactiveValuesToList(path), path)
+    aws.s3::s3saveRDS(
+      x = input_list, 
+      bucket = "small-molecule-suite", 
+      object = paste0("sms_bookmarks/", bookmark_id, "/", "input.rds"), 
+      check_region = FALSE
+    )
     
-    pushQuery(bookmark = )
+    showModal(
+      modal(
+        id = NULL,
+        header = "Session bookmarked",
+        p("Your bookmark id is ", bookmark_id)
+      )
+    )
+    
+    updateQueryString(bookmark_url)
   })
   
   onRestored(function(state) {
     qs <- getQueryString()
     
-    save_name <- qs$q
-    
-    if (!is.null(.SAVE_STATE[[save_name]])) {
-      print(.SAVE_STATE[[save_name]])
-    }
-  })
+    bookmark_id <- qs$bookmark
 
-  onBookmarked(function(url) {
-    save_name <- input$bookmark_name
+    s3_path <- paste0("sms_bookmarks/", bookmark_id, "/input.rds")
     
-    .SAVE_STATE[[save_name]] <- reactiveValuesToList(input)
+    if (!aws.s3::object_exists(s3_path, "small-molecule-suite", check_region = FALSE)) {
+      showModal(
+        modal(
+          id = NULL,
+          title = h3("Invalid bookmark id"),
+          p("Sorry, the bookmark id does not appear to exist.")
+        )
+      )
+      return()
+    }
     
-    updateQueryString(paste0("?q=", save_name), "replace")
+    stored_inputs <- aws.s3::s3readRDS(
+      object = s3_path,
+      bucket = "small-molecule-suite",
+      check_region = FALSE
+    )
+    
+    Map(
+      id = names(stored_inputs), 
+      value = stored_inputs, 
+      session = list(session),
+      f = restore_input
+    )
+    
+    showModal(modal(id = NULL, header = h3("Session restored")))
   })
+  
 }

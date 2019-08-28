@@ -11,8 +11,9 @@ library(glue)
 library(aws.s3)
 library(fs)
 
-library(blaze)
 library(yonder)
+
+source("awspass.config")
 
 source("modules/selectivity.R", local = TRUE)
 source("modules/similarity.R", local = TRUE)

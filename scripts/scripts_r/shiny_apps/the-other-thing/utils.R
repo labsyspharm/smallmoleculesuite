@@ -1,3 +1,9 @@
+create_bookmark_id <- function() {
+  date_time <- format(Sys.time(), "%Y%m%d-%H%M%S")
+  id <- substr(as.character(runif(1)), 3, 6)
+  paste0(date_time, "-", id)
+}
+
 write_zip <- function(contents, path) {
   stopifnot(class(contents) == "list")
   
@@ -47,4 +53,51 @@ dataTableOutput <- function(outputId, width = "100%", height = "auto") {
     width = width,
     height = height
   )
+}
+
+restore_input <- function(id, value, session) {
+  fun <- switch(
+    id,
+    `lib-table_display` = updateRadiobarInput,
+    # `goto_library_1` = 
+    # `goto_similarity_1` = 
+    # `goto_similarity_2` = 
+    `select-include_genes` = updateCheckboxInput,
+    `lib-gene_list` = updateTextAreaInput,
+    # `about` = 
+    `lib-filter_measurement` = updateSliderInput,
+    `lib-filter_sd` = updateSliderInput,
+    # `sim-compound_selection` = updateListGroupInput,
+    # `lib-nav` = 
+    # `goto_selectivity_1` = 
+    `lib-filter_affinity` = updateSliderInput,
+    `select-sd` = updateSliderInput,
+    `lib-filter_expert` = updateSliderInput,
+    # `select-select_gene` = updateListGroupInput
+    `lib-filter_phase` = updateCheckboxGroupInput,
+    # `sim-nav` = 
+    `sim-n_common` = updateSliderInput,
+    `sim-n_pheno` = updateSliderInput,
+    `select-min_measurements` = updateSliderInput,
+    `lib-filter_probes` = updateCheckboxInput,
+    `sim-query_compound` = updateSelectInput,
+    `lib-gene_example` = updateSelectInput,
+    `select-query_gene` = updateSelectInput,
+    `select-affinity` = updateSliderInput
+    # `lib-gene_form` = 
+  )
+  
+  if (is.null(fun)) {
+    return()
+  }
+  
+  if ("inputId" %in% names(as.list(args(fun)))) {
+    if (is.null(value)) {
+      return()
+    }
+    
+    fun(inputId = id, value = value, session = session)
+  } else {
+    fun(id = id, selected = value, session = session)
+  }
 }
