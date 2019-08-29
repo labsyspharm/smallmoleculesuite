@@ -71,7 +71,7 @@ function(req) {
               column(
                 d3("The Small Molecule Suite") %>% 
                   font(align = "center"),
-                p("Developed by the Harvard Initiative in Therapeutic Sciences (HiTS)") %>% 
+                p("Developed by the Harvard Program in Therapeutic Sciences (HiTS)") %>% 
                   font(align = "center") %>% 
                   margin(b = 5),
                 columns(
