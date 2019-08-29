@@ -50,6 +50,18 @@ similarityUI <- function(id) {
                 )
               )
             ),
+            formGroup(
+              label = "Use linked data",
+              input = div(
+                class = "active--green",
+                switchInput(
+                  id = ns("use_shared"),
+                  choices = "Using linked data may slow down graph load times, but will allow interaction between the graphs and tables.",
+                  values = "use",
+                  selected = "use"
+                )
+              )
+            ),
             div(
               tags$label(
                 `for` = ns("table_ref_compound"),
@@ -246,6 +258,10 @@ similarityServer <- function(input, output, session) {
         structural_similarity = ifelse(is.na(structural_similarity), -0.1, structural_similarity)
       )
   })
+
+  use_shared_data <- reactive({
+    !is.null(input$use_shared)
+  })
   
   r_ref_data <- reactive({
     req(input$query_compound)
@@ -283,6 +299,200 @@ similarityServer <- function(input, output, session) {
     r_sim_data() %>% 
       dplyr::select(name_1, name_2, structural_similarity, PFP, TAS)
       # SharedData$new("name_2")
+  })
+  
+  # plots ----
+  x_shared_data <- crosstalk::SharedData$new(r_selection_data, ~ name_2)
+  
+  observe({
+    print(use_shared_data())
+  })
+  
+  r_plot_data <- reactive({
+    if (use_shared_data()) {
+      x_shared_data
+    } else {
+      r_selection_data()
+    }
+  })
+  
+  # mainplot1
+  output$plot_pheno_struct <- renderPlotly({
+    r_plot_data() %>%
+      plot_ly(
+        source = "pheno_struct",
+        x = ~ structural_similarity, 
+        y = ~ PFP, 
+        type = "scatter",
+        mode = "markers",
+        color = I("black"),
+        # name = ~ name_2,
+        text = ~ paste(
+          "Drug 1: ", name_1, "\n",
+          "Drug 2: ", name_2, "\n",
+          "x: ", structural_similarity, "\n",
+          "y: ", PFP, 
+          sep = ""
+        )
+        # hoverinfo = "text"
+      ) %>%
+      layout(
+        showlegend = FALSE,
+        dragmode = "select",
+        shapes = list(
+          list(type='line', x0= -0.1, x1= -0.1, y0=-1.2, y1=1.2,
+               line=list(dash='dot', width=2, color = "red")),
+          list(type='line', x0= -0.15, x1= 1.15, y0=-1.1, y1=-1.1,
+               line=list(dash='dot', width=2, color = "red"))
+        ),
+        xaxis = list(
+          range = c(-0.15, 1.15),
+          title = "Structural similarity",
+          tickmode = "array",
+          tickvals = c(-0.1, seq(0,1,.25)),
+          ticktext = c("NA", as.character(seq(0,1,.25))) 
+        ),
+        yaxis = list(
+          range = c(-1.2, 1.2),
+          title = "Phenotypic Correlation",
+          tickmode = "array",
+          tickvals = c(-1.1, seq(-1,1,.5)),
+          ticktext = c("NA", as.character(seq(-1,1,.5))) 
+        )
+      ) %>% 
+      highlight(
+        on = "plotly_selected",
+        off = "plotly_deselect",
+        color = I("#00ac9f")
+        # selected = attrs_selected(name = ~ name_2)
+      )
+    
+    # if restoring from a bookmark, select previously selected points
+    # p$x$highlight$defaultValues = values$c.data$name_2[points1]
+    # p$x$highlight$color = "rgba(255,0,0,1)"
+    # p$x$highlight$off = "plotly_deselect"
+    
+    # p %>% layout(dragmode = "select")
+  })
+  
+  # mainplot2
+  output$plot_target_struct <- renderPlotly({
+    r_plot_data() %>%
+      plot_ly(
+        source = "target_struct",
+        x = ~ structural_similarity, 
+        y = ~ TAS, 
+        type = "scatter",
+        mode = "markers", 
+        color = I("black"), 
+        # name = ~ name_2,
+        text = ~ paste(
+          "Drug 1: ", name_1, "\n",
+          "Drug 2: ", name_2, "\n",
+          "x: ", structural_similarity, "\n",
+          "y: ", TAS,
+          sep = ""
+        )
+        # hoverinfo = "tooltip_2"
+      ) %>%
+      layout(
+        showlegend = FALSE,
+        shapes = list(
+          list(type='line', x0= -0.1, x1= -0.1, y0= -0.15, y1= 1.15,
+               line=list(dash='dot', width=2, color = "red")),
+          list(type='line', x0= -0.15, x1= 1.15, y0= -0.1, y1= -0.1,
+               line=list(dash='dot', width=2, color = "red"))
+        ),
+        xaxis = list(
+          range = c(-0.15, 1.15),
+          title = "Structural similarity",
+          tickmode = "array",
+          tickvals = c(-0.15, seq(0,1,.25)),
+          ticktext = c("NA", as.character(seq(0,1,.25))) 
+        ),
+        yaxis = list(
+          range = c(-0.15, 1.15),
+          title = "Target Similarity",
+          tickmode = "array",
+          tickvals = c(-0.15, seq(0,1,.2)),
+          ticktext = c("NA", as.character(seq(0,1,.2)))
+        )
+      ) %>% 
+      layout(
+        dragmode = "select"
+      ) %>% 
+      highlight(
+        on = "plotly_selected",
+        off = "plotly_deselect",
+        color = I('#00ac9f')
+        # selected = attrs_selected(name = ~ name_2)
+      )
+    
+    # if restoring from a bookmark, select previously selected points
+    # p$x$highlight$defaultValues = values$c.data$name_2[points2]
+    # p$x$highlight$color = "rgba(255,0,0,1)"
+    # p$x$highlight$off = "plotly_deselect"
+    
+    # p %>% layout(dragmode = "select")
+  })
+  
+  # mainplot3
+  output$plot_pheno_target <- renderPlotly({
+    r_plot_data() %>%
+      plot_ly(
+        source = "pheno_target",
+        x = ~ TAS, 
+        y = ~ PFP, 
+        type = "scatter",
+        mode = "markers", 
+        color = I("black"), 
+        # name = ~ name_2,
+        text = ~ paste(
+          "Drug 1: ", name_1, "\n",
+          "Drug 2: ", name_2, "\n",
+          "x: ", TAS, "\n",
+          "y: ", PFP,
+          sep = ""
+        )
+      ) %>%
+      layout(
+        showlegend = FALSE,
+        shapes = list(
+          list(type='line', x0= -0.1, x1= -0.1, y0=-1.2, y1=1.2,
+               line=list(dash='dot', width=2, color = "red")),
+          list(type='line', x0= -0.15, x1= 1.15, y0=-1.1, y1=-1.1,
+               line=list(dash='dot', width=2, color = "red"))
+        ),
+        xaxis = list(
+          range = c(-0.15, 1.15),
+          title = "Target Similarity",
+          tickmode = "array",
+          tickvals = c(-0.15, seq(0,1,.25)),
+          ticktext = c("NA", as.character(seq(0,1,.25))) 
+        ),
+        yaxis = list(
+          range = c(-1.2, 1.2),
+          title = "Phenotypic Correlation",
+          tickmode = "array",
+          tickvals = c(-1.2, seq(-1,1,.5)),
+          ticktext = c("NA", as.character(seq(-1,1,.5))))
+      ) %>% 
+      layout(
+        dragmode = "select"
+      ) %>% 
+      highlight(
+        on = "plotly_selected",
+        off = "plotly_deselect",
+        color = I("#00ac9f")
+        # selected = attrs_selected(name = ~ name_2)
+      )
+    
+    # if restoring from a bookmark, select previously selected points
+    # p$x$highlight$defaultValues = values$c.data$name_2[points3]
+    # p$x$highlight$color = "rgba(255,0,0,1)"
+    # p$x$highlight$off = "plotly_deselect"
+    
+    # p %>% layout(dragmode = "select")
   })
   
   output$export_ref_data <- downloadHandler(
@@ -323,8 +533,39 @@ similarityServer <- function(input, output, session) {
   )
   
   # output_table
+  state <- reactiveValues(selected_names = NULL)
+  
+  observe({
+    state$selected_names <- event_data("plotly_selected", "pheno_struct")$key
+  })
+  
+  observe({
+    state$selected_names <- event_data("plotly_selected", "target_struct")$key
+  })
+  
+  observe({
+    state$selected_names <- event_data("plotly_selected", "pheno_target")$key
+  })
+  
+  observeEvent(input$query_compound, {
+    state$selected_names <- NULL
+  })
+  
+  r_tbl_sim_data <- reactive({
+    if (use_shared_data()) {
+      if (is.null(state$selected_names)) {
+        r_sim_data()
+      } else {
+        r_sim_data() %>% 
+          dplyr::filter(name_2 %in% state$selected_names)
+      }
+    } else {
+      r_sim_data()
+    }
+  })
+
   r_tbl_sim_compound <- reactive({
-    .data <- r_sim_data() %>% 
+    .data <- r_tbl_sim_data() %>% 
       dplyr::mutate(
         ` ` = NA
       ) %>% 
@@ -377,175 +618,6 @@ similarityServer <- function(input, output, session) {
     r_tbl_sim_compound(),
     server = FALSE
   )
-  
-  # mainplot1
-  output$plot_pheno_struct <- renderPlotly({
-    r_selection_data() %>%
-      plot_ly(
-        x = ~ structural_similarity, 
-        y = ~ PFP, 
-        type = "scatter",
-        mode = "markers",
-        color = I("black"),
-        # name = ~ name_2,
-        text = ~ paste(
-          "Drug 1: ", name_1, "\n",
-          "Drug 2: ", name_2, "\n",
-          "x: ", structural_similarity, "\n",
-          "y: ", PFP, 
-          sep = ""
-        )
-        # hoverinfo = "text"
-      ) %>%
-      layout(
-        showlegend = FALSE,
-        shapes = list(
-          list(type='line', x0= -0.1, x1= -0.1, y0=-1.2, y1=1.2,
-               line=list(dash='dot', width=2, color = "red")),
-          list(type='line', x0= -0.15, x1= 1.15, y0=-1.1, y1=-1.1,
-               line=list(dash='dot', width=2, color = "red"))
-        ),
-        xaxis = list(
-          range = c(-0.15, 1.15),
-          title = "Structural similarity",
-          tickmode = "array",
-          tickvals = c(-0.1, seq(0,1,.25)),
-          ticktext = c("NA", as.character(seq(0,1,.25))) 
-        ),
-        yaxis = list(
-          range = c(-1.2, 1.2),
-          title = "Phenotypic Correlation",
-          tickmode = "array",
-          tickvals = c(-1.1, seq(-1,1,.5)),
-          ticktext = c("NA", as.character(seq(-1,1,.5))) 
-        )
-      )
-      # highlight(
-      #   on = "plotly_selected", 
-      #   off = "plotly_deselect",
-      #   color = I("red"), 
-      #   selected = attrs_selected(name = ~ name_2)
-      # )
-    
-    # if restoring from a bookmark, select previously selected points
-    # p$x$highlight$defaultValues = values$c.data$name_2[points1]
-    # p$x$highlight$color = "rgba(255,0,0,1)"
-    # p$x$highlight$off = "plotly_deselect"
-    
-    # p %>% layout(dragmode = "select")
-  })
-  
-  # mainplot2
-  output$plot_target_struct <- renderPlotly({
-    r_selection_data() %>%
-      plot_ly(
-        x = ~ structural_similarity, 
-        y = ~ TAS, 
-        type = "scatter",
-        mode = "markers", 
-        color = I("black"), 
-        # name = ~ name_2,
-        text = ~ paste(
-          "Drug 1: ", name_1, "\n",
-          "Drug 2: ", name_2, "\n",
-          "x: ", structural_similarity, "\n",
-          "y: ", TAS,
-          sep = ""
-        )
-        # hoverinfo = "tooltip_2"
-      ) %>%
-      layout(
-        showlegend = FALSE,
-        shapes = list(
-          list(type='line', x0= -0.1, x1= -0.1, y0= -0.15, y1= 1.15,
-               line=list(dash='dot', width=2, color = "red")),
-          list(type='line', x0= -0.15, x1= 1.15, y0= -0.1, y1= -0.1,
-               line=list(dash='dot', width=2, color = "red"))
-        ),
-        xaxis = list(
-          range = c(-0.15, 1.15),
-          title = "Structural similarity",
-          tickmode = "array",
-          tickvals = c(-0.15, seq(0,1,.25)),
-          ticktext = c("NA", as.character(seq(0,1,.25))) 
-        ),
-        yaxis = list(
-          range = c(-0.15, 1.15),
-          title = "Target Similarity",
-          tickmode = "array",
-          tickvals = c(-0.15, seq(0,1,.2)),
-          ticktext = c("NA", as.character(seq(0,1,.2)))
-        )
-      )
-      # highlight(
-      #   on = "plotly_selected", 
-      #   off = "plotly_deselect",
-      #   color = I('red'), 
-      #   selected = attrs_selected(name = ~ name_2)
-      # )
-    
-    # if restoring from a bookmark, select previously selected points
-    # p$x$highlight$defaultValues = values$c.data$name_2[points2]
-    # p$x$highlight$color = "rgba(255,0,0,1)"
-    # p$x$highlight$off = "plotly_deselect"
-    
-    # p %>% layout(dragmode = "select")
-  })
-  
-  # mainplot3
-  output$plot_pheno_target <- renderPlotly({
-    r_selection_data() %>%
-      plot_ly(
-        x = ~ TAS, 
-        y = ~ PFP, 
-        type = "scatter",
-        mode = "markers", 
-        color = I("black"), 
-        # name = ~ name_2,
-        text = ~ paste(
-          "Drug 1: ", name_1, "\n",
-          "Drug 2: ", name_2, "\n",
-          "x: ", TAS, "\n",
-          "y: ", PFP,
-          sep = ""
-        )
-      ) %>%
-      layout(
-        showlegend = FALSE,
-        shapes = list(
-          list(type='line', x0= -0.1, x1= -0.1, y0=-1.2, y1=1.2,
-               line=list(dash='dot', width=2, color = "red")),
-          list(type='line', x0= -0.15, x1= 1.15, y0=-1.1, y1=-1.1,
-               line=list(dash='dot', width=2, color = "red"))
-        ),
-        xaxis = list(
-          range = c(-0.15, 1.15),
-          title = "Target Similarity",
-          tickmode = "array",
-          tickvals = c(-0.15, seq(0,1,.25)),
-          ticktext = c("NA", as.character(seq(0,1,.25))) 
-        ),
-        yaxis = list(
-          range = c(-1.2, 1.2),
-          title = "Phenotypic Correlation",
-          tickmode = "array",
-          tickvals = c(-1.2, seq(-1,1,.5)),
-          ticktext = c("NA", as.character(seq(-1,1,.5))))
-      ) 
-      # highlight(
-      #   on = "plotly_selected",
-      #   off = "plotly_deselect",
-      #   color = I("red"), 
-      #   selected = attrs_selected(name = ~ name_2)
-      # )
-    
-    # if restoring from a bookmark, select previously selected points
-    # p$x$highlight$defaultValues = values$c.data$name_2[points3]
-    # p$x$highlight$color = "rgba(255,0,0,1)"
-    # p$x$highlight$off = "plotly_deselect"
-    
-    # p %>% layout(dragmode = "select")
-  })
 
   observeEvent(r_selection_drugs(), ignoreNULL = FALSE, {
     if (is.null(r_selection_drugs())) {

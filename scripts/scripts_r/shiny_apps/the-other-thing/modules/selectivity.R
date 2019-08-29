@@ -73,6 +73,18 @@ selectivityUI <- function(id) {
                   value = 2
                 )
               )
+            ),
+            formGroup(
+              label = "Use linked data",
+              input = div(
+                class = "active--pink",
+                switchInput(
+                  id = ns("use_shared"),
+                  choices = "Using linked data may slow down graph load times, but will allow interaction between the graphs and tables.",
+                  values = "use",
+                  selected = "use"
+                )
+              )
             )
           ),
           navPane(
@@ -196,6 +208,8 @@ selectivityServer <- function(input, output, session) {
     data_aff
   })
   
+  c_shared_data <- crosstalk::SharedData$new(c_binding_data, key = ~ name)
+  
   if (isTRUE(getOption("sms.debug"))) {
     observe({
       message("[ c_binding_data ]")
@@ -203,9 +217,8 @@ selectivityServer <- function(input, output, session) {
     })
   }
   
-  data_shared <- reactive({
-    # SharedData$new(c_binding_data(), ~ name)
-    c_binding_data()
+  use_shared_data <- reactive({
+    !is.null(input$use_shared)
   })
   
   selection_genes <- reactive({
@@ -231,23 +244,32 @@ selectivityServer <- function(input, output, session) {
   
   # mainplot ----
   output$mainplot <- renderPlotly({
-    p <- plot_ly() %>% 
+    if (use_shared_data()) {
+      matched_data <- c_shared_data
+    } else {
+      matched_data <- c_binding_data()
+    }
+    
+    p <- plot_ly(
+      data = matched_data,
+      source = "mainplot"
+    ) %>% 
+      # add_markers(
+      #   data = dplyr::filter(c_binding_data(), !is_filter_match),
+      #   x = ~ selectivity_plot,
+      #   y = ~ `mean_Kd_(nM)`,
+      #   type = "scatter",
+      #   mode = "markers",
+      #   color = I("black"),
+      #   hoverinfo = "skip",
+      #   showlegend = FALSE,
+      #   marker = list(
+      #     opacity = 0.25,
+      #     size = 8
+      #   )
+      # ) %>%
       add_markers(
-        data = dplyr::filter(c_binding_data(), !is_filter_match),
-        x = ~ selectivity_plot,
-        y = ~ `mean_Kd_(nM)`,
-        type = "scatter",
-        mode = "markers",
-        color = I("black"),
-        hoverinfo = "skip",
-        showlegend = FALSE,
-        marker = list(
-          opacity = 0.25,
-          size = 8
-        )
-      ) %>% 
-      add_markers(
-        data = dplyr::filter(c_binding_data(), is_filter_match),
+        # data = matched_data, # dplyr::filter(c_binding_data(), is_filter_match),
         x = ~ selectivity_plot, 
         y = ~ `mean_Kd_(nM)`, 
         type = "scatter",
@@ -267,6 +289,7 @@ selectivityServer <- function(input, output, session) {
         )
       ) %>%
       layout(
+        dragmode = "select",
         showlegend = TRUE,
         shapes = list(
           list(
@@ -280,14 +303,19 @@ selectivityServer <- function(input, output, session) {
           title = "Selectivity",
           tickmode = "array",
           tickvals = c(-0.5, seq(-0.25, 1.25, .25)),
-          ticktext = c("NA", as.character(seq(-0.25, 1.25, .25)))),
+          ticktext = c("NA", as.character(seq(-0.25, 1.25, .25)))
+        ),
         yaxis = list(
           range = c(input$affinity[1], input$affinity[2]),
           title = "Mean Kd (nM)",
           type = "log"
         )
+      ) %>% 
+      highlight(
+        on = "plotly_selected", 
+        off = "plotly_deselect",
+        color = I('#ec4353')
       )
-      # highlight("plotly_selected", color = I('red'), hoverinfo = "text")
     
     # if restoring from a bookmark, select previously selected points
     # p$x$highlight$defaultValues <- c_binding_data()$name[state$points_selected]
@@ -300,24 +328,48 @@ selectivityServer <- function(input, output, session) {
   })
   
   # output_table ----
+  state <- reactiveValues(selected_names = NULL)
+  
+  observe({
+    state$selected_names <- event_data("plotly_selected", "mainplot")$key
+  })
+  
+  observeEvent(input$query_gene, {
+    state$selected_names <- NULL
+  })
+  
   tbl_data <- reactive({
-    c_binding_data() %>%
-      dplyr::filter(is_filter_match) %>% 
+    # c_binding_data() %>%
+    #   dplyr::filter(is_filter_match) %>% 
+    #   dplyr::select(-selectivity_plot)
+    
+    .data <- if (use_shared_data()) {
+      if (is.null(state$selected_names)) {
+        c_binding_data()
+      } else {
+        c_binding_data() %>% 
+          dplyr::filter(name %in% state$selected_names)
+      }
+    } else {
+      c_binding_data()
+    }
+    
+    .data %>% 
       dplyr::select(-selectivity_plot)
   })
   
   tbl_table <- reactive({
-    .data <- tbl_data() %>% 
+    .data <- tbl_data() %>%
       dplyr::mutate(
         name = glue(
-          "<a target='_blank' 
+          "<a target='_blank'
               href='https://www.ebi.ac.uk/chembl/g/#search_results/compounds/query={ name }'
             >{ name }<sup class='ml-1'><i class='fa fa-external-link'></i></sup>
            </a>"
         ),
         name = lapply(name, HTML),
         ` ` = NA_character_
-      ) %>% 
+      ) %>%
       dplyr::select(` `, dplyr::everything())
     
     DT::datatable(

@@ -24,7 +24,8 @@ html {
 .active--pink .active,
 .active--pink .irs-bar,
 .active--pink .irs-bar-edge, 
-.active--pink .irs-slider {
+.active--pink .irs-slider,
+.active--pink .custom-control-input:checked ~ .custom-control-label::before {
   background-color: #ec4353 !important;
   border-color: #ec4353 !important;
 }
@@ -41,7 +42,8 @@ html {
 .active--green .active,
 .active--green .irs-bar,
 .active--green .irs-bar-edge, 
-.active--green .irs-slider {
+.active--green .irs-slider,
+.active--green .custom-control-input:checked ~ .custom-control-label::before {
   background-color: #00ac9f !important;
   border-color: #00ac9f !important;
 }
@@ -53,7 +55,8 @@ html {
 .active--orange .active,
 .active--orange .irs-bar,
 .active--orange .irs-bar-edge,
-.active--orange .irs-slider {
+.active--orange .irs-slider,
+.active--orange .custom-control-input:checked ~ .custom-control-label::before {
   background-color: #ff9800 !important;
   border-color: #ff9800 !important;
 }
