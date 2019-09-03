@@ -38,16 +38,16 @@ function(req) {
         ) %>% 
           margin(left = "auto"),
         buttonInput(
-          id = "bookmark_begin",
-          label = icon("link")
-        ) %>%
-          background("black") %>%
-          font(color = "white"),
-        buttonInput(
           id = "about",
           label = "About"
         ) %>% 
           background("black") %>% 
+          font(color = "white"),
+        buttonInput(
+          id = "bookmark_begin",
+          label = icon("link")
+        ) %>%
+          background("black") %>%
           font(color = "white"),
         tags$a(
           href = "https://github.com/labsyspharm/smallmoleculesuite",
