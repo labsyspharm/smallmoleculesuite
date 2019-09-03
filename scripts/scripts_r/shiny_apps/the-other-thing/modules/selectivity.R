@@ -193,9 +193,7 @@ selectivityServer <- function(input, output, session) {
           (`mean_Kd_(nM)` >= (10 ^ input$affinity[1]) | is.na(`mean_Kd_(nM)`)) &
           (`mean_Kd_(nM)` <= (10 ^ input$affinity[2]) | is.na(`mean_Kd_(nM)`)) &
           (`SD_Kd_(nM)` <= (10 ^ input$sd) | is.na(`SD_Kd_(nM)`)) &
-          (n_measurements >= input$min_measurements)
-      ) %>%
-      dplyr::mutate(
+          (n_measurements >= input$min_measurements),
         selectivity_class = factor(selectivity_class, SELECTIVITY_ORDER)
       ) %>%
       dplyr::arrange(selectivity_class, `mean_Kd_(nM)`) %>%
@@ -250,32 +248,17 @@ selectivityServer <- function(input, output, session) {
       matched_data <- c_binding_data()
     }
     
-    p <- plot_ly(
-      data = matched_data,
-      source = "mainplot"
-    ) %>% 
-      # add_markers(
-      #   data = dplyr::filter(c_binding_data(), !is_filter_match),
-      #   x = ~ selectivity_plot,
-      #   y = ~ `mean_Kd_(nM)`,
-      #   type = "scatter",
-      #   mode = "markers",
-      #   color = I("black"),
-      #   hoverinfo = "skip",
-      #   showlegend = FALSE,
-      #   marker = list(
-      #     opacity = 0.25,
-      #     size = 8
-      #   )
-      # ) %>%
+    p <- matched_data %>% 
+      plot_ly(
+        source = "mainplot"
+      ) %>% 
       add_markers(
-        # data = matched_data, # dplyr::filter(c_binding_data(), is_filter_match),
         x = ~ selectivity_plot, 
         y = ~ `mean_Kd_(nM)`, 
         type = "scatter",
         mode = "markers",
         hoverinfo = "text",
-        color = ~ selectivity_class, 
+        color = ~ ifelse(is_filter_match, as.character(selectivity_class), "Outside of filters"),
         text = ~ paste(
           sep = "",
           "Drug name: ", name, "\n", 
