@@ -74,6 +74,10 @@ html {
   color: white !important;  
 }
 
+table.dataTable th {
+  text-align: center !important;
+}
+
 table.dataTable tbody th,
 table.dataTable tbody td {
   white-space: nowrap;
