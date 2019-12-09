@@ -97,7 +97,7 @@ table.dataTable tbody td {
 }
 
 .dataTables_wrapper {
-  overflow: hidden !important;
+  /*overflow: hidden !important;*/
 }
 
 table.dataTable tr.selected td.select-checkbox::after {
@@ -124,6 +124,11 @@ table.dataTable tr.selected td.select-checkbox::after {
 .datatable--compact th:last-child,
 .datatable--compact td:last-child {
   padding-right: 0px !important;
+}
+
+.dt-button-collection {
+  max-height: 300px;
+  overflow: scroll !important;
 }
 
 .slider::-webkit-slider-thumb {

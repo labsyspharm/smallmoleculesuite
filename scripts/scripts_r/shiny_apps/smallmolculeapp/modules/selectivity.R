@@ -362,7 +362,7 @@ selectivityServer <- function(input, output, session) {
       rownames = FALSE,
       selection = "multiple",
       options = list(
-        autoWidth = TRUE,
+        # autoWidth = TRUE,
         buttons = list(
           list(extend = "copy"),
           list(extend = "csv"),
