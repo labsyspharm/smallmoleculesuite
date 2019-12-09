@@ -5,6 +5,6 @@ account: spatial
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1063638
-bundleId: 2316422
+bundleId: 2406263
 url: https://spatial.shinyapps.io/smallmolecule/
-when: 1565728434.63813
+when: 1568204885.35407

@@ -1,0 +1,10 @@
+name: test
+title:
+username:
+account: labsyspharm
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 951543
+bundleId: 2411309
+url: https://labsyspharm.shinyapps.io/test/
+when: 1568380735.01624

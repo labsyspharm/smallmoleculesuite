@@ -67,6 +67,8 @@ function(req) {
           # home ----
           navPane(
             id = "page_home",
+            fade = FALSE,
+            class = "active",
             columns(
               column(
                 d3("The Small Molecule Suite") %>% 
