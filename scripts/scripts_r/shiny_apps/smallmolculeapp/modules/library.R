@@ -15,48 +15,41 @@ libraryUI <- function(id) {
         navContent(
           navPane(
             id = ns("pane_filters"),
-            radiobarInput(
-              id = ns("gene_nav"),
-              choices = c("Gene input", "Results"),
-              values = c("input", "results"),
-              selected = "input"
-            ) %>% 
-              width("full") %>% 
-              margin(bottom = 3) %>% 
-              active("orange"),
-            navContent(
-              navPane(
-                id = ns("pane_input"),
-                p(
-                  "Type or paste gene symbols in the text box below to generate a downloadable table of drugs targetting those genes.",
-                  "One gene per line."
+            p(
+              "Type or paste gene symbols in the text box below to generate a downloadable table of drugs targetting those genes.",
+              "One gene per line."
+            ),
+            formInput(
+              id = ns("gene_form"),
+              formGroup(
+                label = "Gene name of target drug",
+                input = shiny::textAreaInput(
+                  inputId = ns("gene_list"),
+                  label = NULL,
+                  rows = 5
                 ),
-                formInput(
-                  id = ns("gene_form"),
-                  formGroup(
-                    label = "Genes (target drugs)",
-                    input = shiny::textAreaInput(
-                      inputId = ns("gene_list"),
-                      label = NULL,
-                      rows = 5
-                    )
-                  ),
-                  formSubmit(
-                    label = "Load genes"
-                  ) %>% 
-                    background("orange")
-                ) %>% 
-                  margin(bottom = 3),
-                formGroup(
-                  label = "Example gene lists",
-                  input = selectInput(
-                    id = ns("gene_example"),
-                    choices = names(data_genes), # data/load.R
-                    selected = names(data_genes)[1]
-                  ),
-                  help = "Selecting a choice will populate the input above with an example list of genes."
+                help = div(
+                  "This tool uses HUGO names. Please see ", 
+                  tags$a(target = "_blank", href = "genenames.org", "genenames.org"),
+                  " for help."
                 )
               ),
+              formSubmit(
+                label = "Pre-defined gene sets"
+              ) %>% 
+                background("orange")
+            ) %>% 
+              margin(bottom = 3),
+            formGroup(
+              label = "Example gene lists",
+              input = selectInput(
+                id = ns("gene_example"),
+                choices = names(data_genes), # data/load.R
+                selected = "Dark_Kinome"
+              ),
+              help = "Selecting a choice will populate the input above with an example list of genes."
+            ),
+            navContent(
               navPane(
                 id = ns("pane_results"),
                 p(
@@ -121,32 +114,42 @@ libraryUI <- function(id) {
                 ),
                 formGroup(
                   label = tags$h6("Maximum Kd for query target (nM)") %>% margin(b = 0),
-                  sliderInput(
-                    inputId = ns("filter_affinity"), 
-                    label = NULL,
-                    min = log10(10),
-                    max = log10(10000), 
-                    value = log10(1000)
+                  div(
+                    class = "logify-slider active--orange",
+                    shiny::sliderInput(
+                      inputId = ns("filter_affinity"), 
+                      label = NULL,
+                      min = 0,
+                      max = 5, 
+                      value = 3
+                    )
                   )
                 ),
                 formGroup(
                   label = tags$h6("Minimum number of measurements") %>% margin(b = 0),
-                  sliderInput(
-                    inputId = ns("filter_measurement"), 
-                    label = NULL,
-                    min = log10(1), 
-                    max = log10(40),
-                    value = log10(2)
-                  ) 
+                  div(
+                    class = "active--orange",
+                    shiny::sliderInput(
+                      inputId = ns("filter_measurement"), 
+                      label = NULL,
+                      min = 1, 
+                      max = 40,
+                      value = 2
+                    )
+                  )
                 ),
                 formGroup(
                   label = tags$h6("Maximum std. dev. of Kd (nM)") %>% margin(b = 0),
-                  sliderInput(
-                    inputId = ns("filter_sd"), 
-                    label = NULL,
-                    min = log10(10), 
-                    max = log10(100000), 
-                    value = log10(100)
+                  div(
+                    class = "logify-slider active--orange",
+                    shiny::sliderInput(
+                      inputId = ns("filter_sd"), 
+                      label = NULL,
+                      min = 0, 
+                      max = 5, 
+                      step = 1,
+                      value = 2
+                    )
                   )
                 )
               )
@@ -214,14 +217,6 @@ libraryServer <- function(input, output, session) {
     )
   })
   
-  observeEvent(input$gene_nav, {
-    switch(
-      input$gene_nav,
-      input = showNavPane(ns("pane_input")),
-      results = showNavPane(ns("pane_results"))
-    )
-  })
-  
   # Load an example gene list
   observeEvent(input$gene_example, {
     shiny::updateTextAreaInput(
@@ -233,14 +228,6 @@ libraryServer <- function(input, output, session) {
   })
   
   observeEvent(input$gene_form, {
-    updateRadiobarInput(
-      id = "gene_nav", 
-      choices = c("Gene input", "Results"),
-      values = c("input", "results"),
-      selected = "results",
-      session = session
-    )
-    
     showNavPane(ns("pane_results"))
   })
   
@@ -265,7 +252,7 @@ libraryServer <- function(input, output, session) {
     showModal(
       modal(
         id = NULL,
-        title = "Unqualified targets",
+        header = h5("Unqualified targets"),
         p("The following targets do not have a known qualifying ligand, please check HUGO name: "),
         p(paste(r_gene_unknown(), collapse = ", "))
       )
@@ -285,7 +272,7 @@ libraryServer <- function(input, output, session) {
     
     this <- data_selection_selectivity %>%
       dplyr::filter(symbol %in% r_gene_known()) 
-
+    
     if (!is.null(input$filter_probes)) {
       this <- this %>% 
         dplyr::filter(source %in% input$filter_probes)
@@ -305,7 +292,7 @@ libraryServer <- function(input, output, session) {
         dplyr::filter(source %in% input$filter_phase)
     }
     
-      # sliders "sd" and "affinity" are in log10 scale
+    # sliders "sd" and "affinity" are in log10 scale
     this %>% 
       dplyr::filter(mean_Kd <= 10 ^ input$filter_affinity) %>%
       dplyr::filter(is.na(SD_aff) | SD_aff <= 10 ^ input$filter_sd) %>% 
@@ -418,32 +405,46 @@ libraryServer <- function(input, output, session) {
       )
   })   
   
-  output$table_results <- DT::renderDataTable({
+  r_tbl <- reactive({
     req(input$table_display)
     
-    DT::datatable({
-      if (input$table_display == "entry") {
-        r_table_entry()
-      } else if (input$table_display == "compound") {
-        r_table_compound()
-      }
-    },
-    fillContainer = TRUE,
-    filter = "top",
-    rownames = FALSE,
-    options = list(
-      autoWidth = TRUE,
-      columnDefs = if (input$table_display == "compound") {
-        list(list(targets = 0, visible = FALSE))
-      },
-      dom = "lfrtipB",
-      fixedHeader = list(
-        header = TRUE
-      ),
-      pagingType = "numbers",
-      searchHighlight = TRUE,
-      scrollX = TRUE
-    ))
+    .data <- if (input$table_display == "entry") {
+      r_table_entry()
+    } else if (input$table_display == "compound") {
+      r_table_compound()
+    }
+    
+    DT::datatable(
+      .data,
+      extensions = c("Buttons"),
+      fillContainer = FALSE,
+      filter = "top",
+      rownames = FALSE,
+      options = list(
+        autoWidth = TRUE,
+        buttons = list(
+          list(extend = "copy"),
+          list(extend = "csv", filename = "sm-library-compounds"),
+          list(extend = "excel", filename = "sm-library-compounds"),
+          list(extend = "colvis")
+        ),
+        columnDefs = if (input$table_display == "compound") {
+          list(list(targets = 0, visible = FALSE))
+        },
+        dom = "lfrtipB",
+        fixedHeader = list(
+          header = TRUE
+        ),
+        pagingType = "numbers",
+        searchHighlight = TRUE,
+        scrollX = FALSE
+      )
+    )
   })
+  
+  output$table_results <- DT::renderDataTable(
+    r_tbl(),
+    server = FALSE
+  )
   
 }
