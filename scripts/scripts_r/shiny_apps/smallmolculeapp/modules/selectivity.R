@@ -342,18 +342,21 @@ selectivityServer <- function(input, output, session) {
   })
   
   tbl_table <- reactive({
+    
     .data <- tbl_data() %>%
       dplyr::mutate(
-        name = glue(
+        chembl_id = unname(data_cmpd_map[name]),
+        name = ifelse(is.na(chembl_id), name, glue(
           "<a target='_blank'
-              href='https://www.ebi.ac.uk/chembl/g/#search_results/compounds/query={ name }'
-            >{ name }<sup class='ml-1'><i class='fa fa-external-link'></i></sup>
+              href='https://www.ebi.ac.uk/chembl/compound_report_card/{ chembl_id }'
+              >{ name }<sup class='ml-1'><i class='fa fa-external-link'></i></sup>
            </a>"
-        ),
+        )),
         name = lapply(name, HTML),
         ` ` = NA_character_
       ) %>%
-      dplyr::select(` `, dplyr::everything())
+      dplyr::select(` `, dplyr::everything()) %>% 
+      dplyr::select(-chembl_id)
     
     DT::datatable(
       .data,

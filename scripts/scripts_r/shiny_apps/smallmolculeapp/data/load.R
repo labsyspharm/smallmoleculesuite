@@ -35,3 +35,13 @@ data_affinity_selectivity <- "data/affinity_selectivity_table_ChemblV22_1_201708
 data_similarity <- "data/similarity_table_ChemblV22_1_20170804.csv" %>%
   readr::read_csv(progress = FALSE) %>% 
   dplyr::mutate_at(vars(PFP, TAS, structural_similarity), ~ round(., 2))
+
+data_cmpd_map <- data_cmpd_info %>% 
+  dplyr::select(chembl_id, alt_names) %>% 
+  dplyr::mutate(alt_names = stringr::str_split(alt_names, ",\\s+")) %>% 
+  tidyr::unnest() %>% 
+  dplyr::distinct() %>% 
+  dplyr::filter(!is.na(alt_names)) %>% {
+    setNames(.$chembl_id, .$alt_names)
+  }
+
