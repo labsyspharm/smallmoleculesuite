@@ -21,7 +21,7 @@ $(function() {
     
     $.fn.dataTable.Buttons.defaults.dom.container.className = "btn-group float-right mt-3 mr-3";
     $.fn.dataTable.Buttons.defaults.dom.button.className = "btn btn-grey";
-    $.fn.dataTable.Buttons.defaults.dom.collection.className = "dt-button-collection btn-group-vertical w-auto p-0 text-wrap";
+    $.fn.dataTable.Buttons.defaults.dom.collection.className = "dt-button-collection btn-group-vertical w-auto px-0 text-wrap";
     
     $(".logify-slider .js-range-slider").each(function() {
       logifySlider(this);

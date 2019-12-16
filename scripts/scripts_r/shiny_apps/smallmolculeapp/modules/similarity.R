@@ -304,10 +304,6 @@ similarityServer <- function(input, output, session) {
   # plots ----
   x_shared_data <- crosstalk::SharedData$new(r_selection_data, ~ name_2)
   
-  observe({
-    print(use_shared_data())
-  })
-  
   r_plot_data <- reactive({
     if (use_shared_data()) {
       x_shared_data
@@ -571,6 +567,8 @@ similarityServer <- function(input, output, session) {
       ) %>% 
       dplyr::select(` `, dplyr::everything())
     
+    col_types <- unname(vapply(.data, class, character(1)))
+    
     DT::datatable(
       .data,
       extensions = c('Buttons', "Select"),
@@ -591,12 +589,20 @@ similarityServer <- function(input, output, session) {
         columnDefs = list(
           list(
             targets = grep(
-              pattern = "^( |name_1|name_2|structural_similarity|PFP|TAS)$",
               x = names(.data),
+              pattern = "^( |name_1|name_2|structural_similarity|PFP|TAS)$",
               invert = TRUE
             ) - 1,
             visible = FALSE
           ),
+          # list(
+          #   targets = which(col_types == "numeric") - 1,
+          #   className = "text-right"
+          # ),
+          # list(
+          #   targets = which(col_types == "character") - 1,
+          #   className = "text-left"
+          # ),
           list(
             className = "select-checkbox",
             orderable = FALSE,
@@ -604,7 +610,7 @@ similarityServer <- function(input, output, session) {
             targets = 0
           )
         ),
-        dom = 'lfrtipB',
+        dom = "lfrtipB",
         pagingType = "numbers",
         scrollCollapse = TRUE,
         scrollX = FALSE,

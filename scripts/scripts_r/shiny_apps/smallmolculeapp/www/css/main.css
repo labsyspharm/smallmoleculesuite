@@ -74,10 +74,6 @@ html {
   color: white !important;  
 }
 
-table.dataTable th {
-  text-align: center !important;
-}
-
 table.dataTable tbody th,
 table.dataTable tbody td {
   white-space: nowrap;
@@ -127,6 +123,7 @@ table.dataTable tr.selected td.select-checkbox::after {
 }
 
 .dt-button-collection {
+  padding-top: 35px !important;
   max-height: 300px;
   overflow: scroll !important;
 }
