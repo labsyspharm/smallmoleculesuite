@@ -90,7 +90,20 @@ selectivityUI <- function(id) {
           navPane(
             id = ns("pane_instructions"),
             fade = FALSE,
-            p("To use the Selectivity portion of the application, first select your target of interest and binding criteria. Subsequently, select a region in the main plot with compounds of your interest. You can then select three compounds in the bottom table and view their known binding affinities in detail.")
+            p("To use the Selectivity portion of the application,"),
+            tags$ol(
+              class = "pl-4",
+              tags$li("Select a gene of interest in the top left corner of the",
+                      "application"),
+              tags$li("Change the filter settings as needed"),
+              tags$li("Look at the 'Affinity and selectivity plot' and select",
+                      "a region of compounds you are interested in"),
+              tags$li("The 'Affinity and selectivity data' will change upon",
+                      "your selection in (3), select the compound you are most",
+                      "interested in to see all its known targets in the",
+                      "'Affinity and selectivity reference' (you may have to",
+                      "scroll down)")
+            )
           )
         )
       )
