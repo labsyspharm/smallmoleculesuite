@@ -124,7 +124,7 @@ selectivityUI <- function(id) {
         margin(bottom = 3),
       card(
         h3("Affinity and selectivity data"),
-        h6(textOutput(ns("subtitle_data"))) %>% 
+        textOutput(ns("subtitle_data"), h6) %>% 
           margin(b = 3),
         div(
           dataTableOutput(
@@ -136,21 +136,12 @@ selectivityUI <- function(id) {
         margin(bottom = 3),
       card(
         h3("Affinity and selectivity reference"),
+        textOutput(ns("subtitle_reference"), h6) %>% 
+          margin(b = 3),
         div(
-          columns(
-            column(
-              width = 3,
-              listGroupInput(
-                id = ns("select_gene"),
-                class = "active--pink"
-              )
-            ),
-            column(
-              dataTableOutput(
-                outputId = ns("selection_table"),
-                height = "500px"
-              )
-            )
+          dataTableOutput(
+            outputId = ns("selection_table"),
+            height = "375px"
           )
         )
       ) %>% 
@@ -376,7 +367,7 @@ selectivityServer <- function(input, output, session) {
       extensions = c('Buttons', "Select"),
       fillContainer = FALSE,
       rownames = FALSE,
-      selection = "multiple",
+      selection = "single",
       options = list(
         # autoWidth = TRUE,
         buttons = list(
@@ -439,39 +430,16 @@ selectivityServer <- function(input, output, session) {
     head(drug_names, 3)
   })
   
-  r_selection_titles <- reactive({
+  r_selection_title <- reactive({
     req(r_selection_drugs())
     
-    hms_id <- head(tbl_data()$hms_id[tbl_selection()], 3)
+    hms_id <- tbl_data()$hms_id[tbl_selection()]
     
     paste0(hms_id, "; ", r_selection_drugs())
   })
   
-  observeEvent(r_selection_drugs(), ignoreNULL = FALSE, {
-    if (is.null(r_selection_drugs())) {
-      updateListGroupInput(
-        id = "select_gene",
-        choices = "N/A",
-        values = "",
-        session = session
-      )
-      
-      return()
-    }
-    
-    if (isTRUE(input$select_gene %in% r_selection_drugs())) {
-      x_selected <- input$select_gene
-    } else {
-      x_selected <- tail(r_selection_drugs(), 1)
-    }
-    
-    updateListGroupInput(
-      id = "select_gene",
-      choices = r_selection_titles(),
-      values = r_selection_drugs(),
-      selected = x_selected,
-      session = session
-    )
+  output$subtitle_reference <- renderText({
+    r_selection_title()
   })
   
   get_selection_data <- function(drug) {
@@ -496,7 +464,7 @@ selectivityServer <- function(input, output, session) {
   }
   
   tbl_selection_table <- reactive({
-    get_selection_data(input$select_gene) %>% 
+    get_selection_data(r_selection_drugs()) %>% 
       DT::datatable(
         rownames = FALSE,
         options = list(
@@ -504,13 +472,9 @@ selectivityServer <- function(input, output, session) {
           buttons = c("copy", "csv", "excel"),
           language = list(
             emptyTable = if (is.null(tbl_selection())) {
-              "Please select row(s) from the data above."
+              "Please select a row from the data above."
             } else {
-              if (is.null(input$select_gene)) {
-                "Please make a selection."
-              } else {
-                "No data available."
-              }
+              "No data available."
             }
           ),
           pagingType = "numbers",
