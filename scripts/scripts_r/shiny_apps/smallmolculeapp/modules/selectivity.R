@@ -362,6 +362,10 @@ selectivityServer <- function(input, output, session) {
       dplyr::select(` `, dplyr::everything()) %>% 
       dplyr::select(-chembl_id)
     
+    download_name <- create_download_filename(
+      c("compounds", "targeting", input$query_gene)
+    )
+    
     DT::datatable(
       .data,
       extensions = c('Buttons', "Select"),
@@ -372,8 +376,14 @@ selectivityServer <- function(input, output, session) {
         # autoWidth = TRUE,
         buttons = list(
           list(extend = "copy"),
-          list(extend = "csv"),
-          list(extend = "excel"),
+          list(
+            extend = "csv",
+            title = download_name
+          ),
+          list(
+            extend = "excel",
+            title = download_name
+          ),
           list(
             extend = "colvis",
             columns = ":not(.select-checkbox)"
@@ -464,12 +474,30 @@ selectivityServer <- function(input, output, session) {
   }
   
   tbl_selection_table <- reactive({
+    hms_id <- tbl_data()$hms_id[tbl_selection()]
+    
+    download_name <- create_download_filename(
+      c("affinity", "spectrum", r_selection_drugs(), hms_id)
+    )
+    
     get_selection_data(r_selection_drugs()) %>% 
       DT::datatable(
         rownames = FALSE,
         options = list(
           dom = "tpB",
-          buttons = c("copy", "csv", "excel"),
+          buttons = list(
+            list(
+              extend = "copy"
+            ), 
+            list(
+              extend = "csv",
+              title = download_name
+            ), 
+            list(
+              extend = "excel",
+              title = download_name
+            )
+          ),
           language = list(
             emptyTable = if (is.null(tbl_selection())) {
               "Please select a row from the data above."

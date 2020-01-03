@@ -158,22 +158,11 @@ similarityUI <- function(id) {
         margin(bottom = 3),
       card(
         h3("Compound similarity selections"),
+        textOutput(ns("subtitle_selection"), h6),
         div(
-          columns(
-            column(
-              width = 3,
-              listGroupInput(
-                class = "active--green",
-                id = ns("compound_selection")
-              )
-            ),
-            column(
-              width = 9,
-              dataTableOutput(
-                outputId = ns("table_selection"),
-                height = "500px"
-              )
-            )
+          dataTableOutput(
+            outputId = ns("table_selection"),
+            height = "500px"
           )
         )
       )
@@ -493,7 +482,7 @@ similarityServer <- function(input, output, session) {
   
   output$export_ref_data <- downloadHandler(
     filename = function() {
-      paste0("binding-data-", input$query_compound, ".zip")
+      paste0("sm-similiarity-binding-", input$query_compound, ".zip")
     },
     content = function(path) {
       contents <- list(
@@ -568,19 +557,30 @@ similarityServer <- function(input, output, session) {
       dplyr::select(` `, dplyr::everything())
     
     col_types <- unname(vapply(.data, class, character(1)))
+
+    download_name <- create_download_filename(
+      c("affinity", "spectrum", input$query_compound)
+    )
     
     DT::datatable(
       .data,
-      extensions = c('Buttons', "Select"),
+      # class = "dt-select-limit-5",
+      extensions = c("Buttons", "Select"),
       # fillContainer = TRUE,
       rownames = FALSE, 
-      # style = "bootstrap",
+      selection = "single",
       options = list(
         autoWidth = TRUE,
         buttons = list(
           list(extend = "copy"),
-          list(extend = "csv"),
-          list(extend = "excel"),
+          list(
+            extend = "csv",
+            title = download_name
+          ),
+          list(
+            extend = "excel",
+            title = download_name
+          ),
           list(
             extend = "colvis",
             columns = ":not(.select-checkbox)"
@@ -625,32 +625,32 @@ similarityServer <- function(input, output, session) {
     server = FALSE
   )
 
-  observeEvent(r_selection_drugs(), ignoreNULL = FALSE, {
-    if (is.null(r_selection_drugs())) {
-      updateListGroupInput(
-        id = "compound_selection",
-        choices = "N/A",
-        values = "",
-        session = session
-      )
-      
-      return()
-    }
-    
-    if (isTRUE(input$compound_selection %in% r_selection_drugs())) {
-      x_selected <- input$compound_selection
-    } else {
-      x_selected <- tail(r_selection_drugs(), 1)
-    }
-    
-    updateListGroupInput(
-      id = "compound_selection",
-      choices = r_selection_titles(),
-      values = r_selection_drugs(),
-      selected = x_selected,
-      session = session
-    )
-  })
+  # observeEvent(r_selection_drugs(), ignoreNULL = FALSE, {
+  #   if (is.null(r_selection_drugs())) {
+  #     updateListGroupInput(
+  #       id = "compound_selection",
+  #       choices = "N/A",
+  #       values = "",
+  #       session = session
+  #     )
+  #     
+  #     return()
+  #   }
+  #   
+  #   if (isTRUE(input$compound_selection %in% r_selection_drugs())) {
+  #     x_selected <- input$compound_selection
+  #   } else {
+  #     x_selected <- tail(r_selection_drugs(), 1)
+  #   }
+  #   
+  #   updateListGroupInput(
+  #     id = "compound_selection",
+  #     choices = r_selection_titles(),
+  #     values = r_selection_drugs(),
+  #     selected = x_selected,
+  #     session = session
+  #   )
+  # })
   
   get_hms_id_2 <- function(drug) {
     if (is.null(drug) || is.na(drug) || length(drug) < 1) {
@@ -681,28 +681,46 @@ similarityServer <- function(input, output, session) {
       dplyr::arrange(selectivity_class, `mean_Kd_(nM)`)
   }
   
-  selection_table_options <- reactive({
-    list(
-      # autoWidth = TRUE,
-      dom = "tp",
-      language = list(
-        emptyTable = if (is.null(r_sim_selection())) {
-          "Please select row(s) from the data above."
-        } else {
-          "No data available"
-        }
-      ),
-      scrollX = FALSE,
-      pagingType = "numbers"
-    )
+  output$subtitle_selection <- renderText({
+    r_selection_titles()
   })
   
-  output$table_selection <- DT::renderDataTable(
-    get_compound_selection(input$compound_selection),
-    options = selection_table_options,
-    rownames = FALSE,
-    server = FALSE
-  )
+  output$table_selection <- DT::renderDataTable({
+    download_name <- create_download_filename(
+      c("similarity", "table", input$query_compound)
+    )
+    
+    DT::datatable(
+      data = get_compound_selection(r_selection_drugs()), # input$compound_selection),
+      rownames = FALSE,
+      # fillContainer = TRUE,
+      options = list(
+        # autoWidth = TRUE,
+        extensions = "Buttons",
+        buttons = list(
+          list(extend = "copy"),
+          list(
+            extend = "csv",
+            title = download_name
+          ),
+          list(
+            extend = "excel",
+            title = download_name
+          )
+        ),
+        dom = "tpB",
+        language = list(
+          emptyTable = if (is.null(r_sim_selection())) {
+            "Please select row(s) from the data above."
+          } else {
+            "No data available"
+          }
+        ),
+        scrollX = FALSE,
+        pagingType = "numbers"
+      )
+    )
+  })
 }
   
 function() {

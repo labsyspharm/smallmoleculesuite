@@ -424,8 +424,14 @@ libraryServer <- function(input, output, session) {
         autoWidth = TRUE,
         buttons = list(
           list(extend = "copy"),
-          list(extend = "csv", filename = "sm-library-compounds"),
-          list(extend = "excel", filename = "sm-library-compounds"),
+          list(
+            extend = "csv", 
+            title = "sm-library-compounds"
+          ),
+          list(
+            extend = "excel", 
+            title = "sm-library-compounds"
+          ),
           list(extend = "colvis")
         ),
         columnDefs = if (input$table_display == "compound") {
