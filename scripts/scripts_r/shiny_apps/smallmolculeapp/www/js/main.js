@@ -39,7 +39,11 @@ $(function() {
     var $dt = $(e.currentTarget);
     
     $dt.find(".dt-paginate span").addClass("btn-group");
-    $dt.find("table").wrap("<div class='table-responsive'></div>");
+    var $table = $dt.find("table");
+    
+    if (!$table.parent().is(".table-responsive")) {
+      $table.wrap("<div class='table-responsive'></div>"); 
+    }
   });
   
   Shiny.addCustomMessageHandler("click.library.sm", function(msg) {
