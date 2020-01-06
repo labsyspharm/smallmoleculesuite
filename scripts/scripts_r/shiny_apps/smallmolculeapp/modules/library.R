@@ -183,6 +183,14 @@ libraryUI <- function(id) {
             height = "625px"
           )
         )
+      ) %>% 
+        margin(b = 3),
+      card(
+        h3("Reference cards"),
+        htmlOutput(
+          outputId = ns("chembl_list")
+          # container = function(...) tags$div(class = "h-full", ...)
+        )
       )
     )
   )
@@ -403,19 +411,21 @@ libraryServer <- function(input, output, session) {
       dplyr::rename(
         reason_included = sources
       )
-  })   
+  })
   
-  r_tbl <- reactive({
+  r_tbl_data <- reactive({
     req(input$table_display)
     
     .data <- if (input$table_display == "entry") {
       r_table_entry()
     } else if (input$table_display == "compound") {
       r_table_compound()
-    }
-    
+    }    
+  })
+  
+  r_tbl <- reactive({
     DT::datatable(
-      .data,
+      data = r_tbl_data(),
       extensions = c("Buttons"),
       fillContainer = FALSE,
       filter = "top",
@@ -452,5 +462,49 @@ libraryServer <- function(input, output, session) {
     r_tbl(),
     server = FALSE
   )
+  
+  output$chembl_list <- renderUI({
+    req(input$table_results_rows_selected)
+    
+    tbl_selection <- r_tbl_data()[input$table_results_rows_selected, ]
+    chembl_ids <- as.character(tbl_selection$chembl_id)
+    
+    chembl_first <- vector("logical", length(chembl_ids))
+    chembl_first[1] <- TRUE
+    
+    nav_link <- function(x, active) {
+      active <- if (active) " active" else "" 
+      glue("<a class='nav-link{ active }' data-toggle='pill' 
+             href='#{ x }' role='tab'>{ x }</a>")
+    }
+    
+    tab_pane <- function(x, active) {
+      active <- if (active) " show active" else ""
+      glue("<div class='tab-pane { active }' id='{ x }' 
+             style='height: 500px'
+             role='tabpanel'>
+             <object data='https://www.ebi.ac.uk/chembl/embed/#compound_report_card/{ x }/name_and_classification'
+              width='100%' height='100%'>
+             </object>
+           </div>")
+    }
+    
+    chembl_panes <- c(
+      "<div class='row'>",
+      "<div class='col-3'>",
+      "<div class='nav flex-colum nav-pills' role='tablist'>",
+      purrr::map2_chr(chembl_ids, chembl_first, nav_link),
+      "</div>",
+      "</div>",
+      "<div class='col-9'>",
+      "<div class='tab-content'>",
+      purrr::map2_chr(chembl_ids, chembl_first, tab_pane),
+      "</div>",
+      "</div>",
+      "</div>"
+    )
+    
+    HTML(glue_collapse(chembl_panes, "\n"))
+  })
   
 }

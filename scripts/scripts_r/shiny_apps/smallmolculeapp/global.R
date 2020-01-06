@@ -9,6 +9,7 @@ library(markdown)
 library(glue)
 library(aws.s3)
 library(fs)
+library(purrr)
 
 library(yonder)
 
