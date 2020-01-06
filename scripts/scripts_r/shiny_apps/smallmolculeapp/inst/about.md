@@ -11,7 +11,10 @@ Nienke Moret, Nicholas A. Clark, Marc Hafner, Yuan Wang, Eugen Lounkine, Mario M
 Design/idea by [Nienke Moret](https://scholar.harvard.edu/nienkemoret) and [Marc Hafner](https://scholar.harvard.edu/hafner) (HMS - LINCS data and signature generation center)<br>
 R code by [Nienke Moret](https://scholar.harvard.edu/nienkemoret) (HMS - LINCS data and signature generation center)
 <br>
-Shiny/R web application development by [Nicholas Clark](https://github.com/NicholasClark) (U of Cincinnati - LINCS data coordination and integration center)
+Shiny/R web application development by [ZevRoss Spatial
+Analysis](www.zevross.com) patterned after an earlier application created by
+[Nicholas Clark](https://github.com/NicholasClark) (U of Cincinnati - LINCS data
+coordination and integration center)
 <br>
 Supervision by [Peter Sorger](https://sorger.med.harvard.edu/people/peter-sorger-phd/) (HMS - LINCS data and signature generation center)
 <br>
