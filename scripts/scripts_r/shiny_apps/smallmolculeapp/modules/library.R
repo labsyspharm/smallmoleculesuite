@@ -433,9 +433,15 @@ libraryServer <- function(input, output, session) {
       c("library", "small", "molecule", "suite"), c(view_type, "view")
     )
     
+    .data <- r_tbl_data() %>% 
+      dplyr::mutate(
+        ` ` = NA_character_
+      ) %>% 
+      dplyr::select(` `, everything())
+    
     DT::datatable(
-      data = r_tbl_data(),
-      extensions = c("Buttons"),
+      data = .data,
+      extensions = c("Buttons", "Select"),
       fillContainer = FALSE,
       filter = "top",
       rownames = FALSE,
@@ -451,17 +457,32 @@ libraryServer <- function(input, output, session) {
             extend = "excel", 
             title = download_name
           ),
-          list(extend = "colvis")
+          list(
+            extend = "colvis",
+            columns = ":not(.select-checkbox)"
+          )
         ),
-        columnDefs = if (input$table_display == "compound") {
-          list(list(targets = 0, visible = FALSE))
-        },
+        columnDefs = list(
+          list(
+            targets = 0,
+            className = "select-checkbox",
+            orderable = FALSE
+          ),
+          list(
+            targets = 1,
+            visible = input$table_display != "compound"
+          )
+        ),
         dom = "lfrtipB",
         fixedHeader = list(
           header = TRUE
         ),
         pagingType = "numbers",
         searchHighlight = TRUE,
+        select = list(
+          style = "os",
+          selector = "td.select-checkbox"
+        ),
         scrollX = FALSE
       )
     )
@@ -476,7 +497,7 @@ libraryServer <- function(input, output, session) {
     req(input$table_results_rows_selected)
     
     tbl_selection <- r_tbl_data()[input$table_results_rows_selected, ]
-    chembl_ids <- as.character(tbl_selection$chembl_id)
+    chembl_ids <- sort(unique(as.character(tbl_selection$chembl_id)))
     
     chembl_first <- vector("logical", length(chembl_ids))
     chembl_first[1] <- TRUE
