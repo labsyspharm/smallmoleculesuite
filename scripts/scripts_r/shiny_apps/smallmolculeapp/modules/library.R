@@ -29,9 +29,12 @@ libraryUI <- function(id) {
                   rows = 5
                 ),
                 help = div(
-                  "This tool uses HUGO names. Please see ", 
-                  tags$a(target = "_blank", href = "genenames.org", "genenames.org"),
-                  " for help."
+                  "This tool uses HUGO names. Please see", 
+                  tags$a(
+                    target = "_blank", href = "https://genenames.org", 
+                    "genenames.org"
+                  ),
+                  "for help."
                 )
               ),
               formSubmit(
@@ -191,7 +194,8 @@ libraryUI <- function(id) {
           outputId = ns("chembl_list")
           # container = function(...) tags$div(class = "h-full", ...)
         )
-      )
+      ) %>% 
+        margin(b = 2)
     )
   )
 }
@@ -424,6 +428,11 @@ libraryServer <- function(input, output, session) {
   })
   
   r_tbl <- reactive({
+    view_type <- if (input$table_display == "entry") "target" else "compound"
+    download_name <- create_download_filename(
+      c("library", "small", "molecule", "suite"), c(view_type, "view")
+    )
+    
     DT::datatable(
       data = r_tbl_data(),
       extensions = c("Buttons"),
@@ -436,11 +445,11 @@ libraryServer <- function(input, output, session) {
           list(extend = "copy"),
           list(
             extend = "csv", 
-            title = "sm-library-compounds"
+            title = download_name
           ),
           list(
             extend = "excel", 
-            title = "sm-library-compounds"
+            title = download_name
           ),
           list(extend = "colvis")
         ),
@@ -474,14 +483,14 @@ libraryServer <- function(input, output, session) {
     
     nav_link <- function(x, active) {
       active <- if (active) " active" else "" 
-      glue("<a class='nav-link{ active }' data-toggle='pill' 
+      glue("<a class='text-black nav-link{ active }' data-toggle='pill' 
              href='#{ x }' role='tab'>{ x }</a>")
     }
     
     tab_pane <- function(x, active) {
       active <- if (active) " show active" else ""
       glue("<div class='tab-pane { active }' id='{ x }' 
-             style='height: 500px'
+             style='height: 750.5px'
              role='tabpanel'>
              <object data='https://www.ebi.ac.uk/chembl/embed/#compound_report_card/{ x }/name_and_classification'
               width='100%' height='100%'>
@@ -492,7 +501,7 @@ libraryServer <- function(input, output, session) {
     chembl_panes <- c(
       "<div class='row'>",
       "<div class='col-3'>",
-      "<div class='nav flex-colum nav-pills' role='tablist'>",
+      "<div class='nav flex-colum nav-pills active-orange' role='tablist'>",
       purrr::map2_chr(chembl_ids, chembl_first, nav_link),
       "</div>",
       "</div>",
