@@ -89,18 +89,26 @@ function(req) {
                       card(
                         h5("I want pre-calculated libraries—"),
                         p(
-                          tags$a(
-                            href = "assets/docs/LSP_OptimalKinase_educationSheet.docx",
-                            icon("file-download"), 
-                            "Kinases" 
-                          )
+                          tags$button(
+                            class = "btn btn-blue shadow-sm",
+                            type = "button",
+                            `data-toggle` = "modal",
+                            `data-target` = "#modal_optimal_kinase",
+                            icon("window-restore"),
+                            "Kinases"
+                          ),
+                          optimalKinaseModal()
                         ),
                         p(
-                          tags$a(
-                            href = "assets/docs/LSP_MoA_educationSheet.docx",
-                            icon("file-download"),
+                          tags$button(
+                            class = "btn btn-blue shadow-sm",
+                            type = "button",
+                            `data-toggle` = "modal",
+                            `data-target` = "#modal_moa",
+                            icon("window-restore"),
                             "MOA"
-                          )
+                          ),
+                          moaModal()
                         )
                       ) %>% 
                         shadow(),

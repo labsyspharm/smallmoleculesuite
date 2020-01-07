@@ -10,6 +10,7 @@ library(glue)
 library(aws.s3)
 library(fs)
 library(purrr)
+# library(stringr)
 
 library(yonder)
 
@@ -18,6 +19,7 @@ source("awspass.config")
 source("modules/selectivity.R", local = TRUE)
 source("modules/similarity.R", local = TRUE)
 source("modules/library.R", local = TRUE)
+source("modules/modals.R", local = TRUE)
 
 source("data/load.R", local = TRUE)
 
