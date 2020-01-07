@@ -368,7 +368,7 @@ selectivityServer <- function(input, output, session) {
     
     DT::datatable(
       .data,
-      extensions = c('Buttons', "Select"),
+      extensions = c("Buttons", "Select"),
       fillContainer = FALSE,
       rownames = FALSE,
       selection = "single",
