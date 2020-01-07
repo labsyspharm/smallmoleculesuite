@@ -123,7 +123,8 @@ table.dataTable tr.selected td.select-checkbox::after {
 }
 
 .dt-button-collection {
-  padding-top: 35px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
   max-height: 300px;
   overflow: scroll !important;
 }
