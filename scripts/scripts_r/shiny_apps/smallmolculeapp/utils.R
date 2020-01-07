@@ -4,11 +4,12 @@ create_bookmark_id <- function() {
   paste0(date_time, "-", id)
 }
 
-create_download_filename <- function(x) {
-  x_formatted <- stringr::str_replace_all(tolower(x), "\\s+", "-")
-  x_collapse <- paste0(x_formatted, collapse = "-")
-  x_dated <- paste0(x_collapse, "-", Sys.Date())
-  x_dated
+create_download_filename <- function(prefix, suffix = NULL) {
+  full <- c(prefix, "%s", suffix)
+  formatted <- stringr::str_replace_all(tolower(full), "\\s+", "-")
+  collapse <- paste0(formatted, collapse = "-")
+  
+  sprintf(collapse, Sys.Date())
 }
 
 write_zip <- function(contents, path) {
