@@ -42,7 +42,10 @@ function(input, output, session) {
   
   callModule(
     module = libraryServer,
-    id = "lib"
+    id = "lib",
+    load_example = reactive({
+      req(input$nav == "library")
+    })
   )
   
   callModule(

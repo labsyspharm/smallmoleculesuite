@@ -27,7 +27,8 @@ libraryUI <- function(id) {
                   inputId = ns("gene_list"),
                   label = NULL,
                   rows = 5
-                ),
+                ) %>% 
+                  margin(top = -3),
                 help = div(
                   "This tool uses HUGO names. Please see", 
                   tags$a(
@@ -45,11 +46,17 @@ libraryUI <- function(id) {
               margin(bottom = 3),
             formGroup(
               label = "Example gene lists",
-              input = selectInput(
-                id = ns("gene_example"),
-                choices = names(data_genes), # data/load.R
-                selected = "Dark_Kinome"
-              ),
+              input = {
+                sel <- selectInput(
+                  id = ns("gene_example"),
+                  choices = names(data_genes), # data/load.R
+                  selected = "Dark_Kinome"
+                )
+                
+                sel$children[[1]]$attribs$placeholder <- "Dark_Kinome"
+                
+                sel
+              },
               help = "Selecting a choice will populate the input above with an example list of genes."
             ),
             navContent(
@@ -193,7 +200,6 @@ libraryUI <- function(id) {
         h3("Reference cards"),
         htmlOutput(
           outputId = ns("chembl_list")
-          # container = function(...) tags$div(class = "h-full", ...)
         )
       ) %>% 
         margin(b = 2)
@@ -201,7 +207,7 @@ libraryUI <- function(id) {
   )
 }
 
-libraryServer <- function(input, output, session) {
+libraryServer <- function(input, output, session, load_example) {
   ns <- session$ns
   
   # Define genes found in our data
@@ -223,6 +229,9 @@ libraryServer <- function(input, output, session) {
       inputId = "gene_list", 
       value = paste0(data_genes[[input$gene_example]], collapse = "\n")
     )
+  })
+  
+  observeEvent(load_example(), once = TRUE, {
     session$sendCustomMessage("click.library.sm", list())
   })
   
