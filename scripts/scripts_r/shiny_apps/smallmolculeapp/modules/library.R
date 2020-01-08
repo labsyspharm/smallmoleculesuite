@@ -89,7 +89,7 @@ libraryUI <- function(id) {
                     id = ns("filter_phase"),
                     choices = c("Approved", "Phase III", "Phase II", "Phase I"),
                     values = c("approved", "max_phase_3", "max_phase_2", "max_phase_1"),
-                    selected = "Approved"
+                    selected = "approved"
                   ) %>% 
                     active("orange"),
                   help = "Select compounds in clinical development to be added to the library."
@@ -124,6 +124,7 @@ libraryUI <- function(id) {
                       label = NULL,
                       min = 0,
                       max = 5, 
+                      step = 0.25,
                       value = 3
                     )
                   )
@@ -150,7 +151,7 @@ libraryUI <- function(id) {
                       label = NULL,
                       min = 0, 
                       max = 5, 
-                      step = 1,
+                      step = 0.25,
                       value = 2
                     )
                   )
@@ -205,20 +206,6 @@ libraryServer <- function(input, output, session) {
   
   # Define genes found in our data
   data_all_genes <- dplyr::union(data_selection_clinical$symbol, data_selection_selectivity$symbol)
-  
-  # Names of classes in the selectivity table
-  # THIS BLEW MY MIND WHEN I REALIZED HOW THEY'RE USED
-  best <- c("Most selective") # Most selective
-  second <- c("Semi-selective") # Semi selective
-  non <- c("Poly-selective") # Poly-selective
-  un <- c("Unknown") # Unknown
-  none <- NULL
-  
-  # Names of phases in the clinical development table
-  approved <- "approved"
-  three <- c("max_phase_3")
-  two <- c("max_phase_2")
-  one <- c("max_phase_1")
   
   # nav ----
   observeEvent(input$nav, {
@@ -282,30 +269,32 @@ libraryServer <- function(input, output, session) {
   r_selection_selectivity <- reactive({
     req(r_gene_known())
     
-    this <- data_selection_selectivity %>%
+    gene_select <- data_selection_selectivity %>%
       dplyr::filter(symbol %in% r_gene_known()) 
     
-    if (!is.null(input$filter_probes)) {
-      this <- this %>% 
-        dplyr::filter(source %in% input$filter_probes)
+    if (is.null(input$filter_probes)) {
+      return(dplyr::slice(gene_select, 0))
     }
     
-    this
+    gene_select %>% 
+      dplyr::filter(source %in% input$filter_probes)
   })
   
   r_selection_clinical <- reactive({
     req(r_gene_known())
     
-    this <- data_selection_clinical %>%
+    gene_clinical <- data_selection_clinical %>%
       dplyr::filter(symbol %in% r_gene_known())
     
-    if (!is.null(input$filter_phase)) {
-      this <- this %>% 
-        dplyr::filter(source %in% input$filter_phase)
+    if (is.null(input$filter_phase)) {
+      return(dplyr::slice(gene_clinical, 0))
     }
     
+    phase_clinical <- gene_clinical %>% 
+      dplyr::filter(source %in% input$filter_phase)
+    
     # sliders "sd" and "affinity" are in log10 scale
-    this %>% 
+    phase_clinical %>% 
       dplyr::filter(mean_Kd <= 10 ^ input$filter_affinity) %>%
       dplyr::filter(is.na(SD_aff) | SD_aff <= 10 ^ input$filter_sd) %>% 
       dplyr::filter(n_measurement >= input$filter_measurement)
