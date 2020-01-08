@@ -2,7 +2,14 @@ function logifySlider(el) {
   // regular number style
   $(el).data("ionRangeSlider").update({
     "prettify": function (num) {
-      return (Math.pow(10, num).toLocaleString());
+      var exp = Math.pow(10, num);
+      var fixed = exp.toFixed(1);
+      
+      if (fixed == exp) {
+        return exp;
+      }
+      
+      return fixed.toLocaleString();
     }
   });
 }
