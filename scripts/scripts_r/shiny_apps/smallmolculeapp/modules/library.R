@@ -433,7 +433,16 @@ libraryServer <- function(input, output, session, load_example) {
     
     .data <- r_tbl_data() %>% 
       dplyr::mutate(
-        ` ` = NA_character_
+        ` ` = NA_character_,
+        chembl_id = lapply(
+          glue(
+            "<a target='_blank'
+                href='https://www.ebi.ac.uk/chembl/compound_report_card/{ chembl_id }'>
+                { chembl_id }<sup class='ml-1'><i class='fa fa-external-link'></i></sup>
+             </a>"
+          ),
+          HTML
+        ),
       ) %>% 
       dplyr::select(` `, everything())
     
