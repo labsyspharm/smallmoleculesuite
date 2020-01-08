@@ -129,6 +129,11 @@ table.dataTable tr.selected td.select-checkbox::after {
   overflow: scroll !important;
 }
 
+.dt-paginate .ellipsis {
+  padding-left: .25rem;
+  padding-right: .25rem;
+}
+
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;

@@ -76,7 +76,7 @@ function(req) {
                 p("Developed by the Harvard Program in Therapeutic Sciences (HiTS)") %>% 
                   font(align = "center") %>% 
                   margin(b = 5),
-                columns(
+                columns( # ├ use cases ----
                   column(
                     width = 12,
                     h1("Use cases") %>% 
@@ -89,29 +89,35 @@ function(req) {
                       card(
                         h5("I want pre-calculated libraries—"),
                         p(
-                          tags$button(
-                            class = "btn btn-blue shadow-sm",
-                            type = "button",
-                            `data-toggle` = "modal",
-                            `data-target` = "#modal_optimal_kinase",
-                            icon("window-restore"),
-                            "Kinases"
+                          div(
+                            class = "shadow-sm d-inline-block",
+                            tags$button(
+                              class = "btn btn-blue shadow-sm",
+                              type = "button",
+                              `data-toggle` = "modal",
+                              `data-target` = "#modal_optimal_kinase",
+                              icon("window-restore"),
+                              "Kinases"
+                            )
                           ),
                           optimalKinaseModal()
                         ),
                         p(
-                          tags$button(
-                            class = "btn btn-blue shadow-sm",
-                            type = "button",
-                            `data-toggle` = "modal",
-                            `data-target` = "#modal_moa",
-                            icon("window-restore"),
-                            "MOA"
+                          div(
+                            class = "shadow-sm d-inline-block",
+                            tags$button(
+                              class = "btn btn-blue shadow-sm",
+                              type = "button",
+                              `data-toggle` = "modal",
+                              `data-target` = "#modal_moa",
+                              icon("window-restore"),
+                              "MOA"
+                            )
                           ),
                           moaModal()
                         )
                       ) %>% 
-                        shadow(),
+                        shadow("small"),
                       card(
                         h5("I have a gene and—"),
                         p(
@@ -133,7 +139,7 @@ function(req) {
                           )
                         )
                       ) %>% 
-                        shadow(),
+                        shadow("small"),
                       card(
                         h5("I have a compound and—"),
                         p(
@@ -155,16 +161,12 @@ function(req) {
                           )
                         )
                       ) %>% 
-                        shadow()
-                      # card(
-                      #   h5("I have a more complex case—"),
-                      #   p("See application links below.")
-                      # )
+                        shadow("small")
                     )
                   )
                 ) %>% 
                   margin(bottom = 5),
-                columns(
+                columns( # ├ applications ----
                   column(
                     width = 12,
                     h1("Applications") %>% 
@@ -222,10 +224,25 @@ function(req) {
                     display("flex") %>% 
                     flex(direction = "column") %>% 
                     font(align = "center")
-                )
-              )
-            ) %>% 
-              margin(top = 5, bottom = 5)
+                ),
+                columns( # ├ binding data ----
+                  column(
+                    width = 12,
+                    h1("Binding data") %>% 
+                      font(align = "center"),
+                    p(class = "lead",
+                      "Quick reference compound binding data.") %>% 
+                      font(align = "center", size = "sm") %>% 
+                      margin(top = -1, b = 3)
+                  ),
+                  column(
+                    width = 12,
+                    bindingDataUI("bd")
+                  )
+                ) %>% 
+                  margin(top = 5, bottom = 5)
+              ) 
+            )
           ),
           # selectivity ----
           navPane(

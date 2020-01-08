@@ -32,6 +32,22 @@ data_affinity_selectivity <- "data/affinity_selectivity_table_ChemblV22_1_201708
     ~ signif(., 2)
   )
 
+data_affinity_by_name <- data_affinity_selectivity %>% 
+  dplyr::select(name, symbol, selectivity_class, ontarget_IC50_Q1) %>% 
+  dplyr::rename(
+    Symbol = symbol,
+    `Selectivity Class` = selectivity_class,
+    `Affinity (nM)` = ontarget_IC50_Q1
+  )
+
+data_affinity_by_symbol <- data_affinity_selectivity %>% 
+  dplyr::select(symbol, name, selectivity_class, ontarget_IC50_Q1) %>% 
+  dplyr::rename(
+    `Compound Name` = name,
+    `Selectivity Class` = selectivity_class,
+    `Affinity (nM)` = ontarget_IC50_Q1
+  )
+
 data_similarity <- "data/similarity_table_ChemblV22_1_20170804.csv" %>%
   readr::read_csv(progress = FALSE) %>% 
   dplyr::mutate_at(vars(PFP, TAS, structural_similarity), ~ round(., 2))

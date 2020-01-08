@@ -61,26 +61,6 @@ similarityUI <- function(id) {
                   selected = "use"
                 )
               )
-            ),
-            div(
-              tags$label(
-                `for` = ns("table_ref_compound"),
-                # "Reference compound"
-                textOutput(
-                  outputId = ns("title_ref_compound"),
-                  inline = TRUE
-                )
-              ),
-              dataTableOutput(
-                # binding_data
-                outputId = ns("table_ref_compound")
-              ),
-              downloadButton(
-                class = "similarity--green",
-                outputId = ns("export_ref_data"),
-                label = "Download binding data"
-              ) %>% 
-                margin(top = 3)
             )
           ),
           navPane(
@@ -214,14 +194,6 @@ similarityServer <- function(input, output, session) {
       "Compound similarities for", input$query_compound, 
       "from HMS LINCS small molecule library"
     )
-  })
-  
-  output$title_ref_compound <- renderText({
-    if (is.null(input$query_compound)) {
-      "Select compound"
-    } else {
-      paste(input$query_compound, "reference")
-    }
   })
   
   r_sim_data <- reactive({
@@ -480,43 +452,6 @@ similarityServer <- function(input, output, session) {
     # p %>% layout(dragmode = "select")
   })
   
-  output$export_ref_data <- downloadHandler(
-    filename = function() {
-      paste0("sm-similiarity-binding-", input$query_compound, ".zip")
-    },
-    content = function(path) {
-      contents <- list(
-        dplyr::filter(data_affinity_selectivity, name == input$query_compound)
-      )
-      names(contents) <- paste0(input$query_compound, ".csv")
-      
-      if (!is.null(r_sim_selection())) {
-        ids <- r_sim_data()$hmsID_1[r_sim_selection()]
-        names(ids) <- paste0(r_sim_data()$name_2[r_sim_selection()], ".csv")
-        
-        contents <- c(contents, lapply(ids, function(id) {
-          dplyr::filter(data_affinity_selectivity, hms_id == id)
-        }))
-      }
-      
-      write_zip(contents, path)
-    }
-  )
-  
-  output$table_ref_compound <- DT::renderDataTable(
-    r_ref_data(),
-    class = "font-size-sm datatable--compact",
-    options = list(
-      # autoWidth = TRUE,
-      dom = "t",
-      ordering = FALSE,
-      searchHighlight = TRUE
-    ),
-    rownames = FALSE,
-    selection = "none",
-    server = FALSE
-  )
-  
   # output_table
   state <- reactiveValues(selected_names = NULL)
   
@@ -564,9 +499,7 @@ similarityServer <- function(input, output, session) {
     
     DT::datatable(
       .data,
-      # class = "dt-select-limit-5",
       extensions = c("Buttons", "Select"),
-      # fillContainer = TRUE,
       rownames = FALSE, 
       selection = "single",
       options = list(
@@ -595,14 +528,6 @@ similarityServer <- function(input, output, session) {
             ) - 1,
             visible = FALSE
           ),
-          # list(
-          #   targets = which(col_types == "numeric") - 1,
-          #   className = "text-right"
-          # ),
-          # list(
-          #   targets = which(col_types == "character") - 1,
-          #   className = "text-left"
-          # ),
           list(
             className = "select-checkbox",
             orderable = FALSE,
@@ -625,33 +550,6 @@ similarityServer <- function(input, output, session) {
     server = FALSE
   )
 
-  # observeEvent(r_selection_drugs(), ignoreNULL = FALSE, {
-  #   if (is.null(r_selection_drugs())) {
-  #     updateListGroupInput(
-  #       id = "compound_selection",
-  #       choices = "N/A",
-  #       values = "",
-  #       session = session
-  #     )
-  #     
-  #     return()
-  #   }
-  #   
-  #   if (isTRUE(input$compound_selection %in% r_selection_drugs())) {
-  #     x_selected <- input$compound_selection
-  #   } else {
-  #     x_selected <- tail(r_selection_drugs(), 1)
-  #   }
-  #   
-  #   updateListGroupInput(
-  #     id = "compound_selection",
-  #     choices = r_selection_titles(),
-  #     values = r_selection_drugs(),
-  #     selected = x_selected,
-  #     session = session
-  #   )
-  # })
-  
   get_hms_id_2 <- function(drug) {
     if (is.null(drug) || is.na(drug) || length(drug) < 1) {
       return(NULL)

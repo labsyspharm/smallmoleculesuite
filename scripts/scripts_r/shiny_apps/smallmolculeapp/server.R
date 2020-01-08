@@ -45,6 +45,11 @@ function(input, output, session) {
     id = "lib"
   )
   
+  callModule(
+    module = bindingDataServer,
+    id = "bd"
+  )
+  
   observeEvent(input$bookmark_begin, {
     closeModal()
     
