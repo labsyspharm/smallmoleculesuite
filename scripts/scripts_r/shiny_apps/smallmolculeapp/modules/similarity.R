@@ -482,7 +482,7 @@ similarityServer <- function(input, output, session) {
     col_types <- unname(vapply(.data, class, character(1)))
 
     download_name <- create_download_filename(
-      c("affinity", "spectrum", input$query_compound)
+      c("similarity", "table", input$query_compound)
     )
     
     DT::datatable(
@@ -573,7 +573,7 @@ similarityServer <- function(input, output, session) {
   
   output$table_selection <- DT::renderDataTable({
     download_name <- create_download_filename(
-      c("similarity", "table", input$query_compound)
+      c("affinity", "spectrum", input$query_compound)
     )
     
     DT::datatable(
