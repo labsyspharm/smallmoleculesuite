@@ -90,7 +90,8 @@ selectivityUI <- function(id) {
           navPane(
             id = ns("pane_instructions"),
             fade = FALSE,
-            p("To use the Selectivity portion of the application,"),
+            p("The Selectivity app helps you find selective and potent small molecules against your target of interest."),
+            p("To use the Selectivity app:"),
             tags$ol(
               class = "pl-4",
               tags$li("Select a gene of interest in the top left corner of the",

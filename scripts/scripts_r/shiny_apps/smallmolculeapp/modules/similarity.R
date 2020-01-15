@@ -65,32 +65,20 @@ similarityUI <- function(id) {
           ),
           navPane(
             id = ns("pane_instructions"),
-            p(
-              "Similarity is regarded in threefold: structural similarity (Tanimoto similarity of Morgan2 fingerprints— calculated using RDKit), target affinity spectrum similarity (TAS) and phenotypic fingerprint similarity (PFP). To use SimilaritySelectR, select a reference compound and adjust filters as desired. From the main plots, select a region with compounds of interest. Then, select up to three compounds in the bottom table and view their known binding affinities in detail."
-            ),
-            p(
-              "The Similarity application is designed to let you explore compounds that are similar to your compound of interest. Similarity is regarded in threefold:"
-            ),
+            p("The Similarity app helps you find compounds similar to your compound of interest."),
+            p("To use the Similarity app:"),
             tags$ol(
+              class = "pl-4",
               tags$li(
-                "Structural similarity - similarity of the chemical structure of a compound pair, calculated with tanimoto similarity based on Morgan2 fingerprints (calculated using RDKit) - from 0 (least similar) to 1 (most similar)"
+                "Select a reference compound and set filters as desired. Three plots show up under 'Compound similarity plots'. These plots describe the similarity to the reference compound in phenotype (PFP), targets (TAS), and chemical structure (structural similarity) -- calculated using Morgan2 fingerprints in RDkit."
               ),
               tags$li(
-                "Target affinity spectrum (TAS) similarity - the similarity of all the targets of a compound pair, calculated with jaccard similarity - from 0 (least similar) to 1 (most similar)"
+                "Select an area of the compound similarity plots you are interested in. They will show up in table format under 'Compound similarity data'."
               ),
               tags$li(
-                "Phenotypic fingerprint (PFP) correlation - the correlation of the results in phenotypic assays for a compound pair - from -1 (most anti-correlated) to 1 (most correlated)"
+                "In the 'Compound similarity data' select a compound so see Its Target Afinity Spectrum in the 'Compound similarity selections' that shows up below (you may have to scroll down)."
               )
-            ),
-            tags$p(
-              "To view compounds that are similar, first select a reference compound of your choice. This will display plots of the structural similarity, target affinity spectrum similarity (TAS), and phenotypic fingerprint similarity (PFP) between your reference compound and compounds from the HMS Laboratory of Systems Pharmacology (LSP) library."
-            ),
-            tags$p(
-              "Next, select an area of interest on one of the similarity plots. This will highlight the compounds in the other plots and show only the selected compounds in the output table (double click to de-select). You may also set thresholds for the number of biological and phenotypic assays that the LSP compounds share with your reference compound."
-            ),
-            tags$p(
-              "Finally, select up to five similar compounds in the output table that you like to explore further. This will show the known gene targets and affinities for the selected compounds, for your information. Click the “Download tables” button to download the these tables as well as the table of binding data for your reference compound."
-            )            
+            )
           )
         )
       )

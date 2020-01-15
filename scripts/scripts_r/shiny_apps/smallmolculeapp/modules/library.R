@@ -168,17 +168,28 @@ libraryUI <- function(id) {
           ),
           navPane(
             id = ns("pane_instructions"),
-            p(
-              "Compounds in the library are selected based on affinity, selectivity, structural similarity (calculated using RDKit) and clinical development phase. Additionally we source several expert opinion “best-in-class” lists. To use LibraryR, simply submit a list of genes for which the library should be designed, or load one of the example gene-sets, click ‘Submit’ and adjust the inclusion criteria to fit your research purpose. The library will be adjusted based on the input genes and inclusion criteria."
-            ),
-            p(
-              "Type/paste a list of gene symbols into the text box (or load one of the example gene-lists ) and click 'Submit'."
-            ),
-            p(
-              "Only gene symbols from HUGO Gene Nomenclature Committee (HGNC) are accepted. Non-HGNC gene symbols and genes for which we lack drug information will be ignored."
-            ),
-            p(
-              "After submitting your gene list, a downloadable table of drugs targeting those genes will be generated. You may further filter these drugs by selectivity level, FDA approval/clinical phase, and other parameters."
+            p("The Library app helps you build custom small molecule libraries"),
+            p("To use the Library app:"),
+            tags$ol(
+              class = "pl-4",
+              tags$li(
+                "Submit a list of targets that you want to build the library for (in HUGO nomenclature), or select one of the pre-selected gene lists."
+              ),
+              tags$li(
+                "Select up to which selectivity level you want to be included."
+              ),
+              tags$li(
+                "Select which approval phases you want to include for clinical compounds."
+              ),
+              tags$li(
+                "Select whether to include the compounds from chemicalprobes.org (4.0 star rating only)."
+              ),
+              tags$li(
+                "Choose whether to view the table per target or per compound"
+              ),
+              tags$li(
+                "Download the library."
+              )
             )
           )
         )
