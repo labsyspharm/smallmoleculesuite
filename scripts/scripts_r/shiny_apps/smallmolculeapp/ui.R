@@ -79,7 +79,9 @@ function(req) {
               column(
                 d3("The Small Molecule Suite") %>% 
                   font(align = "center"),
-                p("Developed by the Harvard Program in Therapeutic Sciences (HiTS)") %>% 
+                p("An open-access tool developed by the Harvard Program",
+                  "in Therapeutic Sciences (HiTS) and",
+                  linkInput(id = "funding2", label = "funded by the NIH")) %>% 
                   font(align = "center") %>% 
                   margin(b = 5),
                 columns( # ├ use cases ----
