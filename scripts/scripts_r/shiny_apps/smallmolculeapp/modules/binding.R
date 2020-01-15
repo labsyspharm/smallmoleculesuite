@@ -126,7 +126,7 @@ bindingDataServer <- function(input, output, session) {
   output$export_name_data <- downloadHandler(
     filename = function() {
       sprintf("%s-.zip", create_download_filename(
-        c("affinity", "reference", input$target_name)
+        c("binding", "xyz", input$target_name)
       ))
     },
     content = function(path) {
@@ -134,7 +134,7 @@ bindingDataServer <- function(input, output, session) {
         dplyr::filter(data_affinity_selectivity, name == input$target_name)
       )
       names(contents) <- sprintf("%s.csv", create_download_filename(
-        c("affinity", "reference", input$target_name)
+        c("binding", "xyz", input$target_name)
       ))
 
       write_zip(contents, path)
@@ -144,7 +144,7 @@ bindingDataServer <- function(input, output, session) {
   output$export_symbol_data <- downloadHandler(
     filename = function() {
       sprintf("%s-.zip", create_download_filename(
-        c("affinity", "reference", input$target_symbol)
+        c("binding", "xyz", input$target_symbol)
       ))
     },
     content = function(path) {
@@ -152,7 +152,7 @@ bindingDataServer <- function(input, output, session) {
         dplyr::filter(data_affinity_selectivity, symbol == input$target_symbol)
       )
       names(contents) <- sprintf("%s.csv", create_download_filename(
-        c("affinity", "reference", input$target_symbol)
+        c("binding", "xyz", input$target_symbol)
       ))
       
       write_zip(contents, path)
