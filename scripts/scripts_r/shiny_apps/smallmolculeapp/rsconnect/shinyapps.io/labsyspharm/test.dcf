@@ -5,6 +5,6 @@ account: labsyspharm
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 951543
-bundleId: 2731311
+bundleId: 2731458
 url: https://labsyspharm.shinyapps.io/test/
-when: 1579113339.56124
+when: 1579117267.57855
