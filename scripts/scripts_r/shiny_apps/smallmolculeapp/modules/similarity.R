@@ -491,7 +491,7 @@ similarityServer <- function(input, output, session) {
       rownames = FALSE, 
       selection = "single",
       options = list(
-        autoWidth = TRUE,
+        # autoWidth = TRUE,
         buttons = list(
           list(extend = "copy"),
           list(
