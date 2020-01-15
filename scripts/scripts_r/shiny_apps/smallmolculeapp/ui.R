@@ -44,6 +44,12 @@ function(req) {
           background("black") %>% 
           font(color = "white"),
         buttonInput(
+          id = "funding",
+          label = "Funding"
+        ) %>% 
+          background("black") %>% 
+          font("white"),
+        buttonInput(
           id = "bookmark_begin",
           label = icon("link")
         ) %>%
