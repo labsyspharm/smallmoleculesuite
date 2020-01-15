@@ -523,7 +523,7 @@ libraryServer <- function(input, output, session, load_example) {
     nav_link <- function(x, active) {
       active <- if (active) " active" else "" 
       glue("<a class='text-black nav-link{ active }' data-toggle='pill' 
-             href='#{ x }' role='tab'>{ x }</a>")
+             data-target='#{ x }' role='tab'>{ x }</a>")
     }
     
     tab_pane <- function(x, active) {

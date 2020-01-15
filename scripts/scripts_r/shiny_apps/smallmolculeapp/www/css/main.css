@@ -151,3 +151,7 @@ table.dataTable tr.selected td.select-checkbox::after {
   background: #bfbfbf;
   cursor: pointer;
 }
+
+a[data-target] {
+  cursor: pointer;
+}
