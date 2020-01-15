@@ -79,6 +79,11 @@ table.dataTable tbody td {
   white-space: nowrap;
 }
 
+table.dataTable thead th {
+  padding: 8px 10px;
+  padding-right: 18px;
+}
+
 .dataTables_scroll {
   overflow-x: scroll;
 }
