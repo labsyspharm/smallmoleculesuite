@@ -1,8 +1,8 @@
 function(req) {
   list(
     htmltools::htmlDependency(
-      "font-awesome", 
-      "5.3.1", "www/shared/fontawesome", package = "shiny", 
+      "font-awesome",
+      "5.3.1", "www/shared/fontawesome", package = "shiny",
       stylesheet = c("css/all.min.css", "css/v4-shims.min.css")
     ),
     DT:::DTDependency("default"),
@@ -35,19 +35,19 @@ function(req) {
             "similarity",
             "library"
           )
-        ) %>% 
+        ) %>%
           margin(left = "auto"),
         buttonInput(
           id = "about",
           label = "About"
-        ) %>% 
-          background("black") %>% 
+        ) %>%
+          background("black") %>%
           font(color = "white"),
         buttonInput(
           id = "funding",
           label = "Funding"
-        ) %>% 
-          background("black") %>% 
+        ) %>%
+          background("black") %>%
           font("white"),
         buttonInput(
           id = "bookmark_begin",
@@ -59,14 +59,14 @@ function(req) {
           href = "https://github.com/labsyspharm/smallmoleculesuite",
           target = "_blank",
           icon("github", class = "fa-lg")
-        ) %>% 
-          font(color = "white") %>% 
+        ) %>%
+          font(color = "white") %>%
           margin(l = 2)
       ) %>%
-        active("red") %>% 
-        padding(0, r = 3, l = 3) %>% 
-        margin(b = 4) %>% 
-        background("black") %>% 
+        active("red") %>%
+        padding(0, r = 3, l = 3) %>%
+        margin(b = 4) %>%
+        background("black") %>%
         shadow(),
       container(
         navContent(
@@ -77,18 +77,18 @@ function(req) {
             class = "active",
             columns(
               column(
-                d3("The Small Molecule Suite") %>% 
+                d3("The Small Molecule Suite") %>%
                   font(align = "center"),
                 p("An open-access tool developed by the Harvard Program",
                   "in Therapeutic Sciences (HiTS) and",
-                  linkInput(id = "funding2", label = "funded by the NIH")) %>% 
-                  font(align = "center") %>% 
+                  linkInput(id = "funding2", label = "funded by the NIH")) %>%
+                  font(align = "center") %>%
                   margin(b = 5),
                 columns( # ├ use cases ----
                   column(
                     width = 12,
-                    h1("Use cases") %>% 
-                      margin(bottom = 3) %>% 
+                    h1("Use cases") %>%
+                      margin(bottom = 3) %>%
                       font(align = "center")
                   ),
                   column(
@@ -124,7 +124,7 @@ function(req) {
                           ),
                           moaModal()
                         )
-                      ) %>% 
+                      ) %>%
                         shadow("small"),
                       card(
                         h5("I have a gene and—"),
@@ -141,12 +141,12 @@ function(req) {
                           linkInput(
                             id = "goto_library_1",
                             label = list(
-                              icon("share"), 
+                              icon("share"),
                               "I need two orthogonal small molecules for a set of targets"
                             )
                           )
                         )
-                      ) %>% 
+                      ) %>%
                         shadow("small"),
                       card(
                         h5("I have a compound and—"),
@@ -168,97 +168,97 @@ function(req) {
                             )
                           )
                         )
-                      ) %>% 
+                      ) %>%
                         shadow("small")
                     )
                   )
-                ) %>% 
+                ) %>%
                   margin(bottom = 5),
                 columns( # ├ applications ----
                   column(
                     width = 12,
-                    h1("Applications") %>% 
-                      margin(bottom = 3) %>% 
+                    h1("Applications") %>%
+                      margin(bottom = 3) %>%
                       font(align = "center")
                   ),
                   column(
                     linkInput(
                       id = "link_selectivity",
                       label = list(
-                        tags$img(src = "assets/img/helix.png") %>% 
+                        tags$img(src = "assets/img/helix.png") %>%
                           height(10),
                         # icon("circle", class = "fa-6x selectivity--pink"),
-                        h4("Selectivity") %>% 
-                          font(color = "black") %>% 
+                        h4("Selectivity") %>%
+                          font(color = "black") %>%
                           margin(top = 2)
                       )
                     ),
                     p("Selectivity shows the affinity and selectivity of compounds in the HMS-LINCS collection for a gene of interest.")
-                  ) %>% 
-                    display("flex") %>% 
-                    flex(direction = "column") %>% 
+                  ) %>%
+                    display("flex") %>%
+                    flex(direction = "column") %>%
                     font(align = "center"),
                   column(
                     linkInput(
                       id = "link_similarity",
                       label = list(
-                        tags$img(src = "assets/img/molecule.png") %>% 
+                        tags$img(src = "assets/img/molecule.png") %>%
                           height(10),
                         # icon("circle", class = "fa-6x similarity--green"),
-                        h4("Similarity") %>% 
-                          font(color = "black") %>% 
+                        h4("Similarity") %>%
+                          font(color = "black") %>%
                           margin(top = 2)
                       )
                     ),
                     p("Similarity shows the similarity of compounds in the HMS-LINCS collection to a reference compound.")
-                  ) %>% 
-                    display("flex") %>% 
-                    flex(direction = "column") %>% 
+                  ) %>%
+                    display("flex") %>%
+                    flex(direction = "column") %>%
                     font(align = "center"),
                   column(
                     linkInput(
                       id = "link_library",
                       label = list(
-                        tags$img(src = "assets/img/flask.png") %>% 
+                        tags$img(src = "assets/img/flask.png") %>%
                           height(10),
                         # icon("circle", class = "fa-6x text-orange"),
-                        h4("Library") %>% 
-                          font(color = "black") %>% 
+                        h4("Library") %>%
+                          font(color = "black") %>%
                           margin(top = 2)
                       )
                     ),
                     p("Library composes custom chemical genetics libraries for gene-sets of interest.")
-                  ) %>% 
-                    display("flex") %>% 
-                    flex(direction = "column") %>% 
+                  ) %>%
+                    display("flex") %>%
+                    flex(direction = "column") %>%
                     font(align = "center")
                 ),
-                columns( # ├ binding data ----
-                  column(
-                    width = 12,
-                    h1("Binding data") %>% 
-                      font(align = "center"),
-                    p(class = "lead",
-                      "Quick reference compound binding data.") %>% 
-                      font(align = "center", size = "sm") %>% 
-                      margin(top = -1, b = 3)
-                  ),
-                  column(
-                    width = 12,
-                    bindingDataUI("bd")
-                  )
-                ) %>% 
-                  margin(top = 5, bottom = 5)
-              ) 
+                # columns( # ├ binding data ----
+                #   column(
+                #     width = 12,
+                #     h1("Binding data") %>%
+                #       font(align = "center"),
+                #     p(class = "lead",
+                #       "Quick reference compound binding data.") %>%
+                #       font(align = "center", size = "sm") %>%
+                #       margin(top = -1, b = 3)
+                #   ),
+                #   column(
+                #     width = 12,
+                #     bindingDataUI("bd")
+                #   )
+                # ) %>%
+                #   margin(top = 5, bottom = 5)
+              )
             )
           ),
           # selectivity ----
-          navPane(
-            id = "page_selectivity",
-            selectivityUI(
-              id = "select"
-            )
-          ),
+          # navPane(
+          #   id = "page_selectivity",
+          #   selectivityUI(
+          #     id = "select"
+          #   )
+          # ),
           # similarity ----
           navPane(
             id = "page_similarity",
@@ -267,14 +267,14 @@ function(req) {
             )
           ),
           # library ----
-          navPane(
-            id = "page_library",
-            libraryUI(
-              id = "lib"
-            )
-          )
+          # navPane(
+          #   id = "page_library",
+          #   libraryUI(
+          #     id = "lib"
+          #   )
+          # )
         )
       )
     )
-  )  
+  )
 }
