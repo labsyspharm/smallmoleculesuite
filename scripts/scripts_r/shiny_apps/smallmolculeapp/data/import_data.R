@@ -21,7 +21,10 @@ files <- c(
   "tas_score.fst",
   "shiny_compounds.fst",
   "shiny_targets.fst",
-  "shiny_chemical_probes.fst"
+  "shiny_chemical_probes.fst",
+  "lspci_id_name_map.csv.gz",
+  "name_lspci_id_map.fst",
+  "lspci_id_name_map.fst"
 )
 
 dir_data <- here("data")
