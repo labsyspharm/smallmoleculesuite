@@ -1,6 +1,84 @@
+tas_weighted_jaccard <- function(query_id, min_n = 6) {
+  query_tas <- data_tas[lspci_id == query_id, .(entrez_gene_id, tas)]
+  data_tas[
+    query_tas,
+    on = "entrez_gene_id",
+    nomatch = NULL
+  ][
+    ,
+    mask := tas < 10 | i.tas < 10
+  ][
+    ,
+    if (sum(mask) >= min_n) .(
+      "tas_similarity" = sum(pmin(tas[mask], i.tas[mask])) / sum(pmax(tas[mask], i.tas[mask])),
+      "n" = sum(mask),
+      "n_prior" = .N
+    ) else .(
+      "tas_similarity" = numeric(),
+      "n" = integer(),
+      "n_prior" = integer()
+    ),
+    by = "lspci_id"
+  ]
+}
+
+pfp_correlation <- function(query_id, min_n = 6) {
+  query_pfps <- data_pfp[lspci_id == query_id]
+  merge(
+    query_pfps,
+    data_pfp,
+    by = "assay_id",
+    all = FALSE,
+    sort = FALSE,
+    suffixes = c("_1", "_2")
+  )[
+    ,
+    mask := abs(rscore_tr_1) >= 2.5 | abs(rscore_tr_2) >= 2.5
+  ][
+    ,
+    if(sum(mask) >= min_n) .(
+      "pfp_correlation" = cor(rscore_tr_1, rscore_tr_2),
+      "n_prior" = .N,
+      "n" = sum(mask)
+    ) else .(
+      "pfp_correlation" = numeric(),
+      "n" = integer(),
+      "n_prior" = integer()
+    ),
+    by = lspci_id_2
+  ] %>%
+    setnames("lspci_id_2", "lspci_id")
+}
+
+chemical_similarity <- function(query_id) {
+  fps <- data_fingerprints$tanimoto_all(query_id)
+  setDT(fps, key = "id")
+  colnames(fps) <- c("lspci_id", "structural_similarity")
+  fps
+}
+
+calculate_similarities <- function(query_id, min_n_pfp = 6, min_n_tas = 6) {
+  tas_sim <- tas_weighted_jaccard(query_id, min_n_tas)[
+    ,
+    .(lspci_id, tas_similarity, n_tas_similarity = n)
+  ]
+  pfp_sim <- pfp_correlation(query_id, min_n_pfp)[
+    ,
+    .(lspci_id, pfp_correlation, n_pfp_correlation = n)
+  ]
+  chem_sim <- chemical_similarity(query_id)
+  merge(
+    chem_sim,
+    merge(tas_sim, pfp_sim, by = "lspci_id", all = TRUE),
+    all.y = TRUE,
+    by = "lspci_id"
+  )
+}
+
+
+
 similarityUI <- function(id) {
   ns <- NS(id)
-  
   columns(
     column(
       width = 4,
@@ -17,36 +95,46 @@ similarityUI <- function(id) {
             id = ns("pane_filters"),
             formGroup(
               label = "Select reference compound",
-              input = selectInput(
-                id = ns("query_compound")
+              input = selectizeInput(
+                ns("query_compound"),
+                label = NULL,
+                choices = NULL,
+                multiple = FALSE,
+                options = list(
+                  maxItems = 1,
+                  maxOptions = 10,
+                  placeholder = "Compound name",
+                  loadThrottle = 500,
+                  createFilter = ".{3,}"
+                )
               ),
               help = "Search for a compound"
             ),
             formGroup(
-              label = "Number of biological assays in common with reference compound",
+              label = "Minimum number of affinity assays in common with reference compound",
               input = div(
                 class = "logify-slider active--green",
                 shiny::sliderInput(
                   inputId = ns("n_common"),
                   label = NULL,
-                  min = 0,
+                  min = 1,
                   max = 8,
                   step = 1,
-                  value = 0
+                  value = 2
                 )
               )
             ),
             formGroup(
-              label = "Number of phenotypic assays in common with reference compound",
+              label = "Minimum number of phenotypic assays in common with reference compound",
               input = div(
                 class = "logify-slider active--green",
                 shiny::sliderInput(
                   inputId = ns("n_pheno"),
                   label = NULL,
-                  min = 0,
+                  min = 1,
                   max = 8,
                   step = 1,
-                  value = 0
+                  value = 2
                 )
               )
             ),
@@ -110,7 +198,7 @@ similarityUI <- function(id) {
             )
           )
         )
-      ) %>% 
+      ) %>%
         margin(bottom = 3),
       card(
         h3("Compound similarity data"),
@@ -122,10 +210,10 @@ similarityUI <- function(id) {
             height = "575px"
           )
         )
-      ) %>% 
+      ) %>%
         margin(bottom = 3),
       card(
-        h3("Compound similarity selections"),
+        h3("Selectivity of selected compound"),
         textOutput(ns("subtitle_selection"), h6),
         div(
           dataTableOutput(
@@ -135,12 +223,12 @@ similarityUI <- function(id) {
         )
       )
     )
-  )  
+  )
 }
 
 similarityServer <- function(input, output, session) {
   ns <- session$ns
-  
+
   observeEvent(input$nav, {
     switch(
       input$nav,
@@ -150,133 +238,128 @@ similarityServer <- function(input, output, session) {
   })
 
   observe({
-    x_compounds <- data_similarity %>% 
-      dplyr::distinct(name_1) %>% 
-      dplyr::arrange(name_1) %>% 
-      dplyr::pull()
-    
-    updateSelectInput(
-      id = "query_compound",
-      choices = x_compounds,
+    updateSelectizeInput(
+      session,
+      inputId = "query_compound",
+      choices = name_lspci_id_map,
       selected = "Nilotinib",
-      session = session
+      server = TRUE,
+      options = list(
+        items = list("Nilotinib")
+      ),
+      callback = fast_search
     )
   })
-  
+
   c_binding_msg <- reactive({
     if (NROW(r_ref_data()) > 0) {
-      paste0(values$ref_hms_id, "; ", input$query_compound)
+      paste0(input$query_compound, "; ", lspci_id_name_map[[input$query_compound]])
     } else {
-      paste("No gene target binding data available for", input$query_compound)
-    }    
+      paste("No gene target binding data available for", lspci_id_name_map[[input$query_compound]])
+    }
   })
-  
+
   output$binding_drug <- renderText({
     c_binding_msg()
   })
-  
+
   output$reference_drug <- renderText({
     req(input$query_compound)
 
     paste(
-      "Compound similarities for", input$query_compound, 
-      "from HMS LINCS small molecule library"
+      "Compound similarities for", lspci_id_name_map[[input$query_compound]],
+      "from Small Molecule Suite compound library"
     )
   })
-  
+
   r_sim_data <- reactive({
     req(
       input$query_compound,
       input$n_common,
       input$n_pheno
     )
-    
-    data_similarity %>%
-      filter(name_1 == input$query_compound) %>%
-      filter(
-        is.na(n_biol_assays_common_active) | 
-          n_biol_assays_common_active >= 2 ^ input$n_common
-      ) %>%
-      filter(
-        is.na(n_pheno_assays_active_common) | 
-          n_pheno_assays_active_common >= 2 ^ input$n_pheno
-      ) %>%
-      mutate(
-        PFP = ifelse(is.na(PFP), -1.1, PFP),
-        TAS = ifelse(is.na(TAS), -0.1, TAS),
-        structural_similarity = ifelse(is.na(structural_similarity), -0.1, structural_similarity)
-      )
+    calculate_similarities(
+      as.integer(input$query_compound),
+      min_n_pfp = 2**input$n_pheno,
+      min_n_tas = 2**input$n_common
+    )[
+      , name := lspci_id_name_map[lspci_id]
+    ][
+      , c("pfp_correlation", "tas_similarity", "structural_similarity") :=
+        lapply(.SD, signif, digits = 2),
+      .SDcols = c("pfp_correlation", "tas_similarity", "structural_similarity")
+    ]
   })
 
   use_shared_data <- reactive({
     !is.null(input$use_shared)
   })
-  
+
   r_ref_data <- reactive({
     req(input$query_compound)
-    
-    data_affinity_selectivity %>% 
-      dplyr::filter(name == input$query_compound) %>%
-      dplyr::select(symbol, selectivity_class, `mean_Kd_(nM)`) %>% 
-      dplyr::mutate(
-        selectivity_class = factor(selectivity_class, SELECTIVITY_ORDER)
-      ) %>%
-      dplyr::arrange(selectivity_class, `mean_Kd_(nM)`)
+
+    data_selectivity[
+      lspci_id == input$query_compound,
+      .(
+        symbol, selectivity_class, Kd_Q1
+      )
+    ][
+      order(selectivity_class, Kd_Q1)
+    ]
   })
-  
+
   r_sim_selection <- reactive({
     sort(input$table_sim_compound_rows_selected)
   })
-  
+
   r_selection_drugs <- reactive({
     if (is.null(r_sim_selection())) {
       return(NULL)
     }
-    
-    r_sim_data()$name_2[r_sim_selection()]
+
+    r_sim_data()[["lspci_id"]][r_sim_selection()]
   })
-  
+
   r_selection_titles <- reactive({
-    req(r_selection_drugs())
-    
-    hms_id <- r_sim_data()$hmsID_1[r_sim_selection()]
-    
-    paste0(hms_id, "; ", r_selection_drugs())
+    req(r_selection_drugs(), r_sim_selection())
+
+    paste0(r_selection_drugs(), "; ", r_sim_data()[["name"]][r_sim_selection()])
   })
-  
-  r_selection_data <- reactive({
-    r_sim_data() %>% 
-      dplyr::select(name_1, name_2, structural_similarity, PFP, TAS)
-      # SharedData$new("name_2")
-  })
-  
-  # plots ----
-  x_shared_data <- crosstalk::SharedData$new(r_selection_data, ~ name_2)
-  
+
   r_plot_data <- reactive({
+    r_sim_data() %>%
+      setnafill(cols = "pfp_correlation", fill = -1.1) %>%
+      setnafill(cols = c("tas_similarity", "structural_similarity"), fill = -0.1)
+  })
+
+  # plots ----
+  x_shared_data <- crosstalk::SharedData$new(r_plot_data, ~ lspci_id)
+
+  r_plot_data_shared <- reactive({
     if (use_shared_data()) {
       x_shared_data
     } else {
-      r_selection_data()
+      r_plot_data()
     }
   })
-  
+
   # mainplot1
   output$plot_pheno_struct <- renderPlotly({
-    r_plot_data() %>%
+    r_plot_data_shared() %>%
       plot_ly(
         source = "pheno_struct",
-        x = ~ structural_similarity, 
-        y = ~ PFP, 
+        x = ~ structural_similarity,
+        y = ~ pfp_correlation,
+        key = ~ lspci_id,
         type = "scatter",
         mode = "markers",
         color = I("black"),
         # name = ~ name_2,
         text = ~ paste(
-          "Drug 1: ", name_1, "\n",
-          "Drug 2: ", name_2, "\n",
+          "Drug 1: ", lspci_id_name_map[[input$query_compound]], "\n",
+          "Drug 2: ", name, "\n",
           "x: ", structural_similarity, "\n",
-          "y: ", PFP, 
+          "y: ", pfp_correlation,
           sep = ""
         )
         # hoverinfo = "text"
@@ -295,47 +378,48 @@ similarityServer <- function(input, output, session) {
           title = "Structural similarity",
           tickmode = "array",
           tickvals = c(-0.1, seq(0,1,.25)),
-          ticktext = c("NA", as.character(seq(0,1,.25))) 
+          ticktext = c("NA", as.character(seq(0,1,.25)))
         ),
         yaxis = list(
           range = c(-1.2, 1.2),
           title = "Phenotypic Correlation",
           tickmode = "array",
           tickvals = c(-1.1, seq(-1,1,.5)),
-          ticktext = c("NA", as.character(seq(-1,1,.5))) 
+          ticktext = c("NA", as.character(seq(-1,1,.5)))
         )
-      ) %>% 
+      ) %>%
       highlight(
         on = "plotly_selected",
         off = "plotly_deselect",
         color = I("#00ac9f")
         # selected = attrs_selected(name = ~ name_2)
       )
-    
+
     # if restoring from a bookmark, select previously selected points
     # p$x$highlight$defaultValues = values$c.data$name_2[points1]
     # p$x$highlight$color = "rgba(255,0,0,1)"
     # p$x$highlight$off = "plotly_deselect"
-    
+
     # p %>% layout(dragmode = "select")
   })
-  
+
   # mainplot2
   output$plot_target_struct <- renderPlotly({
-    r_plot_data() %>%
+    r_plot_data_shared() %>%
       plot_ly(
         source = "target_struct",
-        x = ~ structural_similarity, 
-        y = ~ TAS, 
+        x = ~ structural_similarity,
+        y = ~ tas_similarity,
+        key = ~ lspci_id,
         type = "scatter",
-        mode = "markers", 
-        color = I("black"), 
+        mode = "markers",
+        color = I("black"),
         # name = ~ name_2,
         text = ~ paste(
-          "Drug 1: ", name_1, "\n",
-          "Drug 2: ", name_2, "\n",
+          "Drug 1: ", lspci_id_name_map[[input$query_compound]], "\n",
+          "Drug 2: ", name, "\n",
           "x: ", structural_similarity, "\n",
-          "y: ", TAS,
+          "y: ", tas_similarity,
           sep = ""
         )
         # hoverinfo = "tooltip_2"
@@ -353,7 +437,7 @@ similarityServer <- function(input, output, session) {
           title = "Structural similarity",
           tickmode = "array",
           tickvals = c(-0.15, seq(0,1,.25)),
-          ticktext = c("NA", as.character(seq(0,1,.25))) 
+          ticktext = c("NA", as.character(seq(0,1,.25)))
         ),
         yaxis = list(
           range = c(-0.15, 1.15),
@@ -362,41 +446,42 @@ similarityServer <- function(input, output, session) {
           tickvals = c(-0.15, seq(0,1,.2)),
           ticktext = c("NA", as.character(seq(0,1,.2)))
         )
-      ) %>% 
+      ) %>%
       layout(
         dragmode = "select"
-      ) %>% 
+      ) %>%
       highlight(
         on = "plotly_selected",
         off = "plotly_deselect",
         color = I('#00ac9f')
         # selected = attrs_selected(name = ~ name_2)
       )
-    
+
     # if restoring from a bookmark, select previously selected points
     # p$x$highlight$defaultValues = values$c.data$name_2[points2]
     # p$x$highlight$color = "rgba(255,0,0,1)"
     # p$x$highlight$off = "plotly_deselect"
-    
+
     # p %>% layout(dragmode = "select")
   })
-  
+
   # mainplot3
   output$plot_pheno_target <- renderPlotly({
-    r_plot_data() %>%
+    r_plot_data_shared() %>%
       plot_ly(
         source = "pheno_target",
-        x = ~ TAS, 
-        y = ~ PFP, 
+        x = ~ tas_similarity,
+        y = ~ pfp_correlation,
+        key = ~ lspci_id,
         type = "scatter",
-        mode = "markers", 
-        color = I("black"), 
+        mode = "markers",
+        color = I("black"),
         # name = ~ name_2,
         text = ~ paste(
-          "Drug 1: ", name_1, "\n",
-          "Drug 2: ", name_2, "\n",
-          "x: ", TAS, "\n",
-          "y: ", PFP,
+          "Drug 1: ", lspci_id_name_map[[input$query_compound]], "\n",
+          "Drug 2: ", name, "\n",
+          "x: ", tas_similarity, "\n",
+          "y: ", pfp_correlation,
           sep = ""
         )
       ) %>%
@@ -413,7 +498,7 @@ similarityServer <- function(input, output, session) {
           title = "Target Similarity",
           tickmode = "array",
           tickvals = c(-0.15, seq(0,1,.25)),
-          ticktext = c("NA", as.character(seq(0,1,.25))) 
+          ticktext = c("NA", as.character(seq(0,1,.25)))
         ),
         yaxis = list(
           range = c(-1.2, 1.2),
@@ -421,51 +506,52 @@ similarityServer <- function(input, output, session) {
           tickmode = "array",
           tickvals = c(-1.2, seq(-1,1,.5)),
           ticktext = c("NA", as.character(seq(-1,1,.5))))
-      ) %>% 
+      ) %>%
       layout(
         dragmode = "select"
-      ) %>% 
+      ) %>%
       highlight(
         on = "plotly_selected",
         off = "plotly_deselect",
         color = I("#00ac9f")
         # selected = attrs_selected(name = ~ name_2)
       )
-    
+
     # if restoring from a bookmark, select previously selected points
     # p$x$highlight$defaultValues = values$c.data$name_2[points3]
     # p$x$highlight$color = "rgba(255,0,0,1)"
     # p$x$highlight$off = "plotly_deselect"
-    
+
     # p %>% layout(dragmode = "select")
   })
-  
+
   # output_table
-  state <- reactiveValues(selected_names = NULL)
-  
+  state <- reactiveValues(selected_ids = NULL)
+
   observe({
-    state$selected_names <- event_data("plotly_selected", "pheno_struct")$key
+    state$selected_ids <- event_data("plotly_selected", "pheno_struct")$key
   })
-  
+
   observe({
-    state$selected_names <- event_data("plotly_selected", "target_struct")$key
+    state$selected_ids <- event_data("plotly_selected", "target_struct")$key
   })
-  
+
   observe({
-    state$selected_names <- event_data("plotly_selected", "pheno_target")$key
+    state$selected_ids <- event_data("plotly_selected", "pheno_target")$key
   })
-  
+
   observeEvent(input$query_compound, {
-    state$selected_names <- NULL
+    state$selected_ids <- NULL
   })
-  
+
   r_tbl_sim_data <- reactive({
     if (use_shared_data()) {
-      if (is.null(state$selected_names)) {
+      if (is.null(state$selected_ids)) {
         r_sim_data()
       } else {
-        r_sim_data() %>% 
-          dplyr::filter(name_2 %in% state$selected_names)
+        r_sim_data()[
+          lspci_id %in% state$selected_ids
+        ]
       }
     } else {
       r_sim_data()
@@ -473,22 +559,26 @@ similarityServer <- function(input, output, session) {
   })
 
   r_tbl_sim_compound <- reactive({
-    .data <- r_tbl_sim_data() %>% 
+    .data <- r_tbl_sim_data() %>%
       dplyr::mutate(
         ` ` = NA
-      ) %>% 
-      dplyr::select(` `, dplyr::everything())
-    
+      ) %>%
+      dplyr::mutate_at(
+        vars(structural_similarity, tas_similarity, pfp_correlation),
+        formatC, digits = 2, format = "fg", flag = "#"
+      ) %>%
+      dplyr::select(` `, name, dplyr::everything())
+
     col_types <- unname(vapply(.data, class, character(1)))
 
     download_name <- create_download_filename(
       c("similarity", "table", input$query_compound)
     )
-    
+
     DT::datatable(
       .data,
       extensions = c("Buttons", "Select"),
-      rownames = FALSE, 
+      rownames = FALSE,
       selection = "single",
       options = list(
         # autoWidth = TRUE,
@@ -511,7 +601,7 @@ similarityServer <- function(input, output, session) {
           list(
             targets = grep(
               x = names(.data),
-              pattern = "^( |name_1|name_2|structural_similarity|PFP|TAS)$",
+              pattern = "^( |name|structural_similarity|pfp_correlation|tas_similarity)$",
               invert = TRUE
             ) - 1,
             visible = FALSE
@@ -532,50 +622,35 @@ similarityServer <- function(input, output, session) {
       )
     )
   })
-  
+
   output$table_sim_compound = DT::renderDataTable(
     r_tbl_sim_compound(),
-    server = FALSE
+    server = TRUE
   )
 
-  get_hms_id_2 <- function(drug) {
-    if (is.null(drug) || is.na(drug) || length(drug) < 1) {
-      return(NULL)
-    }
-    
-    data_similarity %>%
-      dplyr::filter(name_2 == drug) %>%
-      dplyr::slice(1) %>% 
-      dplyr::pull(hmsID_2)
-  }
-  
-  get_compound_selection <- function(drug) {
-    if (is.null(drug) || is.na(drug) || length(drug) < 1) {
+  get_compound_selection <- function(drug_id) {
+    if (is.null(drug_id) || is.na(drug_id) || length(drug_id) < 1) {
       return(
-        data_affinity_selectivity %>% 
-          dplyr::select(symbol, selectivity_class, `mean_Kd_(nM)`) %>% 
-          dplyr::slice(0)
+        data_affinity_selectivity[FALSE]
       )
     }
-    
-    data_affinity_selectivity %>%
-      dplyr::filter(name == drug) %>%
-      dplyr::mutate(
-        selectivity_class = factor(selectivity_class, SELECTIVITY_ORDER)
-      ) %>%
-      dplyr::select(symbol, selectivity_class, `mean_Kd_(nM)`) %>% 
-      dplyr::arrange(selectivity_class, `mean_Kd_(nM)`)
+
+    data_affinity_selectivity[
+      lspci_id == drug_id
+    ][
+      order(selectivity_class, Kd_Q1)
+    ]
   }
-  
+
   output$subtitle_selection <- renderText({
     r_selection_titles()
   })
-  
+
   output$table_selection <- DT::renderDataTable({
     download_name <- create_download_filename(
       c("affinity", "spectrum", input$query_compound)
     )
-    
+
     DT::datatable(
       data = get_compound_selection(r_selection_drugs()), # input$compound_selection),
       rownames = FALSE,
@@ -608,10 +683,10 @@ similarityServer <- function(input, output, session) {
     )
   })
 }
-  
+
 function() {
-  
-  
+
+
   observe({
     print("render selection tables")
     output$selection1 = DT::renderDataTable(
@@ -624,7 +699,7 @@ function() {
           "}"),
         autoWidth = TRUE)
     )
-    
+
     output$selection2 = DT::renderDataTable(
       values$selection.display_table2,
       rownames = F, options = list(
@@ -635,7 +710,7 @@ function() {
           "}"),
         autoWidth = TRUE)
     )
-    
+
     output$selection3 = DT::renderDataTable(
       values$selection.display_table3,
       rownames = F, options = list(
@@ -646,7 +721,7 @@ function() {
           "}"),
         autoWidth = TRUE)
     )
-    
+
     output$selection4 = DT::renderDataTable(
       values$selection.display_table4,
       rownames = F, options = list(
@@ -657,7 +732,7 @@ function() {
           "}"),
         autoWidth = TRUE)
     )
-    
+
     output$selection5 = DT::renderDataTable(
       values$selection.display_table5,
       rownames = F, options = list(
@@ -668,18 +743,18 @@ function() {
           "}"),
         autoWidth = TRUE)
     )
-    
+
     output$sel1_drug = renderText({ values$selection.title1 })
     output$sel2_drug = renderText({ values$selection.title2 })
     output$sel3_drug = renderText({ values$selection.title3 })
     output$sel4_drug = renderText({ values$selection.title4 })
     output$sel5_drug = renderText({ values$selection.title5 })
-    
+
   })
-  
+
   output$downloadBind <- downloadHandler(
     filename = function() {
-      return(paste0("BindingData_", format(Sys.time(), "%Y%m%d_%I%M%S"), 
+      return(paste0("BindingData_", format(Sys.time(), "%Y%m%d_%I%M%S"),
                     ".zip", sep = ""))
     },
     content = function(filename) {
@@ -703,24 +778,15 @@ function() {
   )
   session$allowReconnect(TRUE)
 }
-  
-  
+
+
 simServer2 <- function() {
-  
-  similarity_table = read_csv("input/similarity_table_ChemblV22_1_20170804.csv") %>%
-    mutate_at(c("PFP","TAS","structural_similarity"),
-              function(x) round(x, 2))
-  affinity_selectivity = read_csv("input/affinity_selectivity_table_ChemblV22_1_20170804.csv") %>%
-    mutate_at(vars(c(`mean_Kd_(nM)`, `SD_Kd_(nM)`:offtarget_IC50_N)),
-              function(x) signif(x, 2))
-  selectivity_order = c("Most selective","Semi-selective","Poly-selective","Unknown","Other")
-  
   # Function for toolip values
   all_values <- function(x) {
     if(is.null(x)) return(NULL)
     paste0(names(x), ": ", format(x), collapse = "<br />")
   }
-  
+
   contact.modal.js = "$('.ui.mini.modal')
 $('#contact_modal').modal('show')
 ;"
@@ -737,7 +803,7 @@ blurring: false
 })
 $('#bookmark_modal').modal('show')
 ;"
-  
+
     # Make app stop when you close the webpage
     #session$onSessionEnded(stopApp)
     observeEvent(input$contact, {
@@ -745,17 +811,17 @@ $('#bookmark_modal').modal('show')
     })
     # Set locale so that sorting works correctly
     Sys.setlocale("LC_COLLATE","en_US.UTF-8")
-    
+
     # Load "about" modal
     observeEvent(input$about, {
       runjs(about.modal.js)
     })
-    
+
     # Run js to hide warning messages on click
     runjs(message.hide.js)
-    
+
     new_input = NULL
-    
+
     onRestore(function(state) {
       print("onRestore start")
       query_id = getQueryString()$bookmark
@@ -767,7 +833,7 @@ $('#bookmark_modal').modal('show')
       }
       print("onRestore end")
     })
-    
+
     onRestored(function(state) {
       print("onRestored start")
       ### restore the state if the bookmark is found
@@ -792,7 +858,7 @@ $('#bookmark_modal').modal('show')
       #updateQueryString("?")
       print("onRestored end")
     })
-    
+
     onBookmark(function(state) {
       print("bookmark")
       if(exists("d")) {
@@ -804,7 +870,7 @@ $('#bookmark_modal').modal('show')
         }
       }
     })
-    
+
     onBookmarked(function(url) {
       print("bookmarked")
       date_time = format(Sys.time(), "%Y%m%d-%H%M%S")
@@ -829,7 +895,7 @@ $('#bookmark_modal').modal('show')
       s3saveRDS(input_list_save, bucket = aws_bucket, object = paste0("sms_bookmarks/", new_id, "/", "input.rds"), check_region = F)
       updateQueryString(new_url)
     })
-    
+
     ##### For updating URL query string
     # observe({
     #   # Needed to call input to trigger bookmark
@@ -837,27 +903,27 @@ $('#bookmark_modal').modal('show')
     #   # Don't delete above line -- needed for point selection bookmarking
     #   session$doBookmark()
     # })
-    
+
     observeEvent(input$bookmark1, {
       runjs(bookmark.modal.js)
     })
-    
+
     observeEvent(input$bookmark1, {
       session$doBookmark()
     })
-    
+
     # Add clipboard buttons
     output$clip <- renderUI({
       rclipButton("clipbtn", "Copy", values$url, icon("clipboard"))
     })
-    
+
     # Workaround for execution within RStudio
     #observeEvent(input$clipbtn, clipr::write_clip(values$url))
-    
-    
+
+
     observeEvent(values$c.binding_display, {
       print(values$c.binding_display)
-      
+
       # Binding table output
       output$binding_data = DT::renderDataTable(
         if(dim(values$c.binding_display)[1] > 0) {
@@ -873,44 +939,44 @@ $('#bookmark_modal').modal('show')
           searchHighlight = TRUE,
           autoWidth = TRUE)
       )
-      
+
       output$binding_drug = renderText(
         if(dim(values$c.binding_display)[1] > 0) {
-          paste0(values$ref_hms_id, "; ", input$query_compound)
+          paste0(input$query_compound, "; ", lspci_id_name_map[[input$query_compound]])
         } else {
-          paste0("No gene target binding data available for ",input$query_compound)
+          paste0("No gene target binding data available for ", lspci_id_name_map[[input$query_compound]])
         })
     })
-    
+
     observeEvent(input$query_compound, {
       if(length(input$query_compound) > 0) {
         output$ref_drug = renderText(
-          paste0("Compound similarities for ", input$query_compound, 
+          paste0("Compound similarities for ", input$query_compound,
                  " from HMS LINCS small molecule library")
         )
       }
     })
-    
+
     # reactive values
-    values = reactiveValues(c.data = NULL, c.data_display = NULL, c.data_title = NULL, 
-                            c.binding_data = NULL, c.binding_display = NULL, 
+    values = reactiveValues(c.data = NULL, c.data_display = NULL, c.data_title = NULL,
+                            c.binding_data = NULL, c.binding_display = NULL,
                             drug_select = NULL, num_selected = 0,
                             c.data_display_sub = NULL, c.data_sub = NULL)
-    
+
     # show/hide intro
     observeEvent(input$intro_hide, {
       toggleElement(id = "intro", anim = T, animType = "fade")
       toggleElement(id = "caret_down")
       toggleElement(id = "caret_right")
     })
-    
+
     # show/hide filters
     observeEvent(input$filter_button, {
       toggleElement(id = "filters", anim = T, animType = "fade")
       toggleElement(id = "caret_down_fil")
       toggleElement(id = "caret_right_fil")
     })
-    
+
     # update the table upon parameter/input changes
     observeEvent(c(input$query_compound, input$n_common, input$n_pheno), {
       if(!is.null(input$query_compound) & input$query_compound != "") {
@@ -926,7 +992,7 @@ $('#bookmark_modal').modal('show')
         showElement("loader2")
         showElement("loader3")
         showElement("loader_tab")
-        
+
         ## subset current data
         values$c.data = similarity_table %>%
           filter(name_1 == input$query_compound) %>%
@@ -935,11 +1001,11 @@ $('#bookmark_modal').modal('show')
           mutate_at(vars(PFP), funs(ifelse(is.na(PFP), -1.1, PFP))) %>%
           mutate_at(vars(TAS), funs(ifelse(is.na(TAS), -0.1, TAS))) %>%
           mutate_at(vars(structural_similarity), funs(ifelse(is.na(structural_similarity), -0.1, structural_similarity)))
-        
+
         values$c.data_display = values$c.data
-        
+
         values$c.data_title = paste0(unique(values$c.data$hmsID_1),";",unique(values$c.data$name_1))
-        
+
         ## show affinity data of reference compound+ selected compounds
         # filter by name or hms id?
         values$c.binding_data = affinity_selectivity %>% filter(name == input$query_compound) %>%
@@ -949,22 +1015,22 @@ $('#bookmark_modal').modal('show')
           #filter(n_measurements >= input$min_measurements) %>%
           mutate(selectivity_class = factor(selectivity_class,levels=selectivity_order)) %>%
           arrange(selectivity_class, `mean_Kd_(nM)`)
-        
+
         d <<- SharedData$new(values$c.data, ~name_2)
-        
+
         values$ref_hms_id = unique(values$c.binding_data$hms_id)
-        
+
         values$c.binding_display = values$c.binding_data[,c(3,4,5)]
-        
+
         points1 = values$points_selected1
         points2 = values$points_selected2
         points3 = values$points_selected3
-        
+
         output$mainplot1 <- renderPlotly({
           p <- d %>%
-            plot_ly(x = ~structural_similarity, y = ~PFP, mode = "markers", 
-                    color = I('black'), name = ~name_2, text = ~paste("Drug 1: ", 
-                                                                      name_1, "\nDrug 2: ", name_2, "\nx: ", structural_similarity, "\ny: ", 
+            plot_ly(x = ~structural_similarity, y = ~PFP, mode = "markers",
+                    color = I('black'), name = ~name_2, text = ~paste("Drug 1: ",
+                                                                      name_1, "\nDrug 2: ", name_2, "\nx: ", structural_similarity, "\ny: ",
                                                                       PFP, sep = ""), hoverinfo = "text") %>%
             layout(showlegend = F,
                    shapes = list(list(type='line', x0= -0.1, x1= -0.1, y0=-1.2, y1=1.2,
@@ -981,7 +1047,7 @@ $('#bookmark_modal').modal('show')
                                 tickmode = "array",
                                 tickvals = c(-1.1, seq(-1,1,.5)),
                                 ticktext = c("NA", as.character(seq(-1,1,.5))) )
-            ) %>% 
+            ) %>%
             highlight("plotly_selected", color = I('red'), selected = attrs_selected(name = ~name_2), hoverinfo = "text")
           # if restoring from a bookmark, select previously selected points
           p$x$highlight$defaultValues = values$c.data$name_2[points1]
@@ -993,12 +1059,12 @@ $('#bookmark_modal').modal('show')
           d$selection(points1, ownerId = "mainplot1")
           values$points_selected1 = F
         }
-        
+
         output$mainplot2 <- renderPlotly({
           p <- d %>%
-            plot_ly(x = ~structural_similarity, y = ~TAS, mode = "markers", 
-                    color = I('black'), name = ~name_2, text = ~paste("Drug 1: ", 
-                                                                      name_1, "\nDrug 2: ", name_2, "\nx: ", structural_similarity, 
+            plot_ly(x = ~structural_similarity, y = ~TAS, mode = "markers",
+                    color = I('black'), name = ~name_2, text = ~paste("Drug 1: ",
+                                                                      name_1, "\nDrug 2: ", name_2, "\nx: ", structural_similarity,
                                                                       "\ny: ", TAS, sep = ""), hoverinfo = "text") %>%
             layout(showlegend = F,
                    shapes = list(list(type='line', x0= -0.1, x1= -0.1, y0= -0.15, y1= 1.15,
@@ -1014,7 +1080,7 @@ $('#bookmark_modal').modal('show')
                                 title = "Target Similarity",
                                 tickmode = "array",
                                 tickvals = c(-0.15, seq(0,1,.2)),
-                                ticktext = c("NA", as.character(seq(0,1,.2))) )) %>% 
+                                ticktext = c("NA", as.character(seq(0,1,.2))) )) %>%
             highlight("plotly_selected", color = I('red'), selected = attrs_selected(name = ~name_2))
           # if restoring from a bookmark, select previously selected points
           p$x$highlight$defaultValues = values$c.data$name_2[points2]
@@ -1026,11 +1092,11 @@ $('#bookmark_modal').modal('show')
           d$selection(points2, ownerId = "mainplot2")
           values$points_selected2 = F
         }
-        
+
         output$mainplot3 <- renderPlotly({
           p <- d %>%
-            plot_ly(x = ~TAS, y = ~PFP, mode = "markers", 
-                    color = I('black'), name = ~name_2, text = ~paste("Drug 1: ", 
+            plot_ly(x = ~TAS, y = ~PFP, mode = "markers",
+                    color = I('black'), name = ~name_2, text = ~paste("Drug 1: ",
                                                                       name_1, "\nDrug 2: ", name_2, "\nx: ", TAS, "\ny: ", PFP, sep = ""),
                     hoverinfo = "text") %>%
             layout(showlegend = F,
@@ -1047,7 +1113,7 @@ $('#bookmark_modal').modal('show')
                                 title = "Phenotypic Correlation",
                                 tickmode = "array",
                                 tickvals = c(-1.2, seq(-1,1,.5)),
-                                ticktext = c("NA", as.character(seq(-1,1,.5))))) %>% 
+                                ticktext = c("NA", as.character(seq(-1,1,.5))))) %>%
             highlight("plotly_selected", color = I('red'), selected = attrs_selected(name = ~name_2))
           # if restoring from a bookmark, select previously selected points
           p$x$highlight$defaultValues = values$c.data$name_2[points3]
@@ -1055,12 +1121,12 @@ $('#bookmark_modal').modal('show')
           p$x$highlight$off = "plotly_deselect"
           p %>% layout(dragmode = "select")
         })
-        
+
         if(sum(values$points_selected3) > 0) {
           d$selection(points3, ownerId = "mainplot3")
           values$points_selected3 = F
         }
-        
+
         output$output_table = DT::renderDataTable( {
           values$c.data_display_sub <- values$c.data_display[d$selection(), , drop = F]
           values$c.data_sub = values$c.data[d$selection(), , drop = F]
@@ -1086,7 +1152,7 @@ $('#bookmark_modal').modal('show')
         )
       }
     }, ignoreInit = T, ignoreNULL = T)
-    
+
     ## On bookmark restart: load row selections in output table and binding table
     # observeEvent(values$bookmark_restart, {
     #   print("start select rows")
@@ -1103,9 +1169,9 @@ $('#bookmark_modal').modal('show')
     #     }
     #     values$bookmark_restart2 = T
     #   }
-    #   
+    #
     # }, ignoreNULL = T, ignoreInit = T, autoDestroy = T)
-    
+
     ## On bookmark restart: load row selections in selection tables
     # observeEvent(values$bookmark_restart2, {
     #   if(values$bookmark_restart2) {
@@ -1119,14 +1185,14 @@ $('#bookmark_modal').modal('show')
     #     }
     #   }
     # }, ignoreInit = T, ignoreNULL = T, autoDestroy = T)
-    
+
     # Make other tables on row selection
     observeEvent(input$output_table_rows_selected, {
       print("rows selected")
       showElement("result_row3")
       showElement("row3_bind_data")
       row = input$output_table_rows_selected
-      
+
       print("start select rows")
       # If restoring bookmarked session, select same rows as before
       if(length(values$rows_selected_save) > 0) {
@@ -1135,7 +1201,7 @@ $('#bookmark_modal').modal('show')
         proxy %>%  selectRows(row)
         values$rows_selected_save = NULL
       }
-      
+
       # show/hide the selection tables
       if(length(row) == 1) {
         showElement("row3_col1")
@@ -1198,7 +1264,7 @@ $('#bookmark_modal').modal('show')
         values[[name_file]] = drug
         values[[name_title]] = paste0(hms_id, "; ", drug)
         values$num_selected = length(row)
-        
+
         values[[name_data]] = affinity_selectivity %>%
           filter(name == drug) %>%
           #filter(`mean_Kd_(nM)` >= 10^input$affinity[1]) %>%
@@ -1207,7 +1273,7 @@ $('#bookmark_modal').modal('show')
           #filter(n_measurements >= input$min_measurements) %>%
           mutate(selectivity_class = factor(selectivity_class,levels=selectivity_order)) %>%
           arrange(selectivity_class, `mean_Kd_(nM)`)
-        
+
         values[[name_display]] = values[[name_data]][,c(3,4,5)]
         output_name = paste("selection", i, sep = "")
       }
@@ -1224,7 +1290,7 @@ $('#bookmark_modal').modal('show')
       #   proxy1 %>% selectRows(rows)
       # }
     }, ignoreInit = T, ignoreNULL = F)
-    
+
     proxy <<- dataTableProxy('output_table')
     proxy1 <<- dataTableProxy('selection1')
     proxy2 <<- dataTableProxy('selection2')
@@ -1232,8 +1298,8 @@ $('#bookmark_modal').modal('show')
     proxy4 <<- dataTableProxy('selection4')
     proxy5 <<- dataTableProxy('selection5')
     proxy_bind <<- dataTableProxy('binding_data')
-    
-    
+
+
     # observe({
     #   print("start select rows")
     #   print(values$output_table_rows_selected)
@@ -1253,7 +1319,7 @@ $('#bookmark_modal').modal('show')
     #     proxy_bind %>% selectRows(values$binding_data_rows_selected)
     #   }
     # })
-    
+
     observeEvent(input$clearButton, {
       proxy %>% selectRows(NULL)
       for(i in 1:5) {
@@ -1261,7 +1327,7 @@ $('#bookmark_modal').modal('show')
       }
       values$num_selected = 0
     })
-    
+
     observe({
       print("render selection tables")
       output$selection1 = DT::renderDataTable(
@@ -1274,7 +1340,7 @@ $('#bookmark_modal').modal('show')
             "}"),
           autoWidth = TRUE)
       )
-      
+
       output$selection2 = DT::renderDataTable(
         values$selection.display_table2,
         rownames = F, options = list(
@@ -1285,7 +1351,7 @@ $('#bookmark_modal').modal('show')
             "}"),
           autoWidth = TRUE)
       )
-      
+
       output$selection3 = DT::renderDataTable(
         values$selection.display_table3,
         rownames = F, options = list(
@@ -1296,7 +1362,7 @@ $('#bookmark_modal').modal('show')
             "}"),
           autoWidth = TRUE)
       )
-      
+
       output$selection4 = DT::renderDataTable(
         values$selection.display_table4,
         rownames = F, options = list(
@@ -1307,7 +1373,7 @@ $('#bookmark_modal').modal('show')
             "}"),
           autoWidth = TRUE)
       )
-      
+
       output$selection5 = DT::renderDataTable(
         values$selection.display_table5,
         rownames = F, options = list(
@@ -1318,18 +1384,18 @@ $('#bookmark_modal').modal('show')
             "}"),
           autoWidth = TRUE)
       )
-      
+
       output$sel1_drug = renderText({ values$selection.title1 })
       output$sel2_drug = renderText({ values$selection.title2 })
       output$sel3_drug = renderText({ values$selection.title3 })
       output$sel4_drug = renderText({ values$selection.title4 })
       output$sel5_drug = renderText({ values$selection.title5 })
-      
+
     })
-    
+
     output$downloadBind <- downloadHandler(
       filename = function() {
-        return(paste0("BindingData_", format(Sys.time(), "%Y%m%d_%I%M%S"), 
+        return(paste0("BindingData_", format(Sys.time(), "%Y%m%d_%I%M%S"),
                       ".zip", sep = ""))
       },
       content = function(filename) {
@@ -1353,6 +1419,6 @@ $('#bookmark_modal').modal('show')
     )
     session$allowReconnect(TRUE)
 
-  
+
 }
 
