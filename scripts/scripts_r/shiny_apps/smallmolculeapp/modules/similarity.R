@@ -57,26 +57,6 @@ chemical_similarity <- function(query_id) {
   fps
 }
 
-calculate_similarities <- function(query_id, min_n_pfp = 6, min_n_tas = 6) {
-  tas_sim <- tas_weighted_jaccard(query_id, min_n_tas)[
-    ,
-    .(lspci_id, tas_similarity, n_tas_similarity = n)
-  ]
-  pfp_sim <- pfp_correlation(query_id, min_n_pfp)[
-    ,
-    .(lspci_id, pfp_correlation, n_pfp_correlation = n)
-  ]
-  chem_sim <- chemical_similarity(query_id)
-  merge(
-    chem_sim,
-    merge(tas_sim, pfp_sim, by = "lspci_id", all = TRUE),
-    all.y = TRUE,
-    by = "lspci_id"
-  )
-}
-
-
-
 similarityUI <- function(id) {
   ns <- NS(id)
   columns(
@@ -276,16 +256,39 @@ similarityServer <- function(input, output, session) {
     )
   })
 
-  r_sim_data <- reactive({
-    req(
-      input$query_compound,
-      input$n_common,
-      input$n_pheno
-    )
-    calculate_similarities(
+  r_tas_sim <- reactive({
+    req(input$query_compound)
+    tas_weighted_jaccard(
       as.integer(input$query_compound),
-      min_n_pfp = 2**input$n_pheno,
-      min_n_tas = 2**input$n_common
+      2**input$n_common
+    )[
+      ,
+      .(lspci_id, tas_similarity, n_tas_similarity = n)
+    ]
+  })
+
+  r_pfp_sim <- reactive({
+    req(input$query_compound)
+    pfp_correlation(
+      as.integer(input$query_compound),
+      2**input$n_pheno
+    )[
+      ,
+      .(lspci_id, pfp_correlation, n_pfp_correlation = n)
+    ]
+  })
+
+  r_chem_sim <- reactive({
+    req(input$query_compound)
+    chemical_similarity(as.integer(input$query_compound))
+  })
+
+  r_sim_data <- reactive({
+    merge(
+      r_chem_sim(),
+      merge(r_tas_sim(), r_pfp_sim(), by = "lspci_id", all = TRUE),
+      all.y = TRUE,
+      by = "lspci_id"
     )[
       , name := lspci_id_name_map[lspci_id]
     ][
