@@ -314,7 +314,8 @@ similarityServer <- function(input, output, session) {
       )
     ][
       order(selectivity_class, Kd_Q1)
-    ]
+    ] %>%
+      unique()
   })
 
   r_sim_selection <- reactive({
@@ -322,17 +323,14 @@ similarityServer <- function(input, output, session) {
   })
 
   r_selection_drugs <- reactive({
-    if (is.null(r_sim_selection())) {
+    if (is.null(r_sim_selection()))
       return(NULL)
-    }
 
-    r_sim_data()[["lspci_id"]][r_sim_selection()]
+    r_tbl_sim_data()[["lspci_id"]][r_sim_selection()]
   })
 
   r_selection_titles <- reactive({
-    req(r_selection_drugs(), r_sim_selection())
-
-    paste0(r_selection_drugs(), "; ", r_sim_data()[["name"]][r_sim_selection()])
+    paste(r_tbl_sim_data()[["name"]][r_sim_selection()], collapse = "; ")
   })
 
   # plots ----
@@ -465,7 +463,7 @@ similarityServer <- function(input, output, session) {
       return(tags$p("No compound selected"))
     else if (length(selected_ids) > 1)
       return(tags$p("More than one compound selected"))
-    chembl_id <- data_cmpd_info[[as.integer(selected_ids), "chembl_id"]]
+    chembl_id <- data_cmpd_info[lspci_id == as.integer(selected_ids)][["chembl_id"]]
     if (is.na(chembl_id))
       return(tags$p("No information on ChEMBL for compound"))
     chembl_url <- paste0(
@@ -482,12 +480,12 @@ similarityServer <- function(input, output, session) {
       r_sim_data()[lspci_id %in% selected_ids]
     } else {
       r_sim_data()
-    }
+    } %>%
+      select(name, everything(), -ends_with("_plot"))
   })
 
   r_tbl_sim_compound <- reactive({
-    .data <- r_tbl_sim_data() %>%
-      dplyr::select(name, dplyr::everything())
+    .data <- r_tbl_sim_data()
 
     col_types <- unname(vapply(.data, class, character(1)))
 
