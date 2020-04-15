@@ -18,13 +18,13 @@ files <- c(
   "phenotypic_rscore.fst",
   "shiny_fingerprints.bin",
   "shiny_selectivity.fst",
-  "tas_score.fst",
   "shiny_compounds.fst",
   "shiny_targets.fst",
   "shiny_chemical_probes.fst",
   "lspci_id_name_map.csv.gz",
   "name_lspci_id_map.fst",
-  "lspci_id_name_map.fst"
+  "lspci_id_name_map.fst",
+  "shiny_tas.fst"
 )
 
 dir_data <- here("data")
