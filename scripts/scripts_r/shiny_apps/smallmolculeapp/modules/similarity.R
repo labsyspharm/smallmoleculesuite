@@ -99,14 +99,7 @@ similarityUI <- function(id) {
                 ns("query_compound"),
                 label = NULL,
                 choices = NULL,
-                multiple = FALSE,
-                options = list(
-                  maxItems = 1,
-                  maxOptions = 10,
-                  placeholder = "Compound name",
-                  loadThrottle = 500,
-                  createFilter = ".{3,}"
-                )
+                multiple = TRUE
               ),
               help = "Search for a compound"
             ),
@@ -168,6 +161,12 @@ similarityUI <- function(id) {
               )
             )
           )
+        )
+      ),
+      card(
+        h3("Compound information"),
+        uiOutput(
+          outputId = ns("compound_info")
         )
       )
     ),
@@ -245,7 +244,12 @@ similarityServer <- function(input, output, session) {
       selected = "Nilotinib",
       server = TRUE,
       options = list(
-        items = list("Nilotinib")
+        maxItems = 1,
+        maxOptions = 10,
+        placeholder = "Compound name",
+        loadThrottle = 500,
+        createFilter = ".{3,}",
+        searchField = "label"
       ),
       callback = fast_search
     )
@@ -286,9 +290,14 @@ similarityServer <- function(input, output, session) {
       , name := lspci_id_name_map[lspci_id]
     ][
       , c("pfp_correlation", "tas_similarity", "structural_similarity") :=
-        lapply(.SD, signif, digits = 2),
+        lapply(.SD, round, digits = 2),
       .SDcols = c("pfp_correlation", "tas_similarity", "structural_similarity")
-    ]
+    ][
+      , c("pfp_correlation_plot", "tas_similarity_plot", "structural_similarity_plot") :=
+        .(pfp_correlation, tas_similarity, structural_similarity)
+    ] %>%
+      setnafill(cols = "pfp_correlation_plot", fill = -1.1) %>%
+      setnafill(cols = c("tas_similarity_plot", "structural_similarity_plot"), fill = -0.1)
   })
 
   use_shared_data <- reactive({
@@ -326,201 +335,116 @@ similarityServer <- function(input, output, session) {
     paste0(r_selection_drugs(), "; ", r_sim_data()[["name"]][r_sim_selection()])
   })
 
-  r_plot_data <- reactive({
-    r_sim_data() %>%
-      setnafill(cols = "pfp_correlation", fill = -1.1) %>%
-      setnafill(cols = c("tas_similarity", "structural_similarity"), fill = -0.1)
-  })
-
   # plots ----
-  x_shared_data <- crosstalk::SharedData$new(r_plot_data, ~ lspci_id)
+  x_shared_data <- crosstalk::SharedData$new(r_sim_data, ~ lspci_id)
 
   r_plot_data_shared <- reactive({
     if (use_shared_data()) {
       x_shared_data
     } else {
-      r_plot_data()
+      r_sim_data()
     }
   })
 
+  make_plot <- function(id, x, y, x_axis, y_axis) {
+    text_formula <-paste0(
+      '~ paste(',
+      '"Drug 1: ", lspci_id_name_map[[input$query_compound]], "\\n",',
+      '"Drug 2: ", name, "\\n",',
+      '"x: ", ', x, ', "\\n",',
+      '"y: ", ', y, ',',
+      'sep = "")'
+    )
+    renderPlotly({
+      r_plot_data_shared() %>%
+        plot_ly(
+          source = id,
+          x = reformulate(x),
+          y = reformulate(y),
+          type = "scatter",
+          mode = "markers",
+          color = I("black"),
+          text = as.formula(text_formula)
+        ) %>%
+        layout(
+          showlegend = FALSE,
+          dragmode = "select",
+          shapes = list(
+            list(type='line', x0= -0.1, x1= -0.1, y0=-1.2, y1=1.2,
+                 line=list(dash='dot', width=2, color = "red")),
+            list(type='line', x0= -0.15, x1= 1.15, y0=-1.1, y1=-1.1,
+                 line=list(dash='dot', width=2, color = "red"))
+          ),
+          xaxis = x_axis,
+          yaxis = y_axis
+        ) %>%
+        highlight(
+          on = "plotly_selected",
+          off = "plotly_deselect",
+          color = I("#00ac9f")
+        )
+    })
+  }
+
   # mainplot1
-  output$plot_pheno_struct <- renderPlotly({
-    r_plot_data_shared() %>%
-      plot_ly(
-        source = "pheno_struct",
-        x = ~ structural_similarity,
-        y = ~ pfp_correlation,
-        type = "scatter",
-        mode = "markers",
-        color = I("black"),
-        # name = ~ name_2,
-        text = ~ paste(
-          "Drug 1: ", lspci_id_name_map[[input$query_compound]], "\n",
-          "Drug 2: ", name, "\n",
-          "x: ", structural_similarity, "\n",
-          "y: ", pfp_correlation,
-          sep = ""
-        )
-        # hoverinfo = "text"
-      ) %>%
-      layout(
-        showlegend = FALSE,
-        dragmode = "select",
-        shapes = list(
-          list(type='line', x0= -0.1, x1= -0.1, y0=-1.2, y1=1.2,
-               line=list(dash='dot', width=2, color = "red")),
-          list(type='line', x0= -0.15, x1= 1.15, y0=-1.1, y1=-1.1,
-               line=list(dash='dot', width=2, color = "red"))
-        ),
-        xaxis = list(
-          range = c(-0.15, 1.15),
-          title = "Structural similarity",
-          tickmode = "array",
-          tickvals = c(-0.1, seq(0,1,.25)),
-          ticktext = c("NA", as.character(seq(0,1,.25)))
-        ),
-        yaxis = list(
-          range = c(-1.2, 1.2),
-          title = "Phenotypic Correlation",
-          tickmode = "array",
-          tickvals = c(-1.1, seq(-1,1,.5)),
-          ticktext = c("NA", as.character(seq(-1,1,.5)))
-        )
-      ) %>%
-      highlight(
-        on = "plotly_selected",
-        off = "plotly_deselect",
-        color = I("#00ac9f")
-        # selected = attrs_selected(name = ~ name_2)
-      )
-
-    # if restoring from a bookmark, select previously selected points
-    # p$x$highlight$defaultValues = values$c.data$name_2[points1]
-    # p$x$highlight$color = "rgba(255,0,0,1)"
-    # p$x$highlight$off = "plotly_deselect"
-
-    # p %>% layout(dragmode = "select")
-  })
+  output$plot_pheno_struct <- make_plot(
+    "pheno_struct",
+    "structural_similarity_plot", "pfp_correlation_plot",
+    x_axis = list(
+      range = c(-0.15, 1.15),
+      title = "Structural similarity",
+      tickmode = "array",
+      tickvals = c(-0.1, seq(0,1,.25)),
+      ticktext = c("NA", as.character(seq(0,1,.25)))
+    ),
+    y_axis = list(
+      range = c(-1.2, 1.2),
+      title = "Phenotypic Correlation",
+      tickmode = "array",
+      tickvals = c(-1.1, seq(-1,1,.5)),
+      ticktext = c("NA", as.character(seq(-1,1,.5)))
+    )
+  )
 
   # mainplot2
-  output$plot_target_struct <- renderPlotly({
-    r_plot_data_shared() %>%
-      plot_ly(
-        source = "target_struct",
-        x = ~ structural_similarity,
-        y = ~ tas_similarity,
-        type = "scatter",
-        mode = "markers",
-        color = I("black"),
-        # name = ~ name_2,
-        text = ~ paste(
-          "Drug 1: ", lspci_id_name_map[[input$query_compound]], "\n",
-          "Drug 2: ", name, "\n",
-          "x: ", structural_similarity, "\n",
-          "y: ", tas_similarity,
-          sep = ""
-        )
-        # hoverinfo = "tooltip_2"
-      ) %>%
-      layout(
-        showlegend = FALSE,
-        shapes = list(
-          list(type='line', x0= -0.1, x1= -0.1, y0= -0.15, y1= 1.15,
-               line=list(dash='dot', width=2, color = "red")),
-          list(type='line', x0= -0.15, x1= 1.15, y0= -0.1, y1= -0.1,
-               line=list(dash='dot', width=2, color = "red"))
-        ),
-        xaxis = list(
-          range = c(-0.15, 1.15),
-          title = "Structural similarity",
-          tickmode = "array",
-          tickvals = c(-0.15, seq(0,1,.25)),
-          ticktext = c("NA", as.character(seq(0,1,.25)))
-        ),
-        yaxis = list(
-          range = c(-0.15, 1.15),
-          title = "Target Similarity",
-          tickmode = "array",
-          tickvals = c(-0.15, seq(0,1,.2)),
-          ticktext = c("NA", as.character(seq(0,1,.2)))
-        )
-      ) %>%
-      layout(
-        dragmode = "select"
-      ) %>%
-      highlight(
-        on = "plotly_selected",
-        off = "plotly_deselect",
-        color = I('#00ac9f')
-        # selected = attrs_selected(name = ~ name_2)
-      )
-
-    # if restoring from a bookmark, select previously selected points
-    # p$x$highlight$defaultValues = values$c.data$name_2[points2]
-    # p$x$highlight$color = "rgba(255,0,0,1)"
-    # p$x$highlight$off = "plotly_deselect"
-
-    # p %>% layout(dragmode = "select")
-  })
+  output$plot_target_struct <- make_plot(
+    "target_struct",
+    "structural_similarity_plot", "tas_similarity_plot",
+    x_axis = list(
+      range = c(-0.15, 1.15),
+      title = "Structural similarity",
+      tickmode = "array",
+      tickvals = c(-0.15, seq(0,1,.25)),
+      ticktext = c("NA", as.character(seq(0,1,.25)))
+    ),
+    y_axis = list(
+      range = c(-0.15, 1.15),
+      title = "Target Similarity",
+      tickmode = "array",
+      tickvals = c(-0.15, seq(0,1,.2)),
+      ticktext = c("NA", as.character(seq(0,1,.2)))
+    )
+  )
 
   # mainplot3
-  output$plot_pheno_target <- renderPlotly({
-    r_plot_data_shared() %>%
-      plot_ly(
-        source = "pheno_target",
-        x = ~ tas_similarity,
-        y = ~ pfp_correlation,
-        type = "scatter",
-        mode = "markers",
-        color = I("black"),
-        # name = ~ name_2,
-        text = ~ paste(
-          "Drug 1: ", lspci_id_name_map[[input$query_compound]], "\n",
-          "Drug 2: ", name, "\n",
-          "x: ", tas_similarity, "\n",
-          "y: ", pfp_correlation,
-          sep = ""
-        )
-      ) %>%
-      layout(
-        showlegend = FALSE,
-        shapes = list(
-          list(type='line', x0= -0.1, x1= -0.1, y0=-1.2, y1=1.2,
-               line=list(dash='dot', width=2, color = "red")),
-          list(type='line', x0= -0.15, x1= 1.15, y0=-1.1, y1=-1.1,
-               line=list(dash='dot', width=2, color = "red"))
-        ),
-        xaxis = list(
-          range = c(-0.15, 1.15),
-          title = "Target Similarity",
-          tickmode = "array",
-          tickvals = c(-0.15, seq(0,1,.25)),
-          ticktext = c("NA", as.character(seq(0,1,.25)))
-        ),
-        yaxis = list(
-          range = c(-1.2, 1.2),
-          title = "Phenotypic Correlation",
-          tickmode = "array",
-          tickvals = c(-1.2, seq(-1,1,.5)),
-          ticktext = c("NA", as.character(seq(-1,1,.5))))
-      ) %>%
-      layout(
-        dragmode = "select"
-      ) %>%
-      highlight(
-        on = "plotly_selected",
-        off = "plotly_deselect",
-        color = I("#00ac9f")
-        # selected = attrs_selected(name = ~ name_2)
-      )
-
-    # if restoring from a bookmark, select previously selected points
-    # p$x$highlight$defaultValues = values$c.data$name_2[points3]
-    # p$x$highlight$color = "rgba(255,0,0,1)"
-    # p$x$highlight$off = "plotly_deselect"
-
-    # p %>% layout(dragmode = "select")
-  })
+  output$plot_pheno_target <- make_plot(
+    "pheno_target",
+    "structural_similarity_plot", "pfp_correlation_plot",
+    x_axis = list(
+      range = c(-0.15, 1.15),
+      title = "Target Similarity",
+      tickmode = "array",
+      tickvals = c(-0.15, seq(0,1,.25)),
+      ticktext = c("NA", as.character(seq(0,1,.25)))
+    ),
+    y_axis = list(
+      range = c(-1.2, 1.2),
+      title = "Phenotypic Correlation",
+      tickmode = "array",
+      tickvals = c(-1.2, seq(-1,1,.5)),
+      ticktext = c("NA", as.character(seq(-1,1,.5)))
+    )
+  )
 
   compounds_selected <- reactiveVal()
 
@@ -535,9 +459,26 @@ similarityServer <- function(input, output, session) {
     compounds_selected(NULL)
   })
 
+  r_cmpd_info_data <- reactive({
+    selected_ids <- r_selection_drugs()
+    if (length(selected_ids) < 1)
+      return(tags$p("No compound selected"))
+    else if (length(selected_ids) > 1)
+      return(tags$p("More than one compound selected"))
+    chembl_id <- data_cmpd_info[[as.integer(selected_ids), "chembl_id"]]
+    if (is.na(chembl_id))
+      return(tags$p("No information on ChEMBL for compound"))
+    chembl_url <- paste0(
+      "https://www.ebi.ac.uk/chembl/embed/#compound_report_card/", chembl_id, "/name_and_classification"
+    )
+    tags$object(data = chembl_url, width = "100%", height = "500")
+  })
+
+  output$compound_info <- renderUI(r_cmpd_info_data())
+
   r_tbl_sim_data <- reactive({
     selected_ids <- compounds_selected()
-    if (use_shared_data() && !is.null(selected_ids)) {
+    if (use_shared_data() && length(selected_ids) > 0) {
       r_sim_data()[lspci_id %in% selected_ids]
     } else {
       r_sim_data()
@@ -546,10 +487,6 @@ similarityServer <- function(input, output, session) {
 
   r_tbl_sim_compound <- reactive({
     .data <- r_tbl_sim_data() %>%
-      dplyr::mutate_at(
-        vars(structural_similarity, tas_similarity, pfp_correlation),
-        formatC, digits = 2, format = "fg", flag = "#"
-      ) %>%
       dplyr::select(name, dplyr::everything())
 
     col_types <- unname(vapply(.data, class, character(1)))
@@ -586,6 +523,13 @@ similarityServer <- function(input, output, session) {
               invert = TRUE
             ) - 1,
             visible = FALSE
+          ),
+          list(
+            targets = grep(
+              x = names(.data),
+              pattern = "^(structural_similarity|pfp_correlation|tas_similarity)$"
+            ) - 1,
+            defaultContent = "NA"
           )
         ),
         selection = list(mode = "multiple", target = "column"),
