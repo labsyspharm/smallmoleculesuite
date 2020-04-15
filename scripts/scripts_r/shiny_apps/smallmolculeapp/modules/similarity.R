@@ -356,6 +356,8 @@ similarityServer <- function(input, output, session) {
       '"y: ", ', y, ',',
       'sep = "")'
     )
+    x_line <- c(x_axis[["tickvals"]][[1]], y_axis[["range"]])
+    y_line <- c(y_axis[["tickvals"]][[1]], x_axis[["range"]])
     renderPlotly({
       r_plot_data_shared() %>%
         plot_ly(
@@ -371,9 +373,9 @@ similarityServer <- function(input, output, session) {
           showlegend = FALSE,
           dragmode = "select",
           shapes = list(
-            list(type='line', x0= -0.1, x1= -0.1, y0=-1.2, y1=1.2,
+            list(type='line', x0= x_line[[1]], x1= x_line[[1]], y0=x_line[[2]], y1=x_line[[3]],
                  line=list(dash='dot', width=2, color = "red")),
-            list(type='line', x0= -0.15, x1= 1.15, y0=-1.1, y1=-1.1,
+            list(type='line', x0= y_line[[2]], x1= y_line[[3]], y0=y_line[[1]], y1=y_line[[1]],
                  line=list(dash='dot', width=2, color = "red"))
           ),
           xaxis = x_axis,
@@ -415,14 +417,14 @@ similarityServer <- function(input, output, session) {
       range = c(-0.15, 1.15),
       title = "Structural similarity",
       tickmode = "array",
-      tickvals = c(-0.15, seq(0,1,.25)),
+      tickvals = c(-0.1, seq(0,1,.25)),
       ticktext = c("NA", as.character(seq(0,1,.25)))
     ),
     y_axis = list(
       range = c(-0.15, 1.15),
       title = "Target Similarity",
       tickmode = "array",
-      tickvals = c(-0.15, seq(0,1,.2)),
+      tickvals = c(-0.1, seq(0,1,.2)),
       ticktext = c("NA", as.character(seq(0,1,.2)))
     )
   )
@@ -430,19 +432,19 @@ similarityServer <- function(input, output, session) {
   # mainplot3
   output$plot_pheno_target <- make_plot(
     "pheno_target",
-    "structural_similarity_plot", "pfp_correlation_plot",
+    "tas_similarity_plot", "pfp_correlation_plot",
     x_axis = list(
       range = c(-0.15, 1.15),
       title = "Target Similarity",
       tickmode = "array",
-      tickvals = c(-0.15, seq(0,1,.25)),
+      tickvals = c(-0.1, seq(0,1,.25)),
       ticktext = c("NA", as.character(seq(0,1,.25)))
     ),
     y_axis = list(
       range = c(-1.2, 1.2),
       title = "Phenotypic Correlation",
       tickmode = "array",
-      tickvals = c(-1.2, seq(-1,1,.5)),
+      tickvals = c(-1.1, seq(-1,1,.5)),
       ticktext = c("NA", as.character(seq(-1,1,.5)))
     )
   )
