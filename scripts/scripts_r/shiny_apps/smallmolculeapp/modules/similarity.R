@@ -350,7 +350,6 @@ similarityServer <- function(input, output, session) {
         source = "pheno_struct",
         x = ~ structural_similarity,
         y = ~ pfp_correlation,
-        key = ~ lspci_id,
         type = "scatter",
         mode = "markers",
         color = I("black"),
@@ -410,7 +409,6 @@ similarityServer <- function(input, output, session) {
         source = "target_struct",
         x = ~ structural_similarity,
         y = ~ tas_similarity,
-        key = ~ lspci_id,
         type = "scatter",
         mode = "markers",
         color = I("black"),
@@ -472,7 +470,6 @@ similarityServer <- function(input, output, session) {
         source = "pheno_target",
         x = ~ tas_similarity,
         y = ~ pfp_correlation,
-        key = ~ lspci_id,
         type = "scatter",
         mode = "markers",
         color = I("black"),
@@ -525,34 +522,23 @@ similarityServer <- function(input, output, session) {
     # p %>% layout(dragmode = "select")
   })
 
-  # output_table
-  state <- reactiveValues(selected_ids = NULL)
+  compounds_selected <- reactiveVal()
 
-  observe({
-    state$selected_ids <- event_data("plotly_selected", "pheno_struct")$key
-  })
-
-  observe({
-    state$selected_ids <- event_data("plotly_selected", "target_struct")$key
-  })
-
-  observe({
-    state$selected_ids <- event_data("plotly_selected", "pheno_target")$key
-  })
+  walk(
+    c("pheno_struct", "target_struct", "pheno_target"),
+    ~observe({
+      compounds_selected(event_data("plotly_selected", .x)$key)
+    })
+  )
 
   observeEvent(input$query_compound, {
-    state$selected_ids <- NULL
+    compounds_selected(NULL)
   })
 
   r_tbl_sim_data <- reactive({
-    if (use_shared_data()) {
-      if (is.null(state$selected_ids)) {
-        r_sim_data()
-      } else {
-        r_sim_data()[
-          lspci_id %in% state$selected_ids
-        ]
-      }
+    selected_ids <- compounds_selected()
+    if (use_shared_data() && !is.null(selected_ids)) {
+      r_sim_data()[lspci_id %in% selected_ids]
     } else {
       r_sim_data()
     }
@@ -560,14 +546,11 @@ similarityServer <- function(input, output, session) {
 
   r_tbl_sim_compound <- reactive({
     .data <- r_tbl_sim_data() %>%
-      dplyr::mutate(
-        ` ` = NA
-      ) %>%
       dplyr::mutate_at(
         vars(structural_similarity, tas_similarity, pfp_correlation),
         formatC, digits = 2, format = "fg", flag = "#"
       ) %>%
-      dplyr::select(` `, name, dplyr::everything())
+      dplyr::select(name, dplyr::everything())
 
     col_types <- unname(vapply(.data, class, character(1)))
 
@@ -577,9 +560,8 @@ similarityServer <- function(input, output, session) {
 
     DT::datatable(
       .data,
-      extensions = c("Buttons", "Select"),
+      extensions = c("Buttons"),
       rownames = FALSE,
-      selection = "single",
       options = list(
         # autoWidth = TRUE,
         buttons = list(
@@ -593,26 +575,20 @@ similarityServer <- function(input, output, session) {
             title = download_name
           ),
           list(
-            extend = "colvis",
-            columns = ":not(.select-checkbox)"
+            extend = "colvis"
           )
         ),
         columnDefs = list(
           list(
             targets = grep(
               x = names(.data),
-              pattern = "^( |name|structural_similarity|pfp_correlation|tas_similarity)$",
+              pattern = "^(name|structural_similarity|pfp_correlation|tas_similarity)$",
               invert = TRUE
             ) - 1,
             visible = FALSE
-          ),
-          list(
-            className = "select-checkbox",
-            orderable = FALSE,
-            visible = TRUE,
-            targets = 0
           )
         ),
+        selection = list(mode = "multiple", target = "column"),
         dom = "lfrtipB",
         pagingType = "numbers",
         scrollCollapse = TRUE,
@@ -636,7 +612,7 @@ similarityServer <- function(input, output, session) {
     }
 
     data_affinity_selectivity[
-      lspci_id == drug_id
+      lspci_id %in% drug_id
     ][
       order(selectivity_class, Kd_Q1)
     ]
