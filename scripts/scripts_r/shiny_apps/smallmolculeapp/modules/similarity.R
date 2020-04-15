@@ -554,7 +554,9 @@ similarityServer <- function(input, output, session) {
     server = TRUE
   )
 
-  get_compound_selection <- function(drug_id) {
+  r_selectivity_data_selected <- reactive({
+    drug_id <- r_selection_drugs()
+
     if (is.null(drug_id) || is.na(drug_id) || length(drug_id) < 1) {
       return(
         data_affinity_selectivity[FALSE]
@@ -563,10 +565,19 @@ similarityServer <- function(input, output, session) {
 
     data_affinity_selectivity[
       lspci_id %in% drug_id
-    ][
-      order(selectivity_class, Kd_Q1)
-    ]
-  }
+      ][
+        order(selectivity_class, Kd_Q1),
+        name := lspci_id_name_map[lspci_id]
+      ] %>%
+      select(
+        name,
+        gene_id, symbol,
+        selectivity_class,
+        Kd_Q1, ontarget_IC50_Q1, offtarget_IC50_Q1,
+        -lspci_id,
+        everything()
+      )
+  })
 
   output$subtitle_selection <- renderText({
     r_selection_titles()
@@ -578,7 +589,7 @@ similarityServer <- function(input, output, session) {
     )
 
     DT::datatable(
-      data = get_compound_selection(r_selection_drugs()), # input$compound_selection),
+      data = r_selectivity_data_selected(), # input$compound_selection),
       rownames = FALSE,
       # fillContainer = TRUE,
       options = list(
