@@ -1,8 +1,11 @@
 tas_weighted_jaccard <- function(query_id, min_n = 6) {
-  query_tas <- data_tas[lspci_id == query_id, .(entrez_gene_id, tas)]
+  query_tas <- data_tas[lspci_id == query_id, .(gene_id, tas)]
   data_tas[
+    ,
+    .(lspci_id, gene_id, tas)
+  ][
     query_tas,
-    on = "entrez_gene_id",
+    on = "gene_id",
     nomatch = NULL
   ][
     ,
@@ -220,8 +223,8 @@ similarityServer <- function(input, output, session) {
     updateSelectizeInput(
       session,
       inputId = "query_compound",
-      choices = name_lspci_id_map,
-      selected = "Nilotinib",
+      choices = c(set_names(100531L, "Nilotinib"), name_lspci_id_map),
+      selected = "100531",
       server = TRUE,
       options = list(
         maxItems = 1,

@@ -27,7 +27,7 @@ data_gene_info <- file.path(dir_data, "shiny_targets_morgan_normal.fst") %>%
 data_pfp <- file.path(dir_data, "phenotypic_rscore_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)
 
-data_tas <- file.path(dir_data, "tas_score_morgan_normal.fst") %>%
+data_tas <- file.path(dir_data, "shiny_tas_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)
 
 data_fingerprints <- morgancpp::MorganFPS$new(
