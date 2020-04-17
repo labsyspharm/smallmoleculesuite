@@ -147,9 +147,18 @@ similarityUI <- function(id) {
         )
       ),
       card(
-        h3("Compound information"),
-        uiOutput(
-          outputId = ns("compound_info")
+        header = div(
+          h3("Compound information"),
+          navInput(
+            appearance = "pills",
+            id = ns("chembl_nav"),
+            choices = NULL,
+            values = NULL
+          ),
+          id = ns("chembl_div")
+        ),
+        navContent(
+          id = ns("chembl_tab_parent")
         )
       )
     ),
@@ -493,22 +502,67 @@ similarityServer <- function(input, output, session) {
     compounds_selected(NULL)
   })
 
-  r_cmpd_info_data <- reactive({
-    selected_ids <- r_selection_drugs()
-    if (length(selected_ids) < 1)
-      return(tags$p("No compound selected"))
-    else if (length(selected_ids) > 1)
-      return(tags$p("More than one compound selected"))
-    chembl_id <- data_cmpd_info[lspci_id == as.integer(selected_ids)][["chembl_id"]]
-    if (is.na(chembl_id))
-      return(tags$p("No information on ChEMBL for compound"))
-    chembl_url <- paste0(
-      "https://www.ebi.ac.uk/chembl/embed/#compound_report_card/", chembl_id, "/name_and_classification"
-    )
-    tags$object(data = chembl_url, width = "100%", height = "500")
+# ChEMBL tabs
+###############################################################################-
+
+  all_chembl_tabs <- character()
+  selected_chembl_tab <- NULL
+
+  observeEvent(input$chembl_nav, {
+    showNavPane(ns(paste0("chembl_tab_", input$chembl_nav)))
+    selected_chembl_tab <- input$chembl_nav
   })
 
-  output$compound_info <- renderUI(r_cmpd_info_data())
+  r_cmpd_info_data <- observe({
+    selected_ids <- r_selection_drugs()
+
+    ids <- data_cmpd_info[
+      lspci_id %in% as.integer(selected_ids),
+      .(chembl_id, name = lspci_id_name_map[lspci_id])
+      ] %>%
+      na.omit()
+
+    # Remove any tabs that are no longer selected
+    walk(
+      setdiff(all_chembl_tabs, ids[["chembl_id"]]),
+      ~removeUI(paste0("#chembl_tab_", .x))
+    )
+
+    if (length(selected_ids) < 1)
+      return(tags$p("No compound selected"))
+
+    if (nrow(ids) < 1)
+      return(tags$p("No information on ChEMBL for selected compound(s)."))
+
+    chembl_tabs <- pmap(
+      ids,
+      function(chembl_id, name) {
+        url <- paste0(
+          "https://www.ebi.ac.uk/chembl/embed/#compound_report_card/", chembl_id, "/name_and_classification"
+        )
+        obj <- tags$object(data = url, width = "100%", height = "500")
+        navPane(
+          id = ns(paste0("chembl_tab_", chembl_id)),
+          obj
+        )
+      }
+    )
+
+    insertUI(
+      selector = paste0("#", ns("chembl_tab_parent")),
+      where = "beforeEnd",
+      ui = exec(tagList, !!!chembl_tabs)
+    )
+
+    updateNavInput(
+      id = "chembl_nav",
+      choices = ids[["name"]],
+      values = ids[["chembl_id"]],
+      selected = setdiff(ids[["chembl_id"]], all_chembl_tabs)[[1]]
+    )
+
+    all_chembl_tabs <- ids[["chembl_id"]]
+  })
 
   r_tbl_sim_data <- reactive({
     selected_ids <- compounds_selected()
@@ -541,11 +595,21 @@ similarityServer <- function(input, output, session) {
           list(extend = "copy"),
           list(
             extend = "csv",
-            title = download_name
+            title = download_name,
+            exportOptions = list(
+              modifier = list(
+                page = "all"
+              )
+            )
           ),
           list(
             extend = "excel",
-            title = download_name
+            title = download_name,
+            exportOptions = list(
+              modifier = list(
+                page = "all"
+              )
+            )
           ),
           list(
             extend = "colvis"
@@ -677,7 +741,7 @@ similarityServer <- function(input, output, session) {
       }
       const url_types = {
         pubmed: 'https://pubmed.ncbi.nlm.nih.gov/',
-        chembl: 'https://www.ebi.ac.uk/chembl/compound_report_card/',
+        chembl: 'https://www.ebi.ac.uk/chembl/document_report_card/',
         patent: 'https://patents.google.com/patent/',
         synapse: 'https://www.synapse.org/#!Synapse:',
         doi: 'https://dx.doi.org/'
@@ -743,7 +807,8 @@ similarityServer <- function(input, output, session) {
         "tas",
         backgroundColor = DT::styleInterval(
           c(1, 2, 3), c("#b2182b", "#ef8a62", "#fddbc7", "#d9d9d9")
-        )
+        ),
+        color = DT::styleInterval(1, c("white", "inherit"))
       )
   })
 }
