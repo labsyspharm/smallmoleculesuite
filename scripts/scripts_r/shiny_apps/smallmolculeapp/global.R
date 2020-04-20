@@ -21,6 +21,9 @@ library(yonder)
 
 source("awspass.config")
 
+# Components used in multiple apps
+source("modules/components/chembl_tabs.R", local = TRUE)
+
 # source("modules/selectivity.R", local = TRUE)
 source("modules/similarity.R", local = TRUE)
 # source("modules/library.R", local = TRUE)
