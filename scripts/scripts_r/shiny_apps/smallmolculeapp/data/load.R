@@ -17,6 +17,13 @@ lspci_id_name_map <- file.path(dir_data, "lspci_id_name_map.fst") %>%
   fst::read_fst() %>%
   {set_names(.[["name"]], .[["lspci_id"]])}
 
+symbol_gene_id_map <- file.path(dir_data, "symbol_gene_id_map.rds") %>%
+  read_rds()
+
+gene_id_symbol_map <- file.path(dir_data, "gene_id_symbol_map.fst") %>%
+  read_fst() %>%
+  {set_names(.[["symbol"]], .[["gene_id"]])}
+
 data_selection_chemprobes <- file.path(dir_data, "shiny_chemical_probes_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE) %>%
   .[avg_rating == 4]

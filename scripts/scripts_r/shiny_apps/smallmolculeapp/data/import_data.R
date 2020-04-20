@@ -12,6 +12,8 @@ syn_parent <- "syn18457321"
 release <- "chembl_v25"
 fp_name <- "morgan_normal"
 
+dir_data <- here("data")
+
 syn_tables <- synPluck(syn_parent, release, "db_tables", fp_name, "website")
 
 files <- c(
@@ -27,8 +29,6 @@ files <- c(
   "shiny_tas.fst"
 )
 
-dir_data <- here("data")
-
 walk(
   files,
   function(fn) {
@@ -40,3 +40,13 @@ walk(
     )
   }
 )
+
+# Gene symbol mapping
+
+c("syn21965763", "syn21965765") %>%
+  walk(
+    synGet,
+    downloadFile = TRUE,
+    downloadLocation = dir_data,
+    ifcollision = "overwrite.local"
+  )

@@ -252,13 +252,13 @@ function(req) {
               )
             )
           ),
-          # selectivity ----
-          # navPane(
-          #   id = "page_selectivity",
-          #   selectivityUI(
-          #     id = "select"
-          #   )
-          # ),
+          selectivity ----
+          navPane(
+            id = "page_selectivity",
+            selectivityUI(
+              id = "select"
+            )
+          ),
           # similarity ----
           navPane(
             id = "page_similarity",
