@@ -589,11 +589,14 @@ similarityServer <- function(input, output, session) {
 
     data_affinity_selectivity[
       lspci_id %in% drug_id
-      ][
-        order(selectivity_class, Kd_Q1)
-      ][
-        , name := lspci_id_name_map[lspci_id]
-      ] %>%
+    ][
+      order(selectivity_class, Kd_Q1)
+    ][
+      , c("name", "symbol") := list(
+        lspci_id_name_map[lspci_id],
+        gene_id_symbol_map[gene_id]
+      )
+    ] %>%
       select(
         name,
         gene_id, symbol,
@@ -617,9 +620,12 @@ similarityServer <- function(input, output, session) {
     ][
       order(tas)
     ][
-      , name := lspci_id_name_map[lspci_id]
+      , c("name", "symbol") := list(
+        lspci_id_name_map[lspci_id],
+        gene_id_symbol_map[gene_id]
+      )
     ] %>%
-      select(name, everything(), -lspci_id)
+      select(name, symbol, everything(), -lspci_id)
   })
 
   output$subtitle_selection <- renderText({

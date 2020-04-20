@@ -145,8 +145,7 @@ selectivityServer <- function(input, output, session) {
   observeEvent(selection_genes(), {
     updateSelectInput(
       id = "query_gene",
-      choices = selection_genes(),
-      values = selection_genes(),
+      choices = names(symbol_gene_id_map),
       selected = input$query_gene %||% "BRAF",
       session = session
     )
@@ -162,21 +161,19 @@ selectivityServer <- function(input, output, session) {
   c_binding_data <- reactive({
     req(input$query_gene)
 
-    data_aff <- copy(data_affinity_selectivity)[
-      lspci_id == name_lspci_id_map[input$query_gene],
+    copy(data_affinity_selectivity)[
+      gene_id %in% symbol_gene_id_map[[input$query_gene]]
+    ][
       is_filter_match := !is.na(Kd_Q1) &
-        Kd_Q1 >= (10**input$affinity[1]) &
-        Kd_Q1 <= (10**input$affinity[2]) &
+        Kd_Q1 >= (2**input$affinity[1]) &
+        Kd_Q1 <= (2**input$affinity[2]) &
         n_measurement_kd >= input$min_measurements
     ][
       order(selectivity_class, Kd_Q1)
     ]
-      # dplyr::mutate(selectivity_plot = coalesce(selectivity, -0.5))
-
-    data_aff
   })
 
-  c_shared_data <- crosstalk::SharedData$new(c_binding_data, key = ~ name)
+  c_shared_data <- crosstalk::SharedData$new(c_binding_data)
 
   if (isTRUE(getOption("sms.debug"))) {
     observe({
@@ -190,15 +187,8 @@ selectivityServer <- function(input, output, session) {
   })
 
   selection_genes <- reactive({
-    if (include_non_human()) { # all genes
-      sort(unique(data_affinity_selectivity$symbol))
-    } else { # just human genes
-      data_affinity_selectivity %>%
-        dplyr::filter(tax_id == 9606) %>%
-        dplyr::distinct(symbol) %>%
-        dplyr::arrange(symbol) %>%
-        dplyr::pull()
-    }
+    data_affinity_selectivity[["symbol"]] %>%
+      unique()
   })
 
   # titles ----
@@ -281,14 +271,14 @@ selectivityServer <- function(input, output, session) {
   })
 
   # output_table ----
-  state <- reactiveValues(selected_names = NULL)
+  state <- reactiveValues(selected_rows = NULL)
 
   observe({
-    state$selected_names <- event_data("plotly_selected", "mainplot")$key
+    state$selected_rows <- event_data("plotly_selected", "mainplot")$key
   })
 
   observeEvent(input$query_gene, {
-    state$selected_names <- NULL
+    state$selected_rows <- NULL
   })
 
   tbl_data <- reactive({
@@ -297,11 +287,10 @@ selectivityServer <- function(input, output, session) {
     #   dplyr::select(-selectivity_plot)
 
     .data <- if (use_shared_data()) {
-      if (is.null(state$selected_names)) {
+      if (is.null(state$selected_rows)) {
         c_binding_data()
       } else {
-        c_binding_data() %>%
-          dplyr::filter(name %in% state$selected_names)
+        c_binding_data()[state$selected_rows]
       }
     } else {
       c_binding_data()

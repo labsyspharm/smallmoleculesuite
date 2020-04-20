@@ -40,10 +40,10 @@ function(input, output, session) {
     navToPage("library")
   })
 
-  # callModule(
-  #   module = selectivityServer,
-  #   id = "select"
-  # )
+  callModule(
+    module = selectivityServer,
+    id = "select"
+  )
 
   callModule(
     module = similarityServer,
