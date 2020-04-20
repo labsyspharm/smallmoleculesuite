@@ -146,21 +146,7 @@ similarityUI <- function(id) {
           )
         )
       ),
-      card(
-        header = div(
-          h3("Compound information"),
-          navInput(
-            appearance = "pills",
-            id = ns("chembl_nav"),
-            choices = NULL,
-            values = NULL
-          ),
-          id = ns("chembl_div")
-        ),
-        navContent(
-          id = ns("chembl_tab_parent")
-        )
-      )
+      mod_ui_chembl_tabs(ns("chembl_tabs_1"))
     ),
     column(
       width = 8,
@@ -505,64 +491,9 @@ similarityServer <- function(input, output, session) {
 # ChEMBL tabs
 ###############################################################################-
 
-  all_chembl_tabs <- character()
-  selected_chembl_tab <- NULL
-
-  observeEvent(input$chembl_nav, {
-    showNavPane(ns(paste0("chembl_tab_", input$chembl_nav)))
-    selected_chembl_tab <- input$chembl_nav
-  })
-
-  r_cmpd_info_data <- observe({
-    selected_ids <- r_selection_drugs()
-
-    ids <- data_cmpd_info[
-      lspci_id %in% as.integer(selected_ids),
-      .(chembl_id, name = lspci_id_name_map[lspci_id])
-      ] %>%
-      na.omit()
-
-    # Remove any tabs that are no longer selected
-    walk(
-      setdiff(all_chembl_tabs, ids[["chembl_id"]]),
-      ~removeUI(paste0("#chembl_tab_", .x))
-    )
-
-    if (length(selected_ids) < 1)
-      return(tags$p("No compound selected"))
-
-    if (nrow(ids) < 1)
-      return(tags$p("No information on ChEMBL for selected compound(s)."))
-
-    chembl_tabs <- pmap(
-      ids,
-      function(chembl_id, name) {
-        url <- paste0(
-          "https://www.ebi.ac.uk/chembl/embed/#compound_report_card/", chembl_id, "/name_and_classification"
-        )
-        obj <- tags$object(data = url, width = "100%", height = "500")
-        navPane(
-          id = ns(paste0("chembl_tab_", chembl_id)),
-          obj
-        )
-      }
-    )
-
-    insertUI(
-      selector = paste0("#", ns("chembl_tab_parent")),
-      where = "beforeEnd",
-      ui = exec(tagList, !!!chembl_tabs)
-    )
-
-    updateNavInput(
-      id = "chembl_nav",
-      choices = ids[["name"]],
-      values = ids[["chembl_id"]],
-      selected = setdiff(ids[["chembl_id"]], all_chembl_tabs)[[1]]
-    )
-
-    all_chembl_tabs <- ids[["chembl_id"]]
-  })
+  o_chembl_tabs <- callModule(
+    mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
+  )
 
   r_tbl_sim_data <- reactive({
     selected_ids <- compounds_selected()
