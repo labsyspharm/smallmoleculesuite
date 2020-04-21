@@ -54,7 +54,7 @@ selectivityUI <- function(id) {
                   inputId = ns("affinity"),
                   label = NULL,
                   min = -3,
-                  max = 10,
+                  max = 8,
                   step = 1,
                   value = c(-3, 6)
                 )
@@ -114,9 +114,10 @@ selectivityUI <- function(id) {
     column(
       width = 8,
       card(
-        h3("Affinity and selectivity plot"),
-        h6(textOutput(ns("subtitle_plot"))) %>%
-          margin(b = 3),
+        header = tagList(
+          h4("Affinity and selectivity plot"),
+          htmlOutput(ns("subtitle_plot"), container = p)
+        ),
         div(
           tags$label("x-axis", `for` = ns("x_var"), style = "width: 7em;") %>%
             margin(b = 0),
@@ -145,9 +146,10 @@ selectivityUI <- function(id) {
       ) %>%
         margin(bottom = 3),
       card(
-        h3("Affinity and selectivity data"),
-        textOutput(ns("subtitle_data"), h6) %>%
-          margin(b = 3),
+        header = tagList(
+          h4("Affinity and selectivity"),
+          htmlOutput(ns("subtitle_data"), container = p)
+        ),
         div(
           dataTableOutput(
             outputId = ns("output_table")
@@ -245,7 +247,7 @@ selectivityServer <- function(input, output, session) {
   # titles ----
   r_subtitle <- reactive({
     req(input$query_gene)
-    paste("Drugs targeting", input$query_gene)
+    paste("Drugs binding", input$query_gene, "that meet the filter criteria")
   })
 
   output$subtitle_plot <- renderText(r_subtitle())
@@ -303,14 +305,6 @@ selectivityServer <- function(input, output, session) {
         off = "plotly_deselect",
         opacityDim = 0.3
       )
-
-    # if restoring from a bookmark, select previously selected points
-    # p$x$highlight$defaultValues <- c_binding_data()$name[state$points_selected]
-    # p$x$highlight$color <- "rgba(255,0,0,1)"
-    # p$x$highlight$off <- "plotly_deselect"
-
-    # p %>%
-    #   layout(dragmode = "select")
     p
   })
 
