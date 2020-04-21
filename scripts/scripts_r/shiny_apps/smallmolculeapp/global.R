@@ -23,6 +23,7 @@ source("awspass.config")
 
 # Components used in multiple apps
 source("modules/components/chembl_tabs.R", local = TRUE)
+source("modules/components/affinity_tables.R", local = TRUE)
 
 # Modules
 source("modules/selectivity.R", local = TRUE)
