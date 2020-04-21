@@ -107,7 +107,8 @@ selectivityUI <- function(id) {
             )
           )
         )
-      ),
+      ) %>%
+        margin(bottom = 3),
       mod_ui_chembl_tabs(ns("chembl_tabs_1"))
     ),
     column(
@@ -149,8 +150,7 @@ selectivityUI <- function(id) {
           margin(b = 3),
         div(
           dataTableOutput(
-            outputId = ns("output_table"),
-            height = "575px"
+            outputId = ns("output_table")
           )
         )
       ) %>%

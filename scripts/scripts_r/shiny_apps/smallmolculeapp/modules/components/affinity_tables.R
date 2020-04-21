@@ -127,9 +127,9 @@ mod_server_affinity_tables <- function(
             "No data available"
           }
         ),
-        scrollX = FALSE,
         pagingType = "numbers",
-        selection = "none"
+        selection = "none",
+        scrollX = TRUE
       )
     ) %>%
       DT::formatStyle(
@@ -186,9 +186,9 @@ mod_server_affinity_tables <- function(
             "No data available"
           }
         ),
-        scrollX = FALSE,
         selection = "none",
-        pagingType = "numbers"
+        pagingType = "numbers",
+        scrollX = TRUE
       )
     ) %>%
       DT::formatStyle(
@@ -201,6 +201,24 @@ mod_server_affinity_tables <- function(
   })
 
   output$table_tas <- DT::renderDataTable(r_table_selected_tas())
+
+  r_either_selected <- reactiveVal()
+
+  observeEvent(output$table_tas_rows_selected, {
+    r_either_selected(
+      r_tas_data_selected[["lspci_id"]][sorted(output$table_tas_rows_selected)]
+    )
+  })
+
+  observeEvent(output$table_selectivity_rows_selected, {
+    r_either_selected(
+      r_selectivity_data_selected[["lspci_id"]][sorted(output$table_selectivity_rows_selected)]
+    )
+  })
+
+  list(
+    r_selected_lspci_ids = r_either_selected
+  )
 }
 
 #' UI module to display a tabset of compound affinites and TAS values
@@ -209,14 +227,15 @@ mod_server_affinity_tables <- function(
 mod_ui_affinity_tables <- function(id) {
   ns <- NS(id)
   card(
-    header = div(
+    header = tagList(
       textOutput(ns("subtitle_selection"), h5),
       navInput(
         appearance = "tabs",
         id = ns("selectivity_nav"),
         choices = c("Selectivity", "Target Affinity Spectrum"),
         values = c("selectivity", "tas"),
-        selected = "selectivity"
+        selected = "selectivity",
+        class = "card-header-tabs"
       )
     ),
     navContent(
