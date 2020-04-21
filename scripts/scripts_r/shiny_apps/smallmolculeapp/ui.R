@@ -252,7 +252,7 @@ function(req) {
               )
             )
           ),
-          selectivity ----
+          # selectivity ----
           navPane(
             id = "page_selectivity",
             selectivityUI(

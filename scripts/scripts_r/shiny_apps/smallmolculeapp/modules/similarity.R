@@ -497,11 +497,11 @@ similarityServer <- function(input, output, session) {
 
   r_tbl_sim_data <- reactive({
     selected_ids <- compounds_selected()
-    if (use_shared_data() && length(selected_ids) > 0) {
+    (if (use_shared_data() && length(selected_ids) > 0) {
       r_sim_data()[lspci_id %in% selected_ids]
     } else {
       r_sim_data()
-    }[
+    })[
       order(-pfp_correlation, -tas_similarity, -structural_similarity)
     ] %>%
       select(name, everything(), -ends_with("_plot"))
@@ -590,16 +590,18 @@ similarityServer <- function(input, output, session) {
     data_affinity_selectivity[
       lspci_id %in% drug_id
     ][
+      data_gene_info[, .(gene_id, symbol)], on = "gene_id"
+    ][
       order(selectivity_class, Kd_Q1)
     ][
-      , c("name", "symbol") := list(
+      , c("name", "selectivity") := .(
         lspci_id_name_map[lspci_id],
-        gene_id_symbol_map[gene_id]
+        round(selectivity, digits = 2)
       )
     ] %>%
       select(
         name,
-        gene_id, symbol,
+        symbol,
         selectivity_class,
         Kd_Q1, ontarget_IC50_Q1, offtarget_IC50_Q1,
         -lspci_id,
@@ -618,12 +620,11 @@ similarityServer <- function(input, output, session) {
     data_tas[
       lspci_id %in% drug_id
     ][
+      data_gene_info[, .(gene_id, symbol)], on = "gene_id"
+    ][
       order(tas)
     ][
-      , c("name", "symbol") := list(
-        lspci_id_name_map[lspci_id],
-        gene_id_symbol_map[gene_id]
-      )
+      , name := lspci_id_name_map[lspci_id]
     ] %>%
       select(name, symbol, everything(), -lspci_id)
   })

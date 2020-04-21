@@ -17,13 +17,6 @@ lspci_id_name_map <- file.path(dir_data, "lspci_id_name_map.fst") %>%
   fst::read_fst() %>%
   {set_names(.[["name"]], .[["lspci_id"]])}
 
-symbol_gene_id_map <- file.path(dir_data, "symbol_gene_id_map.rds") %>%
-  read_rds()
-
-gene_id_symbol_map <- file.path(dir_data, "gene_id_symbol_map.fst") %>%
-  read_fst() %>%
-  {set_names(.[["symbol"]], .[["gene_id"]])}
-
 data_selection_chemprobes <- file.path(dir_data, "shiny_chemical_probes_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE) %>%
   .[avg_rating == 4]
@@ -44,6 +37,16 @@ data_fingerprints <- morgancpp::MorganFPS$new(
 data_affinity_selectivity <- file.path(dir_data, "shiny_selectivity_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)
 
-for (col in c("toolscore", "ontarget_IC50_Q1", "offtarget_IC50_Q1", "IC50_diff", "Kd_Q1")) {
+for (col in c("toolscore", "ontarget_IC50_Q1", "offtarget_IC50_Q1", "IC50_diff", "Kd_Q1", "selectivity")) {
   set(data_affinity_selectivity, j = col, value = signif(data_affinity_selectivity[[col]], digits = 2))
 }
+
+data_biochem <- file.path(dir_data, "shiny_biochemical_morgan_normal.fst") %>%
+  fst::read_fst(as.data.table = TRUE)
+
+for (col in c("toolscore", "ontarget_IC50_Q1", "offtarget_IC50_Q1", "IC50_diff", "Kd_Q1", "selectivity")) {
+  set(data_affinity_selectivity, j = col, value = signif(data_affinity_selectivity[[col]], digits = 2))
+}
+
+data_commercial <- file.path(dir_data, "shiny_commercial_info_morgan_normal.fst") %>%
+  fst::read_fst(as.data.table = TRUE)

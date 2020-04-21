@@ -1,3 +1,17 @@
+
+axis_choices <- tribble(
+  ~label, ~value, ~type,
+  "Kd Q1 (nM)", "Kd_Q1", "log",
+  "Selectivity", "selectivity", "linear",
+  "Tool score", "toolscore", "linear",
+  "Ontarget IC50 Q1 (nM)", "ontarget_IC50_Q1", "log",
+  "Offtarget IC50 Q1 (nM)", "offtarget_IC50_Q1", "log",
+  "IC50 difference (nM)", "IC50_diff", "linear"
+)
+
+axis_choice_map <- axis_choices %>%
+  {set_names(map2(.[["label"]], .[["type"]], ~list(label = .x, type = .y)), .[["value"]])}
+
 selectivityUI <- function(id) {
   ns <- NS(id)
 
@@ -17,16 +31,25 @@ selectivityUI <- function(id) {
             id = ns("pane_filters"),
             fade = FALSE,
             formGroup(
+              label = "Target gene",
+              checkboxInput(
+                id = ns("include_genes"),
+                choices = "Include non-human genes",
+                values = TRUE
+              )
+            ) %>%
+              margin(b = -3),
+            formGroup(
               label = NULL,
               input = selectInput(
                 id = ns("query_gene")
               ),
-              help = "Search for a gene target"
+              help = "Search for a target gene"
             ),
             formGroup(
               label = "Minimum/maximum affinity",
               input = div(
-                class = "logify-slider active--pink",
+                class = "logify-slider-10 active--pink",
                 shiny::sliderInput(
                   inputId = ns("affinity"),
                   label = NULL,
@@ -84,7 +107,8 @@ selectivityUI <- function(id) {
             )
           )
         )
-      )
+      ),
+      mod_ui_chembl_tabs(ns("chembl_tabs_1"))
     ),
     column(
       width = 8,
@@ -92,6 +116,25 @@ selectivityUI <- function(id) {
         h3("Affinity and selectivity plot"),
         h6(textOutput(ns("subtitle_plot"))) %>%
           margin(b = 3),
+        div(
+          tags$label("x-axis", `for` = ns("x_var"), style = "width: 7em;") %>%
+            margin(b = 0),
+          selectInput(
+            ns("x_var"),
+            choices = axis_choices[["label"]],
+            values = axis_choices[["value"]],
+            selected = "selectivity"
+          ),
+          tags$label("y-axis", `for` = ns("y_var"), style = "width: 7em;") %>%
+            margin(l = 2, b = 0),
+          selectInput(
+            ns("y_var"),
+            choices = axis_choices[["label"]],
+            values = axis_choices[["value"]],
+            selected = "Kd_Q1"
+          ),
+          style = "display: flex; align-items: center;"
+        ),
         div(
           plotly::plotlyOutput(
             outputId = ns("mainplot"),
@@ -141,11 +184,15 @@ selectivityServer <- function(input, output, session) {
     )
   })
 
+  include_non_human <- reactive({
+    !is.null(input$include_genes)
+  })
+
   # update query gene select ----
   observeEvent(selection_genes(), {
     updateSelectInput(
       id = "query_gene",
-      choices = names(symbol_gene_id_map),
+      choices = selection_genes(),
       selected = input$query_gene %||% "BRAF",
       session = session
     )
@@ -162,14 +209,20 @@ selectivityServer <- function(input, output, session) {
     req(input$query_gene)
 
     copy(data_affinity_selectivity)[
-      gene_id %in% symbol_gene_id_map[[input$query_gene]]
+      symbol == input$query_gene
     ][
-      is_filter_match := !is.na(Kd_Q1) &
-        Kd_Q1 >= (2**input$affinity[1]) &
-        Kd_Q1 <= (2**input$affinity[2]) &
+      , is_filter_match := !is.na(Kd_Q1) &
+        Kd_Q1 >= (10**input$affinity[1]) &
+        Kd_Q1 <= (10**input$affinity[2]) &
         n_measurement_kd >= input$min_measurements
     ][
-      order(selectivity_class, Kd_Q1)
+      , c("name", "plot_alpha", "selectivity_class") := .(
+        lspci_id_name_map[lspci_id],
+        if_else(is_filter_match, 0.8, 0.4),
+        forcats::fct_rev(selectivity_class)
+      )
+    ][
+      order(is_filter_match, selectivity_class, Kd_Q1)
     ]
   })
 
@@ -187,8 +240,17 @@ selectivityServer <- function(input, output, session) {
   })
 
   selection_genes <- reactive({
-    data_affinity_selectivity[["symbol"]] %>%
-      unique()
+    if (include_non_human()) { # all genes
+      data_affinity_selectivity[["symbol"]] %>%
+        unique() %>%
+        sort()
+    } else { # just human genes
+      data_affinity_selectivity[
+        gene_id %in% (data_gene_info[tax_id == 9606][["gene_id"]])
+      ][["symbol"]] %>%
+        unique() %>%
+        sort()
+    }
   })
 
   # titles ----
@@ -208,24 +270,28 @@ selectivityServer <- function(input, output, session) {
       matched_data <- c_binding_data()
     }
 
+    x_axis_vals <- axis_choice_map[[input$x_var]]
+    y_axis_vals <- axis_choice_map[[input$y_var]]
+
     p <- matched_data %>%
       plot_ly(
         source = "mainplot"
       ) %>%
       add_markers(
-        x = ~ selectivity_plot,
-        y = ~ `mean_Kd_(nM)`,
+        x = ~ get(input$x_var),
+        y = ~ get(input$y_var),
         type = "scatter",
         mode = "markers",
         hoverinfo = "text",
-        color = ~ ifelse(is_filter_match, as.character(selectivity_class), "Outside of filters"),
+        color = ~ selectivity_class,
+        colors = rev(c("#225ea8", "#41b6c4", "#a1dab4", "#969696", "#cccccc")),
+        opacity = ~ if_else(is_filter_match, 0.8, 0.3),
         text = ~ paste(
           sep = "",
           "Drug name: ", name, "\n",
-          "Drug HMS ID: ", hms_id, "\n",
           "Gene symbol: ", symbol,"\n",
-          "x: ", selectivity, "\n",
-          "y: ", `mean_Kd_(nM)`
+          "x: ", round(get(input$x_var), digits = 2), "\n",
+          "y: ", round(get(input$y_var), digits = 2)
         ),
         marker = list(
           size = 8
@@ -234,24 +300,13 @@ selectivityServer <- function(input, output, session) {
       layout(
         dragmode = "select",
         showlegend = TRUE,
-        shapes = list(
-          list(
-            type='line', x0= -0.5, x1= -0.5,
-            y0= 10^(input$affinity[1]), y1= 10^(input$affinity[2]),
-            line=list(dash='dot', width=2, color = "red")
-          )
-        ),
         xaxis = list(
-          range = c(-0.6, 1.3),
-          title = "Selectivity",
-          tickmode = "array",
-          tickvals = c(-0.5, seq(-0.25, 1.25, .25)),
-          ticktext = c("NA", as.character(seq(-0.25, 1.25, .25)))
+          title = x_axis_vals[["label"]],
+          type = x_axis_vals[["type"]]
         ),
         yaxis = list(
-          range = c(input$affinity[1], input$affinity[2]),
-          title = "Mean Kd (nM)",
-          type = "log"
+          title = y_axis_vals[["label"]],
+          type = y_axis_vals[["type"]]
         )
       ) %>%
       highlight(
@@ -282,40 +337,19 @@ selectivityServer <- function(input, output, session) {
   })
 
   tbl_data <- reactive({
-    # c_binding_data() %>%
-    #   dplyr::filter(is_filter_match) %>%
-    #   dplyr::select(-selectivity_plot)
-
-    .data <- if (use_shared_data()) {
-      if (is.null(state$selected_rows)) {
-        c_binding_data()
-      } else {
-        c_binding_data()[state$selected_rows]
-      }
+    (if (use_shared_data() && !is.null(state$selected_rows)) {
+      c_binding_data()[as.integer(state$selected_rows), ]
     } else {
       c_binding_data()
-    }
-
-    .data %>%
-      dplyr::select(-selectivity_plot)
+    })[
+      order(-selectivity_class, ontarget_IC50_Q1)
+    ] %>%
+      select(name, symbol, selectivity_class, ontarget_IC50_Q1, offtarget_IC50_Q1, everything())
   })
 
   tbl_table <- reactive({
 
-    .data <- tbl_data() %>%
-      dplyr::mutate(
-        chembl_id = unname(data_cmpd_map[name]),
-        name = ifelse(is.na(chembl_id), name, glue(
-          "<a target='_blank'
-              href='https://www.ebi.ac.uk/chembl/compound_report_card/{ chembl_id }'
-              >{ name }<sup class='ml-1'><i class='fa fa-external-link'></i></sup>
-           </a>"
-        )),
-        name = lapply(name, HTML),
-        ` ` = NA_character_
-      ) %>%
-      dplyr::select(` `, dplyr::everything()) %>%
-      dplyr::select(-chembl_id)
+    .data <- tbl_data()
 
     download_name <- create_download_filename(
       c("compounds", "targeting", input$query_gene)
@@ -323,10 +357,10 @@ selectivityServer <- function(input, output, session) {
 
     DT::datatable(
       .data,
-      extensions = c("Buttons", "Select"),
+      extensions = c("Buttons"),
       fillContainer = FALSE,
       rownames = FALSE,
-      selection = "single",
+      selection = "multiple",
       options = list(
         # autoWidth = TRUE,
         buttons = list(
@@ -352,25 +386,17 @@ selectivityServer <- function(input, output, session) {
           ),
           list(
             targets = grep(
-              pattern = "^( |name|symbol|selectivity_class|On_target_Q1|off_target_Q1)$",
+              pattern = "^(name|symbol|selectivity_class|ontarget_IC50_Q1|offtarget_IC50_Q1)$",
               x = names(.data),
               invert = TRUE
             ) - 1,
             visible = FALSE
-          ),
-          list(
-            visible = FALSE,
-            targets = match(c("investigation_bias", "wilcox_pval", "IC50_diff"), names(.data)) - 1
           )
         ),
         dom = 'lfrtipB',
         pagingType = "numbers",
         scrollX = FALSE,
-        searchHighlight = TRUE,
-        select = list(
-          style = "os",
-          selector = "td.select-checkbox"
-        )
+        searchHighlight = TRUE
       )
     )
   })
@@ -379,6 +405,7 @@ selectivityServer <- function(input, output, session) {
     tbl_table(),
     server = FALSE
   )
+
 
   # table row selection ----
   tbl_selection <- reactive({
@@ -390,17 +417,19 @@ selectivityServer <- function(input, output, session) {
       return(NULL)
     }
 
-    drug_names <- tbl_data()$name[tbl_selection()]
-
-    head(drug_names, 3)
+    tbl_data()$lspci_id[tbl_selection()]
   })
+
+  o_chembl_tabs <- callModule(
+    mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
+  )
 
   r_selection_title <- reactive({
     req(r_selection_drugs())
 
     hms_id <- tbl_data()$hms_id[tbl_selection()]
 
-    paste0(hms_id, "; ", r_selection_drugs())
+    paste0(r_selection_drugs(), "; ")
   })
 
   output$subtitle_reference <- renderText({
@@ -417,7 +446,7 @@ selectivityServer <- function(input, output, session) {
     }
 
     data_affinity_selectivity[
-      lspci_id == name_lspci_id_map[drug] &
+      lspci_id %in% drug &
         (Kd_Q1 >= 10**input$affinity[1] | is.na(Kd_Q1)) &
         (Kd_Q1 <= 10**input$affinity[2] | is.na(Kd_Q1)) &
         n_measurement_kd >= input$min_measurements
