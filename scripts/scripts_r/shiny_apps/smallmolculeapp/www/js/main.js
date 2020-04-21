@@ -1,15 +1,11 @@
-function logifySlider(el) {
+function logifySlider(el, base=2, precision=2) {
   // regular number style
   $(el).data("ionRangeSlider").update({
     "prettify": function (num) {
-      var exp = Math.pow(2, num);
-      var fixed = exp.toFixed(1);
-
-      if (fixed == exp) {
-        return exp;
-      }
-
-      return fixed.toLocaleString();
+      var exp = Math.pow(base, num);
+      if (precision === null)
+        return exp.toString();
+      return exp.toPrecision(precision);
     }
   });
 }
@@ -31,7 +27,11 @@ $(function() {
     $.fn.dataTable.Buttons.defaults.dom.collection.className = "dt-button-collection btn-group-vertical w-auto px-0 text-wrap";
 
     $(".logify-slider .js-range-slider").each(function() {
-      logifySlider(this);
+      logifySlider(this, base=2, precision=null);
+    });
+
+    $(".logify-slider-10 .js-range-slider").each(function() {
+      logifySlider(this, base=10, precision=null);
     });
   });
 

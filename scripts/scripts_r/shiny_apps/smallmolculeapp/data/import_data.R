@@ -26,7 +26,9 @@ files <- c(
   "lspci_id_name_map.csv.gz",
   "name_lspci_id_map.fst",
   "lspci_id_name_map.fst",
-  "shiny_tas.fst"
+  "shiny_tas.fst",
+  "shiny_commercial_info.fst",
+  "shiny_biochemical.fst"
 )
 
 walk(
@@ -40,13 +42,3 @@ walk(
     )
   }
 )
-
-# Gene symbol mapping
-
-c("syn21965763", "syn21965765") %>%
-  walk(
-    synGet,
-    downloadFile = TRUE,
-    downloadLocation = dir_data,
-    ifcollision = "overwrite.local"
-  )
