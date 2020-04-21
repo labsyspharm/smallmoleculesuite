@@ -184,8 +184,10 @@ similarityUI <- function(id) {
       ) %>%
         margin(bottom = 3),
       card(
-        header = h4("Compound similarity data"),
-        p("Select up to three similar compounds for which target affinity information will be displayed"),
+        header = tagList(
+          h4("Compound similarity data"),
+          p(HTML("All compounds that meet the filter criteria<br>Select compounds here for more information"))
+        ),
         div(
           dataTableOutput(
             # output_table
@@ -239,15 +241,6 @@ similarityServer <- function(input, output, session) {
 
   output$binding_drug <- renderText({
     c_binding_msg()
-  })
-
-  output$reference_drug <- renderText({
-    req(input$query_compound)
-
-    paste(
-      "Compound similarities for", lspci_id_name_map[[input$query_compound]],
-      "from Small Molecule Suite compound library"
-    )
   })
 
   r_tas_sim <- reactive({

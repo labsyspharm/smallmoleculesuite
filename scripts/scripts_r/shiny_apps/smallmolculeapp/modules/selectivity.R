@@ -47,14 +47,14 @@ selectivityUI <- function(id) {
               help = "Search for a target gene"
             ),
             formGroup(
-              label = "Minimum/maximum affinity",
+              label = "Minimum/maximum affinity (nM)",
               input = div(
                 class = "logify-slider-10 active--pink",
                 shiny::sliderInput(
                   inputId = ns("affinity"),
                   label = NULL,
                   min = -3,
-                  max = 8,
+                  max = 6,
                   step = 1,
                   value = c(-3, 6)
                 )
@@ -247,7 +247,9 @@ selectivityServer <- function(input, output, session) {
   # titles ----
   r_subtitle <- reactive({
     req(input$query_gene)
-    paste("Drugs binding", input$query_gene, "that meet the filter criteria")
+    paste(
+      "Drugs binding", input$query_gene, "that meet the filter criteria<br>Select compounds here for more information"
+    )
   })
 
   output$subtitle_plot <- renderText(r_subtitle())
