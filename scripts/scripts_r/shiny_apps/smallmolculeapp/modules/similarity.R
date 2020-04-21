@@ -145,7 +145,8 @@ similarityUI <- function(id) {
             )
           )
         )
-      ),
+      ) %>%
+        margin(bottom = 3),
       mod_ui_chembl_tabs(ns("chembl_tabs_1"))
     ),
     column(
@@ -183,8 +184,7 @@ similarityUI <- function(id) {
         div(
           dataTableOutput(
             # output_table
-            outputId = ns("table_sim_compound"),
-            height = "575px"
+            outputId = ns("table_sim_compound")
           )
         )
       ) %>%
@@ -486,21 +486,11 @@ similarityServer <- function(input, output, session) {
           list(extend = "copy"),
           list(
             extend = "csv",
-            title = download_name,
-            exportOptions = list(
-              modifier = list(
-                page = "all"
-              )
-            )
+            title = download_name
           ),
           list(
             extend = "excel",
-            title = download_name,
-            exportOptions = list(
-              modifier = list(
-                page = "all"
-              )
-            )
+            title = download_name
           ),
           list(
             extend = "colvis"
@@ -516,10 +506,7 @@ similarityServer <- function(input, output, session) {
             visible = FALSE
           ),
           list(
-            targets = grep(
-              x = names(.data),
-              pattern = "^(structural_similarity|pfp_correlation|tas_similarity)$"
-            ) - 1,
+            targets = (1:ncol(.data)) - 1,
             defaultContent = "NA"
           )
         ),
@@ -528,8 +515,7 @@ similarityServer <- function(input, output, session) {
         pagingType = "numbers",
         scrollCollapse = TRUE,
         scrollX = FALSE,
-        searchHighlight = TRUE,
-        stateSave = TRUE
+        searchHighlight = TRUE
       )
     )
   })
