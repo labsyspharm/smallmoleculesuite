@@ -152,8 +152,13 @@ similarityUI <- function(id) {
     column(
       width = 8,
       card(
-        h3("Compound similarity plots"),
-        p("Select an area of similarity you are interested in. Hover over points for more information. Double-click on plot to un-select region."),
+        header = tagList(
+          h4("Compound similarity plots"),
+          p(
+            "Select an area of similarity you are interested in.
+            Hover over points for more information. Double-click on plot to un-select region."
+          )
+        ),
         div(
           columns(
             column(
@@ -179,7 +184,7 @@ similarityUI <- function(id) {
       ) %>%
         margin(bottom = 3),
       card(
-        h3("Compound similarity data"),
+        header = h4("Compound similarity data"),
         p("Select up to three similar compounds for which target affinity information will be displayed"),
         div(
           dataTableOutput(

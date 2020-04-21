@@ -91,7 +91,9 @@ mod_server_affinity_tables <- function(
   r_selection_titles <- reactive({
     if (length(r_selection_drugs()) < 1)
       return("Select compound above")
-    paste(lspci_id_name_map[r_selection_drugs()], collapse = "; ")
+    paste0(
+      "Selected: ", paste(lspci_id_name_map[r_selection_drugs()], collapse = "; ")
+    )
   })
 
   output$subtitle_selection <- renderText(r_selection_titles())
@@ -204,15 +206,15 @@ mod_server_affinity_tables <- function(
 
   r_either_selected <- reactiveVal()
 
-  observeEvent(output$table_tas_rows_selected, {
+  observeEvent(input$table_tas_rows_selected, {
     r_either_selected(
-      r_tas_data_selected[["lspci_id"]][sorted(output$table_tas_rows_selected)]
+      r_tas_data_selected[["lspci_id"]][sorted(input$table_tas_rows_selected)]
     )
   })
 
-  observeEvent(output$table_selectivity_rows_selected, {
+  observeEvent(input$table_selectivity_rows_selected, {
     r_either_selected(
-      r_selectivity_data_selected[["lspci_id"]][sorted(output$table_selectivity_rows_selected)]
+      r_selectivity_data_selected[["lspci_id"]][sorted(input$table_selectivity_rows_selected)]
     )
   })
 
@@ -228,7 +230,10 @@ mod_ui_affinity_tables <- function(id) {
   ns <- NS(id)
   card(
     header = tagList(
-      textOutput(ns("subtitle_selection"), h5),
+      h4("Affinity and selectivity"),
+      p("All available data for selected compounds") %>%
+        margin(b = 0),
+      textOutput(ns("subtitle_selection"), p),
       navInput(
         appearance = "tabs",
         id = ns("selectivity_nav"),

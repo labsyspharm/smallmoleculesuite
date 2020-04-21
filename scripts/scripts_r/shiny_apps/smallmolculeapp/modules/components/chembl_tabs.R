@@ -94,7 +94,7 @@ mod_ui_chembl_tabs <- function(id) {
   ns <- NS(id)
   card(
     header = div(
-      h3("Compound information"),
+      h4("ChEMBL compound report"),
       navInput(
         appearance = "pills",
         id = ns("chembl_nav"),
