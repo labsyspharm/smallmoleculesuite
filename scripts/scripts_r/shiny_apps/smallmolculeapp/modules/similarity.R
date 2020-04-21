@@ -189,38 +189,7 @@ similarityUI <- function(id) {
         )
       ) %>%
         margin(bottom = 3),
-      card(
-        header = div(
-          textOutput(ns("subtitle_selection"), h5),
-          navInput(
-            appearance = "tabs",
-            id = ns("selectivity_nav"),
-            choices = c("Selectivity", "Target Affinity Spectrum"),
-            values = c("selectivity", "tas"),
-            selected = "selectivity"
-          )
-        ),
-        navContent(
-          navPane(
-            id = ns("selectivity_nav_selectivity"),
-            div(
-              dataTableOutput(
-                outputId = ns("table_selection"),
-                height = "500px"
-              )
-            )
-          ),
-          navPane(
-            id = ns("selectivity_nav_tas"),
-            div(
-              dataTableOutput(
-                outputId = ns("table_tas"),
-                height = "500px"
-              )
-            )
-          )
-        )
-      )
+      mod_ui_affinity_tables(ns("affinity_tables_1"))
     )
   )
 }
@@ -234,10 +203,6 @@ similarityServer <- function(input, output, session) {
       filters = showNavPane(ns("pane_filters")),
       instructions = showNavPane(ns("pane_instructions"))
     )
-  })
-
-  observeEvent(input$selectivity_nav, {
-    showNavPane(ns(paste0("selectivity_nav_", input$selectivity_nav)))
   })
 
   observe({
@@ -356,12 +321,6 @@ similarityServer <- function(input, output, session) {
     r_tbl_sim_data()[["lspci_id"]][r_sim_selection()]
   })
 
-  r_selection_titles <- reactive({
-    if (length(r_sim_selection()) < 1)
-      return("Select compound above")
-    paste(r_tbl_sim_data()[["name"]][r_sim_selection()], collapse = "; ")
-  })
-
   # plots ----
   x_shared_data <- crosstalk::SharedData$new(r_sim_data, ~ lspci_id)
 
@@ -393,7 +352,8 @@ similarityServer <- function(input, output, session) {
           type = "scatter",
           mode = "markers",
           color = I("black"),
-          text = as.formula(text_formula)
+          text = as.formula(text_formula),
+          alpha = 0.7
         ) %>%
         layout(
           showlegend = FALSE,
@@ -579,174 +539,10 @@ similarityServer <- function(input, output, session) {
     server = TRUE
   )
 
-  r_selectivity_data_selected <- reactive({
-    drug_id <- r_selection_drugs()
-
-    if (is.null(drug_id) || is.na(drug_id) || length(drug_id) < 1)
-      return(
-        data_affinity_selectivity[FALSE]
-      )
-
-    data_affinity_selectivity[
-      lspci_id %in% drug_id
-    ][
-      data_gene_info[, .(gene_id, symbol)], on = "gene_id"
-    ][
-      order(selectivity_class, Kd_Q1)
-    ][
-      , c("name", "selectivity") := .(
-        lspci_id_name_map[lspci_id],
-        round(selectivity, digits = 2)
-      )
-    ] %>%
-      select(
-        name,
-        symbol,
-        selectivity_class,
-        Kd_Q1, ontarget_IC50_Q1, offtarget_IC50_Q1,
-        -lspci_id,
-        everything()
-      )
-  })
-
-  r_tas_data_selected <- reactive({
-    drug_id <- r_selection_drugs()
-
-    if (is.null(drug_id) || is.na(drug_id) || length(drug_id) < 1)
-      return(
-        data_tas[FALSE]
-      )
-
-    data_tas[
-      lspci_id %in% drug_id
-    ][
-      data_gene_info[, .(gene_id, symbol)], on = "gene_id"
-    ][
-      order(tas)
-    ][
-      , name := lspci_id_name_map[lspci_id]
-    ] %>%
-      select(name, symbol, everything(), -lspci_id)
-  })
-
-  output$subtitle_selection <- renderText({
-    r_selection_titles()
-  })
-
-  output$table_selection <- DT::renderDataTable({
-    download_name <- create_download_filename(
-      c("affinity", "spectrum", input$query_compound)
-    )
-
-    DT::datatable(
-      data = r_selectivity_data_selected(), # input$compound_selection),
-      rownames = FALSE,
-      # fillContainer = TRUE,
-      options = list(
-        # autoWidth = TRUE,
-        extensions = "Buttons",
-        buttons = list(
-          list(extend = "copy"),
-          list(
-            extend = "csv",
-            title = download_name
-          ),
-          list(
-            extend = "excel",
-            title = download_name
-          )
-        ),
-        dom = "tpB",
-        language = list(
-          emptyTable = if (is.null(r_sim_selection())) {
-            "Please select row(s) from the data above."
-          } else {
-            "No data available"
-          }
-        ),
-        scrollX = FALSE,
-        pagingType = "numbers",
-        selection = "none"
-      )
-    )
-  })
-
-  references_col_render <- DT::JS(
-    "
-    function(data, type, row, meta) {
-      if (type !== 'display') {
-        return data;
-      }
-      const url_types = {
-        pubmed: 'https://pubmed.ncbi.nlm.nih.gov/',
-        chembl: 'https://www.ebi.ac.uk/chembl/document_report_card/',
-        patent: 'https://patents.google.com/patent/',
-        synapse: 'https://www.synapse.org/#!Synapse:',
-        doi: 'https://dx.doi.org/'
-      };
-      const refs = data.split('|');
-      const links = refs.map(
-        function(ref) {
-          const type_val = ref.split(':');
-          const url = url_types[type_val[0]] + type_val[1];
-          return '<a href=\"' + url + '\" target=\"_blank\">' + ref + '</a>'
-        }
-      );
-      return links.join(' ');
-    }
-    "
+  callModule(
+    mod_server_affinity_tables,
+    "affinity_tables_1",
+    r_selection_drugs,
+    data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map
   )
-
-  output$table_tas <- DT::renderDataTable({
-    .data = r_tas_data_selected()
-    download_name <- create_download_filename(
-      c("affinity", "spectrum", input$query_compound)
-    )
-
-    DT::datatable(
-      data = .data,
-      rownames = FALSE,
-      options = list(
-        extensions = "Buttons",
-        buttons = list(
-          list(extend = "copy"),
-          list(
-            extend = "csv",
-            title = download_name
-          ),
-          list(
-            extend = "excel",
-            title = download_name
-          )
-        ),
-        columnDefs = list(
-          list(
-            targets = grep(
-              x = names(.data),
-              pattern = "^references$"
-            ) - 1,
-            render = references_col_render
-          )
-        ),
-        dom = "tpB",
-        language = list(
-          emptyTable = if (is.null(r_sim_selection())) {
-            "Please select row(s) from the data above."
-          } else {
-            "No data available"
-          }
-        ),
-        scrollX = FALSE,
-        selection = "none",
-        pagingType = "numbers"
-      )
-    ) %>%
-      DT::formatStyle(
-        "tas",
-        backgroundColor = DT::styleInterval(
-          c(1, 2, 3), c("#b2182b", "#ef8a62", "#fddbc7", "#d9d9d9")
-        ),
-        color = DT::styleInterval(1, c("white", "inherit"))
-      )
-  })
 }

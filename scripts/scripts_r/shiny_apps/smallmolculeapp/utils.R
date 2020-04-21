@@ -1,8 +1,3 @@
-create_bookmark_id <- function() {
-  date_time <- format(Sys.time(), "%Y%m%d-%H%M%S")
-  id <- substr(as.character(runif(1)), 3, 6)
-  paste0(date_time, "-", id)
-}
 
 create_download_filename <- function(prefix, suffix = NULL) {
   full <- c(prefix, "%s", suffix)

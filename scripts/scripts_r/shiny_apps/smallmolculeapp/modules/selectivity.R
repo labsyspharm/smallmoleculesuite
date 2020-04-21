@@ -155,18 +155,7 @@ selectivityUI <- function(id) {
         )
       ) %>%
         margin(bottom = 3),
-      card(
-        h3("Affinity and selectivity reference"),
-        textOutput(ns("subtitle_reference"), h6) %>%
-          margin(b = 3),
-        div(
-          dataTableOutput(
-            outputId = ns("selection_table"),
-            height = "375px"
-          )
-        )
-      ) %>%
-        margin(b = 2)
+      mod_ui_affinity_tables(ns("affinity_tables_1"))
     )
   )
 }
@@ -284,7 +273,7 @@ selectivityServer <- function(input, output, session) {
         mode = "markers",
         hoverinfo = "text",
         color = ~ selectivity_class,
-        colors = rev(c("#225ea8", "#41b6c4", "#a1dab4", "#969696", "#cccccc")),
+        colors = rev(SELECTIVITY_COLORS),
         opacity = ~ if_else(is_filter_match, 0.8, 0.3),
         text = ~ paste(
           sep = "",
@@ -312,7 +301,7 @@ selectivityServer <- function(input, output, session) {
       highlight(
         on = "plotly_selected",
         off = "plotly_deselect",
-        color = I('#ec4353')
+        opacityDim = 0.3
       )
 
     # if restoring from a bookmark, select previously selected points
@@ -342,13 +331,14 @@ selectivityServer <- function(input, output, session) {
     } else {
       c_binding_data()
     })[
+      is_filter_match == TRUE
+    ][
       order(-selectivity_class, ontarget_IC50_Q1)
     ] %>%
       select(name, symbol, selectivity_class, ontarget_IC50_Q1, offtarget_IC50_Q1, everything())
   })
 
   tbl_table <- reactive({
-
     .data <- tbl_data()
 
     download_name <- create_download_filename(
@@ -424,78 +414,10 @@ selectivityServer <- function(input, output, session) {
     mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
   )
 
-  r_selection_title <- reactive({
-    req(r_selection_drugs())
-
-    hms_id <- tbl_data()$hms_id[tbl_selection()]
-
-    paste0(r_selection_drugs(), "; ")
-  })
-
-  output$subtitle_reference <- renderText({
-    r_selection_title()
-  })
-
-  get_selection_data <- function(drug) {
-    if (is.na(drug) || is.null(drug) || length(drug) < 1) {
-      return(
-        data_affinity_selectivity[
-          FALSE
-        ]
-      )
-    }
-
-    data_affinity_selectivity[
-      lspci_id %in% drug &
-        (Kd_Q1 >= 10**input$affinity[1] | is.na(Kd_Q1)) &
-        (Kd_Q1 <= 10**input$affinity[2] | is.na(Kd_Q1)) &
-        n_measurement_kd >= input$min_measurements
-    ][
-      order(selectivity_class, Kd_Q1)
-    ]
-  }
-
-  tbl_selection_table <- reactive({
-    hms_id <- tbl_data()$hms_id[tbl_selection()]
-
-    download_name <- create_download_filename(
-      c("affinity", "spectrum", r_selection_drugs(), hms_id)
-    )
-
-    get_selection_data(r_selection_drugs()) %>%
-      DT::datatable(
-        rownames = FALSE,
-        options = list(
-          dom = "tpB",
-          buttons = list(
-            list(
-              extend = "copy"
-            ),
-            list(
-              extend = "csv",
-              title = download_name
-            ),
-            list(
-              extend = "excel",
-              title = download_name
-            )
-          ),
-          language = list(
-            emptyTable = if (is.null(tbl_selection())) {
-              "Please select a row from the data above."
-            } else {
-              "No data available."
-            }
-          ),
-          pagingType = "numbers",
-          scrollX = FALSE
-          # autoWidth = TRUE
-        )
-      )
-  })
-
-  output$selection_table <- DT::renderDataTable(
-    tbl_selection_table(),
-    server = FALSE
+  callModule(
+    mod_server_affinity_tables, "affinity_tables_1",
+    r_selection_drugs,
+    data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map
   )
+
 }
