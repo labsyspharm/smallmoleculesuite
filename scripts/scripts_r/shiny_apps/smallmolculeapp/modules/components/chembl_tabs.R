@@ -1,3 +1,8 @@
+REPORT_TYPES <- c(
+  "Name and structure" = "name_and_classification",
+  "Cross-references" = "unichem_cross_refs"
+)
+
 #' Server module to display a tabset of ChEMBL compound information cards
 #'
 #' @param dt_cmpd_info Data table with lspci_id and chembl_id
@@ -33,23 +38,35 @@ mod_server_chembl_tabs <- function(input, output, session, dt_cmpd_info, r_selec
     # Remove any tabs that are no longer selected
     walk(
       stale_ids,
-      ~removeUI(paste0("#", ns(paste0("chembl_tab_", .x))))
+      function (chembl_id) {
+        walk(
+          REPORT_TYPES,
+          ~removeUI(paste0("#", ns(paste0("chembl_tab_", chembl_id, "_", .x))))
+        )
+      }
     )
+
+    make_report_object <- function(type, chembl_id, name) {
+      obj <- if (is.na(chembl_id))
+        tags$p(paste0("No information on ChEMBL for compound ", name, "."))
+      else {
+        url <- paste0(
+          "https://www.ebi.ac.uk/chembl/embed/#compound_report_card/", chembl_id, "/", type
+        )
+        tags$object(data = url, width = "100%", height = "500")
+      }
+      navPane(
+        id = ns(paste0("chembl_tab_", chembl_id, "_", type)),
+        obj
+      )
+    }
 
     chembl_tabs <- pmap(
       ids[new_id == TRUE],
       function(chembl_id, name, ...) {
-        obj <- if (is.na(chembl_id))
-          tags$p(paste0("No information on ChEMBL for compound ", name, "."))
-        else {
-          url <- paste0(
-            "https://www.ebi.ac.uk/chembl/embed/#compound_report_card/", chembl_id, "/name_and_classification"
-          )
-          tags$object(data = url, width = "100%", height = "500")
-        }
-        navPane(
-          id = ns(paste0("chembl_tab_", chembl_id)),
-          obj
+        map(
+          REPORT_TYPES,
+          make_report_object, chembl_id, name
         )
       }
     )
@@ -57,7 +74,7 @@ mod_server_chembl_tabs <- function(input, output, session, dt_cmpd_info, r_selec
     insertUI(
       selector = paste0("#", ns("chembl_tab_parent")),
       where = "beforeEnd",
-      ui = exec(tagList, !!!chembl_tabs)
+      ui = exec(tagList, !!!unlist(chembl_tabs, recursive = FALSE, use.names = FALSE))
     )
 
     updateNavInput(
@@ -76,15 +93,15 @@ mod_server_chembl_tabs <- function(input, output, session, dt_cmpd_info, r_selec
     user_data[[tabs_open_accession]] <- ids[["chembl_id"]]
   })
 
-  o_switch <- observeEvent(input$chembl_nav, {
-    showNavPane(ns(paste0("chembl_tab_", input$chembl_nav)))
+  o_switch <- observeEvent({
+      input$chembl_nav
+      input$chembl_report_nav
+    }, {
+    if (is.null(input$chembl_nav) || is.null(input$chembl_report_nav))
+      return()
+    showNavPane(ns(paste0("chembl_tab_", input$chembl_nav, "_", input$chembl_report_nav)))
     selected_chembl_tab <- input$chembl_nav
   })
-
-  list(
-    o_choices,
-    o_switch
-  )
 }
 
 #' UI module to display a tabset of ChEMBL compound information cards
@@ -93,15 +110,22 @@ mod_server_chembl_tabs <- function(input, output, session, dt_cmpd_info, r_selec
 mod_ui_chembl_tabs <- function(id) {
   ns <- NS(id)
   card(
-    header = div(
+    header = tagList(
       h4("ChEMBL compound report"),
       navInput(
         appearance = "pills",
         id = ns("chembl_nav"),
         choices = NULL,
         values = NULL
-      ),
-      id = ns("chembl_div")
+      ) %>%
+        margin(b = 3),
+      navInput(
+        appearance = "tabs",
+        id = ns("chembl_report_nav"),
+        choices = names(REPORT_TYPES),
+        values = REPORT_TYPES,
+        class = "card-header-tabs"
+      )
     ),
     navContent(
       id = ns("chembl_tab_parent"),
@@ -110,7 +134,8 @@ mod_ui_chembl_tabs <- function(id) {
         p(
           "No compound selected."
         )
-      )
+      ),
+
     )
   )
 }
