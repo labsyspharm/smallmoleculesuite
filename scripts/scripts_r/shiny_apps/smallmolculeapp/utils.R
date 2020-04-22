@@ -157,3 +157,33 @@ fast_search <- function(data, req) {
   res <- shiny:::toJSON(shiny:::columnToRowData(data))
   shiny:::httpResponse(200, 'application/json', enc2utf8(res))
 }
+
+dt_add_download_button <- function(
+  dt, id, output, r_data, fn_prefix, type = c("csv", "excel")
+) {
+  type <- match.arg(type)
+  dl_button <- downloadButton(paste0(id, "_button"), paste("Download", toupper(type)))
+  insertUI("body", ui = dl_button)
+  dt$x$callback <- DT::JS(paste0(dt$x$callback, "$('#", id, "_wrapper').append($('#", id, "_button'));"))
+  if (is.null(dt$x$options))
+    dt$x$options <- list()
+  if (is.null(dt$x$options$dom))
+    dt$x$options$dom <- "lfrtipB"
+  dt$x$options$dom <- paste0(dt$x$options$dom, '<"#', id, '_wrapper">')
+  output[[paste0(id, "_button")]] <- downloadHandler(
+    filename = function()
+      paste0(fn_prefix, switch(type, csv = ".csv", excel = ".xlsx")),
+    content = function(file) {
+      browser()
+      switch(
+        type,
+        csv = write_csv(r_data(), file),
+        excel = writexl::write_xlsx(r_data(), file)
+      )
+    }
+  )
+  browser()
+  dt
+}
+
+
