@@ -208,13 +208,13 @@ mod_server_affinity_tables <- function(
 
   observeEvent(input$table_tas_rows_selected, {
     r_either_selected(
-      r_tas_data_selected[["lspci_id"]][sorted(input$table_tas_rows_selected)]
+      r_tas_data_selected()[["lspci_id"]][sorted(input$table_tas_rows_selected)]
     )
   })
 
   observeEvent(input$table_selectivity_rows_selected, {
     r_either_selected(
-      r_selectivity_data_selected[["lspci_id"]][sorted(input$table_selectivity_rows_selected)]
+      r_selectivity_data_selected()[["lspci_id"]][sorted(input$table_selectivity_rows_selected)]
     )
   })
 
@@ -231,8 +231,8 @@ mod_ui_affinity_tables <- function(id) {
   card(
     header = tagList(
       h4("Affinity and selectivity"),
-      p("All available data for selected compounds") %>%
-        margin(b = 0),
+      p("Showing all available data for selected compounds, ignoring filters") %>%
+        margin(b = 1),
       textOutput(ns("subtitle_selection"), p),
       navInput(
         appearance = "tabs",

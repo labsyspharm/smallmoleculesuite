@@ -248,7 +248,8 @@ selectivityServer <- function(input, output, session) {
   r_subtitle <- reactive({
     req(input$query_gene)
     paste(
-      "Drugs binding", input$query_gene, "that meet the filter criteria<br>Select compounds here for more information"
+      "Showing compounds binding", input$query_gene, "that meet the filter criteria<br>
+      Select compounds here for additional information"
     )
   })
 
