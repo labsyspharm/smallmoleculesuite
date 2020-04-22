@@ -82,7 +82,7 @@ similarityUI <- function(id) {
                 ns("query_compound"),
                 label = NULL,
                 choices = NULL,
-                multiple = TRUE
+                multiple = FALSE
               ),
               help = "Search for a compound"
             ),
@@ -186,7 +186,7 @@ similarityUI <- function(id) {
       card(
         header = tagList(
           h4("Compound similarity data"),
-          p(HTML("All compounds that meet the filter criteria<br>Select compounds here for more information"))
+          p(HTML("Showing compounds that meet the filter criteria<br>Select compounds here for additional information"))
         ),
         div(
           dataTableOutput(
@@ -369,7 +369,8 @@ similarityServer <- function(input, output, session) {
           on = "plotly_selected",
           off = "plotly_deselect",
           color = I("#00ac9f")
-        )
+        ) %>%
+        toWebGL()
     })
   }
 
