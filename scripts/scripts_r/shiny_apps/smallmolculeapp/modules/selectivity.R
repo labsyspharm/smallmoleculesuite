@@ -302,12 +302,13 @@ selectivityServer <- function(input, output, session) {
           title = y_axis_vals[["label"]],
           type = y_axis_vals[["type"]]
         )
-      ) %>%
-      highlight(
-        on = "plotly_selected",
-        off = "plotly_deselect",
-        opacityDim = 0.3
       )
+    # %>%
+    #   highlight(
+    #     on = "plotly_selected",
+    #     off = "plotly_deselect",
+    #     opacityDim = 0.3
+    #   )
     p
   })
 
@@ -353,14 +354,6 @@ selectivityServer <- function(input, output, session) {
         buttons = list(
           list(extend = "copy"),
           list(
-            extend = "csv",
-            title = download_name
-          ),
-          list(
-            extend = "excel",
-            title = download_name
-          ),
-          list(
             extend = "colvis",
             columns = ":not(.select-checkbox)"
           )
@@ -385,7 +378,10 @@ selectivityServer <- function(input, output, session) {
         scrollX = FALSE,
         searchHighlight = TRUE
       )
-    )
+    ) %>%
+      dt_add_download_button(
+        ns("selectivity_csv_dl"), output, tbl_data, download_name, "csv"
+      )
   })
 
   output$output_table <- DT::renderDataTable(
