@@ -381,6 +381,9 @@ selectivityServer <- function(input, output, session) {
     ) %>%
       dt_add_download_button(
         ns("selectivity_csv_dl"), output, tbl_data, download_name, "csv"
+      ) %>%
+      dt_add_download_button(
+        ns("selectivity_excel_dl"), output, tbl_data, download_name, "excel"
       )
   })
 

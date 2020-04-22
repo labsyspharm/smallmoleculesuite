@@ -162,17 +162,36 @@ dt_add_download_button <- function(
   dt, id, output, r_data, fn_prefix, type = c("csv", "excel")
 ) {
   type <- match.arg(type)
-  dl_button <- downloadButton(paste0(id, "_button"), paste("Download", toupper(type)))
-  insertUI("body", ui = dl_button)
-  dt$x$callback <- DT::JS(paste0(dt$x$callback, "$('#", id, "_wrapper').append($('#", id, "_button'));"))
+  button_id <- paste0(id, "_button")
+  wrapper_id <- paste0(id, "_wrapper")
+  dl_button <- downloadButton(button_id, paste("Download", toupper(type)), class = "dt-button")
+  dl_button_str <- dl_button %>%
+    as.character() %>%
+    stringr::str_replace_all(stringr::fixed("\n"), "")
+  add_button_js <- DT::JS(paste0("$('#", wrapper_id, "').append($('", dl_button_str, "'));"))
   if (is.null(dt$x$options))
     dt$x$options <- list()
   if (is.null(dt$x$options$dom))
     dt$x$options$dom <- "lfrtipB"
-  dt$x$options$dom <- paste0(dt$x$options$dom, '<"#', id, '_wrapper">')
-  output[[paste0(id, "_button")]] <- downloadHandler(
-    filename = function()
-      paste0(fn_prefix, switch(type, csv = ".csv", excel = ".xlsx")),
+  dt$x$options$dom <- paste0(dt$x$options$dom, '<"#', wrapper_id, '">')
+  if (!is.null(dt$x$options$initComplete)) {
+    func_content <- dt$x$options$initComplete %>%
+      stringr::str_split_fixed(stringr::fixed("{"), 2) %>%
+      magrittr::extract(1, 2) %>%
+      stringr::str_split_fixed(stringr::fixed("}"), 2) %>%
+      magrittr::extract(1, 1)
+    dt$x$options$initComplete <- DT::JS(
+      paste0("function(settings, json) {", func_content, add_button_js, "}")
+    )
+  } else {
+    dt$x$options$initComplete <- DT::JS(
+      paste0("function(settings, json) {", add_button_js, "}")
+    )
+  }
+  dl_handler <- downloadHandler(
+    filename = function() {
+      paste0(fn_prefix, switch(type, csv = ".csv", excel = ".xlsx"))
+    },
     content = function(file) {
       browser()
       switch(
@@ -182,8 +201,7 @@ dt_add_download_button <- function(
       )
     }
   )
+  output[[button_id]] <- dl_handler
   browser()
   dt
 }
-
-
