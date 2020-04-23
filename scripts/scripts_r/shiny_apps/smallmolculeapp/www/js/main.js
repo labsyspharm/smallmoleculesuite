@@ -10,9 +10,7 @@ function logifySlider(el, base=2, precision=2) {
 }
 
 $(function() {
-  var $document = $(document);
-
-  $document.on("shiny:sessioninitialized", function(e) {
+  $(document).on("shiny:sessioninitialized", function(e) {
 
     $(".logify-slider .js-range-slider").each(function() {
       logifySlider(this, base=2, precision=null);
@@ -23,10 +21,10 @@ $(function() {
     });
   });
 
-  Shiny.addCustomMessageHandler("click.library.sm", function(msg) {
-    setTimeout(function() {
-      $("#lib-gene_form .yonder-form-submit").click();
-    }, 100);
-  });
+  // Shiny.addCustomMessageHandler("click.library.sm", function(msg) {
+  //   setTimeout(function() {
+  //     $("#lib-gene_form .yonder-form-submit").click();
+  //   }, 100);
+  // });
 
 });
