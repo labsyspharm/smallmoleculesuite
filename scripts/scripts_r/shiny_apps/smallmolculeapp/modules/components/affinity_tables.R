@@ -230,7 +230,7 @@ mod_ui_affinity_tables <- function(id) {
   ns <- NS(id)
   card(
     header = tagList(
-      h4("Affinity and selectivity"),
+      h4("Compound affinity and selectivity"),
       p("Showing all available data for selected compounds, ignoring filters") %>%
         margin(b = 1),
       textOutput(ns("subtitle_selection"), p),

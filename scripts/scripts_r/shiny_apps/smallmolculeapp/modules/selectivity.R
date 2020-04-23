@@ -115,7 +115,7 @@ selectivityUI <- function(id) {
       width = 8,
       card(
         header = tagList(
-          h4("Affinity and selectivity plot"),
+          h4("Target affinity and selectivity plot"),
           htmlOutput(ns("subtitle_plot"), container = p)
         ),
         div(
@@ -147,7 +147,7 @@ selectivityUI <- function(id) {
         margin(bottom = 3),
       card(
         header = tagList(
-          h4("Affinity and selectivity"),
+          h4("Target affinity and selectivity"),
           htmlOutput(ns("subtitle_data"), container = p)
         ),
         div(
@@ -339,13 +339,12 @@ selectivityServer <- function(input, output, session) {
   tbl_table <- reactive({
     .data <- tbl_data()
     download_name <- create_download_filename(
-        c("compounds", "targeting", input$query_gene)
+      c("compounds", "targeting", input$query_gene)
     )
 
     tbl <- DT::datatable(
       .data,
       extensions = c("Buttons"),
-      fillContainer = FALSE,
       rownames = FALSE,
       selection = "multiple",
       options = list(
@@ -377,7 +376,18 @@ selectivityServer <- function(input, output, session) {
         scrollX = FALSE,
         searchHighlight = TRUE
       )
-    )
+    ) %>%
+      DT::formatStyle(
+        "selectivity_class",
+        backgroundColor = DT::styleEqual(
+          names(SELECTIVITY_COLORS), SELECTIVITY_COLORS
+        ),
+        color = DT::styleEqual(
+          c("Semi-selective", "Most selective", "Unknown"),
+          rep_len("white", 3),
+          default = "black"
+        )
+      )
 
     tbl <- callModule(mod_server_download_button, "output_table_xlsx_dl", tbl, tbl_data, "excel", download_name)
     tbl <- callModule(mod_server_download_button, "output_table_csv_dl", tbl, tbl_data, "csv", download_name)
