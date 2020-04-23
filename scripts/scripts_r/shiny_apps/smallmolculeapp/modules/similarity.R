@@ -192,7 +192,9 @@ similarityUI <- function(id) {
           dataTableOutput(
             # output_table
             outputId = ns("table_sim_compound")
-          )
+          ),
+          mod_ui_download_button(ns("output_table_csv_dl"), "Download CSV"),
+          mod_ui_download_button(ns("output_table_xlsx_dl"), "Download Excel")
         )
       ) %>%
         margin(bottom = 3),
@@ -468,29 +470,15 @@ similarityServer <- function(input, output, session) {
 
   r_tbl_sim_compound <- reactive({
     .data <- r_tbl_sim_data()
-
     col_types <- unname(vapply(.data, class, character(1)))
 
-    download_name <- create_download_filename(
-      c("similarity", "table", input$query_compound)
-    )
-
-    tbl <- DT::datatable(
+    DT::datatable(
       .data,
       extensions = c("Buttons"),
       rownames = FALSE,
       options = list(
         # autoWidth = TRUE,
         buttons = list(
-          list(extend = "copy"),
-          list(
-            extend = "csv",
-            title = download_name
-          ),
-          list(
-            extend = "excel",
-            title = download_name
-          ),
           list(
             extend = "colvis"
           )
@@ -517,17 +505,21 @@ similarityServer <- function(input, output, session) {
         searchHighlight = TRUE
       )
     )
-
-    tbl <- callModule(mod_server_download_button, "output_table_xlsx_dl", tbl, r_tbl_sim_data, "excel", download_name)
-    tbl <- callModule(mod_server_download_button, "output_table_csv_dl", tbl, r_tbl_sim_data, "csv", download_name)
-
-    tbl
   })
 
   output$table_sim_compound = DT::renderDataTable(
     r_tbl_sim_compound(),
     server = TRUE
   )
+
+  r_download_name <- reactive({
+    create_download_filename(
+      c("similarity", "table", input$query_compound)
+    )
+  })
+
+  callModule(mod_server_download_button, "output_table_xlsx_dl", r_tbl_sim_data, "excel", r_download_name)
+  callModule(mod_server_download_button, "output_table_csv_dl", r_tbl_sim_data, "csv", r_download_name)
 
   callModule(
     mod_server_affinity_tables,
