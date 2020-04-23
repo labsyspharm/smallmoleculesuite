@@ -153,7 +153,9 @@ selectivityUI <- function(id) {
         div(
           dataTableOutput(
             outputId = ns("output_table")
-          )
+          ),
+          mod_ui_download_button(ns("output_table_csv_dl"), "Download CSV"),
+          mod_ui_download_button(ns("output_table_xlsx_dl"), "Download Excel")
         )
       ) %>%
         margin(bottom = 3),
@@ -338,11 +340,8 @@ selectivityServer <- function(input, output, session) {
 
   tbl_table <- reactive({
     .data <- tbl_data()
-    download_name <- create_download_filename(
-      c("compounds", "targeting", input$query_gene)
-    )
 
-    tbl <- DT::datatable(
+    DT::datatable(
       .data,
       extensions = c("Buttons"),
       rownames = FALSE,
@@ -388,17 +387,21 @@ selectivityServer <- function(input, output, session) {
           default = "black"
         )
       )
-
-    tbl <- callModule(mod_server_download_button, "output_table_xlsx_dl", tbl, tbl_data, "excel", download_name)
-    tbl <- callModule(mod_server_download_button, "output_table_csv_dl", tbl, tbl_data, "csv", download_name)
-
-    tbl
   })
 
   output$output_table <- DT::renderDataTable(
     tbl_table(),
     server = FALSE
   )
+
+  r_download_name <- reactive({
+    create_download_filename(
+      c("compounds", "targeting", input$query_gene)
+    )
+  })
+
+  callModule(mod_server_download_button, "output_table_xlsx_dl", tbl_data, "excel", r_download_name)
+  callModule(mod_server_download_button, "output_table_csv_dl", tbl_data, "csv", r_download_name)
 
   # table row selection ----
   tbl_selection <- reactive({
