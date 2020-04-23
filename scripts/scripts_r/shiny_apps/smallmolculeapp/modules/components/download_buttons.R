@@ -17,7 +17,10 @@ mod_server_download_button <- function(
   )
   insertUI("body", ui = dl_button, immediate = TRUE)
   add_button_js <- DT::JS(
-    paste0("$('#", ns("dl_wrapper"), "').replaceWith($('#", ns("dl_button"), "'));")
+    paste0(
+      "$('#", ns("dl_wrapper"), "').siblings('.dt-buttons').append($('#", ns("dl_button"), "'));",
+      "$('#", ns("dl_wrapper"), "').remove();"
+    )
   )
   if (is.null(dt$x$options))
     dt$x$options <- list()
