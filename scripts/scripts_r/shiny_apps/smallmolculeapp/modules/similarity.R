@@ -475,7 +475,7 @@ similarityServer <- function(input, output, session) {
       c("similarity", "table", input$query_compound)
     )
 
-    DT::datatable(
+    tbl <- DT::datatable(
       .data,
       extensions = c("Buttons"),
       rownames = FALSE,
@@ -517,6 +517,11 @@ similarityServer <- function(input, output, session) {
         searchHighlight = TRUE
       )
     )
+
+    tbl <- callModule(mod_server_download_button, "output_table_xlsx_dl", tbl, r_tbl_sim_data, "excel", download_name)
+    tbl <- callModule(mod_server_download_button, "output_table_csv_dl", tbl, r_tbl_sim_data, "csv", download_name)
+
+    tbl
   })
 
   output$table_sim_compound = DT::renderDataTable(
