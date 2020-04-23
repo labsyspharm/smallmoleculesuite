@@ -64,7 +64,7 @@ mod_server_affinity_tables <- function(
         name,
         symbol,
         selectivity_class,
-        Kd_Q1, ontarget_IC50_Q1, offtarget_IC50_Q1,
+        affinity_Q1, offtarget_affinity_Q1, selectivity,
         -lspci_id,
         everything()
       )
@@ -111,14 +111,15 @@ mod_server_affinity_tables <- function(
         # autoWidth = TRUE,
         extensions = "Buttons",
         buttons = list(
-          list(extend = "copy"),
+          list(extend = "copy")
+        ),
+        columnDefs = list(
           list(
-            extend = "csv",
-            title = download_name
-          ),
-          list(
-            extend = "excel",
-            title = download_name
+            targets = grep(
+              x = names(.data),
+              pattern = "^references$"
+            ) - 1,
+            render = REFERENCE_RENDER_JS
           )
         ),
         dom = "tpB",
@@ -161,15 +162,7 @@ mod_server_affinity_tables <- function(
       options = list(
         extensions = "Buttons",
         buttons = list(
-          list(extend = "copy"),
-          list(
-            extend = "csv",
-            title = download_name
-          ),
-          list(
-            extend = "excel",
-            title = download_name
-          )
+          list(extend = "copy")
         ),
         columnDefs = list(
           list(
