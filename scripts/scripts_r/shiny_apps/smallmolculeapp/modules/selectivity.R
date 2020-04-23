@@ -198,7 +198,7 @@ selectivityServer <- function(input, output, session) {
     # query_gene = NULL # THIS DOES NOT NEED TO EXIST USE `input$query_gene`
   )
 
-  c_binding_data <- reactive({
+  r_binding_data <- reactive({
     req(input$query_gene)
 
     copy(data_affinity_selectivity)[
@@ -211,22 +211,13 @@ selectivityServer <- function(input, output, session) {
     ][
       , c("name", "plot_alpha", "selectivity_class") := .(
         lspci_id_name_map[lspci_id],
-        if_else(is_filter_match, 0.8, 0.4),
+        if_else(is_filter_match, 0.9, 0.2),
         forcats::fct_rev(selectivity_class)
       )
     ][
       order(is_filter_match, selectivity_class, Kd_Q1)
     ]
   })
-
-  c_shared_data <- crosstalk::SharedData$new(c_binding_data)
-
-  if (isTRUE(getOption("sms.debug"))) {
-    observe({
-      message("[ c_binding_data ]")
-      print(c_binding_data())
-    })
-  }
 
   use_shared_data <- reactive({
     !is.null(input$use_shared)
@@ -260,11 +251,7 @@ selectivityServer <- function(input, output, session) {
 
   # mainplot ----
   output$mainplot <- renderPlotly({
-    if (use_shared_data()) {
-      matched_data <- c_shared_data
-    } else {
-      matched_data <- c_binding_data()
-    }
+    matched_data <- r_binding_data()
 
     x_axis_vals <- axis_choice_map[[input$x_var]]
     y_axis_vals <- axis_choice_map[[input$y_var]]
@@ -281,7 +268,7 @@ selectivityServer <- function(input, output, session) {
         hoverinfo = "text",
         color = ~ selectivity_class,
         colors = rev(SELECTIVITY_COLORS),
-        opacity = ~ if_else(is_filter_match, 0.8, 0.3),
+        customdata = ~ lspci_id,
         text = ~ paste(
           sep = "",
           "Drug name: ", name, "\n",
@@ -290,7 +277,8 @@ selectivityServer <- function(input, output, session) {
           "y: ", round(get(input$y_var), digits = 2)
         ),
         marker = list(
-          size = 8
+          size = 8,
+          opacity = ~ plot_alpha
         )
       ) %>%
       layout(
@@ -315,21 +303,16 @@ selectivityServer <- function(input, output, session) {
   })
 
   # output_table ----
-  state <- reactiveValues(selected_rows = NULL)
 
-  observe({
-    state$selected_rows <- event_data("plotly_selected", "mainplot")$key
-  })
-
-  observeEvent(input$query_gene, {
-    state$selected_rows <- NULL
+  r_selected_compounds <- reactive({
+    event_data("plotly_selected", "mainplot")$customdata
   })
 
   tbl_data <- reactive({
-    (if (use_shared_data() && !is.null(state$selected_rows)) {
-      c_binding_data()[as.integer(state$selected_rows), ]
+    (if (use_shared_data()) {
+      r_binding_data()[lspci_id %in% r_selected_compounds()]
     } else {
-      c_binding_data()
+      r_binding_data()
     })[
       is_filter_match == TRUE
     ][
