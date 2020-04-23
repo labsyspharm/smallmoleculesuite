@@ -37,16 +37,12 @@ data_fingerprints <- morgancpp::MorganFPS$new(
 data_affinity_selectivity <- file.path(dir_data, "shiny_selectivity_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)
 
-for (col in c("toolscore", "ontarget_IC50_Q1", "offtarget_IC50_Q1", "IC50_diff", "Kd_Q1", "selectivity")) {
+for (col in c("toolscore", "affinity_Q1", "offtarget_affinity_Q1", "affinity_Q1_diff", "selectivity", "investigation_bias", "wilcox_pval")) {
   set(data_affinity_selectivity, j = col, value = signif(data_affinity_selectivity[[col]], digits = 2))
 }
 
 data_biochem <- file.path(dir_data, "shiny_biochemical_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)
-
-for (col in c("toolscore", "ontarget_IC50_Q1", "offtarget_IC50_Q1", "IC50_diff", "Kd_Q1", "selectivity")) {
-  set(data_affinity_selectivity, j = col, value = signif(data_affinity_selectivity[[col]], digits = 2))
-}
 
 data_commercial <- file.path(dir_data, "shiny_commercial_info_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)

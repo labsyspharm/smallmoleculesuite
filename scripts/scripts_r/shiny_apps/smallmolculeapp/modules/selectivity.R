@@ -1,13 +1,16 @@
 
 axis_choices <- tribble(
   ~label, ~value, ~type,
-  "Kd Q1 (nM)", "Kd_Q1", "log",
+  "Affinity Q1 (nM)", "affinity_Q1", "log",
   "Selectivity", "selectivity", "linear",
   "Tool score", "toolscore", "linear",
-  "Ontarget IC50 Q1 (nM)", "ontarget_IC50_Q1", "log",
-  "Offtarget IC50 Q1 (nM)", "offtarget_IC50_Q1", "log",
-  "IC50 difference (nM)", "IC50_diff", "linear"
-)
+  "Offtarget Affinity Q1 (nM)", "offtarget_affinity_Q1", "log",
+  "Affinity difference (nM)", "affinity_Q1_diff", "linear",
+  "Investigation bias", "investigation_bias", "linear",
+  "Strength", "strength", "linear",
+  "Wilcox p-value", "wilcox_pval", "linear"
+) %>%
+  arrange(label)
 
 axis_choice_map <- axis_choices %>%
   {set_names(map2(.[["label"]], .[["type"]], ~list(label = .x, type = .y)), .[["value"]])}
@@ -133,7 +136,7 @@ selectivityUI <- function(id) {
             ns("y_var"),
             choices = axis_choices[["label"]],
             values = axis_choices[["value"]],
-            selected = "Kd_Q1"
+            selected = "affinity_Q1"
           ),
           style = "display: flex; align-items: center;"
         ),
