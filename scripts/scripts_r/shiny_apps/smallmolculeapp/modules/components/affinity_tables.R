@@ -1,29 +1,3 @@
-REFERENCE_RENDER_JS <- DT::JS(
-  "
-  function(data, type, row, meta) {
-    if (type !== 'display') {
-      return data;
-    }
-    const url_types = {
-      pubmed: 'https://pubmed.ncbi.nlm.nih.gov/',
-      chembl: 'https://www.ebi.ac.uk/chembl/document_report_card/',
-      patent: 'https://patents.google.com/patent/',
-      synapse: 'https://www.synapse.org/#!Synapse:',
-      doi: 'https://dx.doi.org/'
-    };
-    const refs = data.split('|');
-    const links = refs.map(
-      function(ref) {
-        const type_val = ref.split(':');
-        const url = url_types[type_val[0]] + type_val[1];
-        return '<a href=\"' + url + '\" target=\"_blank\">' + ref + '</a>'
-      }
-    );
-    return links.join(' ');
-  }
-  "
-)
-
 #' Server module to display a tabset of tables with affinities and TAS values
 #'
 #' @param r_selection_drugs Reactive containing lspci_ids of selected compounds
@@ -53,7 +27,7 @@ mod_server_affinity_tables <- function(
     ][
       data_gene_info[, .(gene_id, symbol)], on = "gene_id", nomatch = NULL
     ][
-      order(selectivity_class, Kd_Q1)
+      order(selectivity_class, affinity_Q1)
     ][
       , c("name", "selectivity") := .(
         lspci_id_name_map[lspci_id],
@@ -102,25 +76,18 @@ mod_server_affinity_tables <- function(
     download_name <- create_download_filename(
       c("affinity", "spectrum", lspci_id_name_map[r_selection_drugs()])
     )
+    .data = callModule(mod_server_reference_modal, "selectivity", r_selectivity_data_selected())
 
     DT::datatable(
-      data = r_selectivity_data_selected(), # input$compound_selection),
+      data = .data, # input$compound_selection),
       rownames = FALSE,
+      escape = grep("^references$", names(.data), invert = TRUE, value = TRUE),
       # fillContainer = TRUE,
       options = list(
         # autoWidth = TRUE,
         extensions = "Buttons",
         buttons = list(
           list(extend = "copy")
-        ),
-        columnDefs = list(
-          list(
-            targets = grep(
-              x = names(.data),
-              pattern = "^references$"
-            ) - 1,
-            render = REFERENCE_RENDER_JS
-          )
         ),
         dom = "tpB",
         language = list(
@@ -151,7 +118,7 @@ mod_server_affinity_tables <- function(
   output$table_selectivity <- DT::renderDataTable(r_table_selected_selectivity())
 
   r_table_selected_tas <- reactive({
-    .data = r_tas_data_selected()
+    .data = callModule(mod_server_reference_modal, "tas", r_tas_data_selected())
     download_name <- create_download_filename(
       c("affinity", "spectrum", lspci_id_name_map[r_selection_drugs()])
     )
@@ -159,19 +126,11 @@ mod_server_affinity_tables <- function(
     DT::datatable(
       data = .data,
       rownames = FALSE,
+      escape = grep("^references$", names(.data), invert = TRUE, value = TRUE),
       options = list(
         extensions = "Buttons",
         buttons = list(
           list(extend = "copy")
-        ),
-        columnDefs = list(
-          list(
-            targets = grep(
-              x = names(.data),
-              pattern = "^references$"
-            ) - 1,
-            render = REFERENCE_RENDER_JS
-          )
         ),
         dom = "tpB",
         language = list(
@@ -201,13 +160,13 @@ mod_server_affinity_tables <- function(
 
   observeEvent(input$table_tas_rows_selected, {
     r_either_selected(
-      r_tas_data_selected()[["lspci_id"]][sorted(input$table_tas_rows_selected)]
+      r_tas_data_selected()[["lspci_id"]][sort(input$table_tas_rows_selected)]
     )
   })
 
   observeEvent(input$table_selectivity_rows_selected, {
     r_either_selected(
-      r_selectivity_data_selected()[["lspci_id"]][sorted(input$table_selectivity_rows_selected)]
+      r_selectivity_data_selected()[["lspci_id"]][sort(input$table_selectivity_rows_selected)]
     )
   })
 

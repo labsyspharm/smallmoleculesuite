@@ -157,8 +157,8 @@ selectivityUI <- function(id) {
           dataTableOutput(
             outputId = ns("output_table")
           ),
-          mod_ui_download_button(ns("output_table_csv_dl")),
-          mod_ui_download_button(ns("output_table_xlsx_dl"))
+          mod_ui_download_button(ns("output_table_csv_dl"), "Download CSV"),
+          mod_ui_download_button(ns("output_table_xlsx_dl"), "Download Excel")
         )
       ) %>%
         margin(bottom = 3),
@@ -194,23 +194,16 @@ selectivityServer <- function(input, output, session) {
     )
   })
 
-  # server state ----
-  state = reactiveValues(
-    selection_table = NULL,
-    num_selected = 0
-    # query_gene = NULL # THIS DOES NOT NEED TO EXIST USE `input$query_gene`
-  )
-
   r_binding_data <- reactive({
     req(input$query_gene)
 
     copy(data_affinity_selectivity)[
       symbol == input$query_gene
     ][
-      , is_filter_match := !is.na(Kd_Q1) &
-        Kd_Q1 >= (10**input$affinity[1]) &
-        Kd_Q1 <= (10**input$affinity[2]) &
-        n_measurement_kd >= input$min_measurements
+      , is_filter_match := !is.na(affinity_Q1) &
+        affinity_Q1 >= (10**input$affinity[1]) &
+        affinity_Q1 <= (10**input$affinity[2]) &
+        affinity_N >= input$min_measurements
     ][
       , c("name", "plot_alpha", "selectivity_class") := .(
         lspci_id_name_map[lspci_id],
@@ -218,7 +211,7 @@ selectivityServer <- function(input, output, session) {
         forcats::fct_rev(selectivity_class)
       )
     ][
-      order(is_filter_match, selectivity_class, Kd_Q1)
+      order(is_filter_match, selectivity_class, affinity_Q1)
     ]
   })
 
@@ -312,16 +305,16 @@ selectivityServer <- function(input, output, session) {
   })
 
   tbl_data <- reactive({
-    (if (use_shared_data()) {
+    (if (use_shared_data() && length(r_selected_compounds()) > 0) {
       r_binding_data()[lspci_id %in% r_selected_compounds()]
     } else {
       r_binding_data()
     })[
       is_filter_match == TRUE
     ][
-      order(-selectivity_class, ontarget_IC50_Q1)
+      order(-selectivity_class, affinity_Q1)
     ] %>%
-      select(name, symbol, selectivity_class, ontarget_IC50_Q1, offtarget_IC50_Q1, everything())
+      select(name, symbol, selectivity_class, affinity_Q1, offtarget_affinity_Q1, everything())
   })
 
   tbl_table <- reactive({
@@ -349,7 +342,7 @@ selectivityServer <- function(input, output, session) {
           ),
           list(
             targets = grep(
-              pattern = "^(name|symbol|selectivity_class|ontarget_IC50_Q1|offtarget_IC50_Q1)$",
+              pattern = "^(name|symbol|selectivity_class|ontarget_affinity_Q1|offtarget_affinity_Q1)$",
               x = names(.data),
               invert = TRUE
             ) - 1,
