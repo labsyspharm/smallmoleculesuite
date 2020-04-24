@@ -42,7 +42,8 @@ mod_server_reference_modal <- function(
   o_reference_change <- observeEvent(r_references(), {
     shiny::showModal(
       modalDialog(
-        format_references(r_references())
+        format_references(r_references()),
+        easyClose = TRUE
       )
     )
   })
@@ -54,6 +55,7 @@ mod_server_reference_modal <- function(
       "References",
       icon = icon("book-open"),
       onclick = paste0("Shiny.setInputValue('", ns("clicked_reference"), "', this.id, {priority: 'event'});"),
+      onmousedown = "event.stopPropagation();",
       id = paste0("reference_link_", .x)
     ) %>%
       as.character()
