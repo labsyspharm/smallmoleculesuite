@@ -21,45 +21,52 @@ format_references <- function(references) {
 
 mod_server_reference_modal <- function(
   input, output, session,
-  df, reference_col = "references"
+  r_data, reference_col = "references"
 ) {
   ns <- session$ns
 
-  if(!nrow(df) > 0)
-    return(df)
-
-  references <- df[[reference_col]]
-
   r_references <- reactive({
+    r_data()[[reference_col]]
+  })
+
+  r_clicked_references <- reactive({
     req(input$clicked_reference)
     idx <- input$clicked_reference %>%
       stringr::str_match("reference_link_([0-9]+)$") %>%
       {.[[1, 2]]} %>%
       as.integer()
-    references[idx]
+    r_references()[idx]
   })
 
-  o_reference_change <- observeEvent(r_references(), {
+  o_reference_change <- observeEvent(r_clicked_references(), {
+    req(r_clicked_references())
     shiny::showModal(
       modalDialog(
-        format_references(r_references()),
+        format_references(r_clicked_references()),
         easyClose = TRUE
       )
     )
   })
 
-  ref_links <- map_chr(
-    seq_along(references),
-    ~actionLink(
-      ns("clicked_reference"),
-      "References",
-      icon = icon("book-open"),
-      onclick = paste0("Shiny.setInputValue('", ns("clicked_reference"), "', this.id, {priority: 'event'});"),
-      onmousedown = "event.stopPropagation();",
-      id = paste0("reference_link_", .x)
-    ) %>%
-      as.character()
-  )
+  r_ref_links <- reactive({
+    map_chr(
+      seq_along(r_references()),
+      ~actionLink(
+        ns("clicked_reference"),
+        "References",
+        icon = icon("book-open"),
+        onclick = paste0("Shiny.setInputValue('", ns("clicked_reference"), "', this.id, {priority: 'event'});"),
+        onmousedown = "event.stopPropagation();",
+        id = paste0("reference_link_", .x)
+      ) %>%
+        as.character()
+    )
+  })
 
-  df[, references := ref_links]
+  reactive({
+    if(nrow(r_data()) > 0)
+      set(r_data(), j = reference_col, value = r_ref_links())
+    else
+      r_data()
+  })
 }
