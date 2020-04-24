@@ -318,13 +318,14 @@ selectivityServer <- function(input, output, session) {
   })
 
   tbl_table <- reactive({
-    .data <- tbl_data()
+    .data <- callModule(mod_server_reference_modal, "selectivity", tbl_data())
 
     DT::datatable(
       .data,
       extensions = c("Buttons"),
       rownames = FALSE,
       selection = "multiple",
+      escape = setdiff(colnames(.data), "references"),
       options = list(
         # autoWidth = TRUE,
         buttons = list(
@@ -342,7 +343,7 @@ selectivityServer <- function(input, output, session) {
           ),
           list(
             targets = grep(
-              pattern = "^(name|symbol|selectivity_class|ontarget_affinity_Q1|offtarget_affinity_Q1)$",
+              pattern = "^(name|symbol|selectivity_class|affinity_Q1|offtarget_affinity_Q1|selectivity|toolscore|strength|references)$",
               x = names(.data),
               invert = TRUE
             ) - 1,
