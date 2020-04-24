@@ -22,7 +22,8 @@ data_selection_chemprobes <- file.path(dir_data, "shiny_chemical_probes_morgan_n
   .[avg_rating == 4]
 
 data_gene_info <- file.path(dir_data, "shiny_targets_morgan_normal.fst") %>%
-  fst::read_fst(as.data.table = TRUE)
+  fst::read_fst(as.data.table = TRUE) %>%
+  {.[, symbol := stringr::str_to_upper(symbol)]}
 
 data_pfp <- file.path(dir_data, "phenotypic_rscore_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)
@@ -35,7 +36,8 @@ data_fingerprints <- morgancpp::MorganFPS$new(
 )
 
 data_affinity_selectivity <- file.path(dir_data, "shiny_selectivity_morgan_normal.fst") %>%
-  fst::read_fst(as.data.table = TRUE)
+  fst::read_fst(as.data.table = TRUE) %>%
+  {.[data_gene_info, on = "gene_id", nomatch = NULL]}
 
 for (col in c("toolscore", "affinity_Q1", "offtarget_affinity_Q1", "affinity_Q1_diff", "selectivity", "investigation_bias", "wilcox_pval")) {
   set(data_affinity_selectivity, j = col, value = signif(data_affinity_selectivity[[col]], digits = 2))

@@ -8,19 +8,6 @@ mod_server_download_button <- function(
   input, output, session,
   r_data, type = c("csv", "excel"), file_prefix = function() paste0("dl-", Sys.Date())
 ) {
-  ns <- session$ns
-
-  output$download_ui <- reactive({
-    if (nrow(r_data()) > 0) {
-      downloadButton(
-        ns("download"),
-        label = switch(type, csv = "Download CSV", excel = "Download Excel"),
-        class = "dt-button"
-      )
-    } else
-      div()
-  })
-
   output$download <- downloadHandler(
     filename = function()
       paste0(
@@ -43,7 +30,7 @@ mod_server_download_button <- function(
 #' UI module to display a download button
 #'
 #' @param label Label for button
-mod_ui_download_button <- function(id) {
+mod_ui_download_button <- function(id, label = "Download") {
   ns <- NS(id)
-  uiOutput(ns("download_ui"))
+  downloadButton(ns("download"), label, class = "dt-button")
 }
