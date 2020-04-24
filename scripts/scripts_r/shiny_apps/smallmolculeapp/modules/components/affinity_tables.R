@@ -72,11 +72,13 @@ mod_server_affinity_tables <- function(
 
   output$subtitle_selection <- renderText(r_selection_titles())
 
+  r_selectivity_tbl_data <- callModule(mod_server_reference_modal, "selectivity", r_selectivity_data_selected)
+
   r_table_selected_selectivity<- reactive({
     download_name <- create_download_filename(
       c("affinity", "spectrum", lspci_id_name_map[r_selection_drugs()])
     )
-    .data = callModule(mod_server_reference_modal, "selectivity", r_selectivity_data_selected())
+    .data = r_selectivity_tbl_data()
 
     DT::datatable(
       data = .data, # input$compound_selection),
@@ -117,8 +119,10 @@ mod_server_affinity_tables <- function(
 
   output$table_selectivity <- DT::renderDataTable(r_table_selected_selectivity())
 
+  r_tas_tbl_data <- callModule(mod_server_reference_modal, "tas", r_tas_data_selected)
+
   r_table_selected_tas <- reactive({
-    .data = callModule(mod_server_reference_modal, "tas", r_tas_data_selected())
+    .data = r_tas_tbl_data()
     download_name <- create_download_filename(
       c("affinity", "spectrum", lspci_id_name_map[r_selection_drugs()])
     )

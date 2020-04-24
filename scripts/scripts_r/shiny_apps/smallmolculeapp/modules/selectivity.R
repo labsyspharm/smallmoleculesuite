@@ -317,8 +317,10 @@ selectivityServer <- function(input, output, session) {
       select(name, symbol, selectivity_class, affinity_Q1, offtarget_affinity_Q1, everything())
   })
 
+  tbl_data_formatted <- callModule(mod_server_reference_modal, "selectivity", tbl_data)
+
   tbl_table <- reactive({
-    .data <- callModule(mod_server_reference_modal, "selectivity", tbl_data())
+    .data <- tbl_data_formatted()
 
     DT::datatable(
       .data,
