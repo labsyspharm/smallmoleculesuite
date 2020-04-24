@@ -70,14 +70,17 @@ mod_server_affinity_tables <- function(
     )
   })
 
+  r_download_name <- reactive({
+    create_download_filename(
+      c("affinity", "spectrum", lspci_id_name_map[r_selection_drugs()])
+    )
+  })
+
   output$subtitle_selection <- renderText(r_selection_titles())
 
   r_selectivity_tbl_data <- callModule(mod_server_reference_modal, "selectivity", r_selectivity_data_selected)
 
   r_table_selected_selectivity<- reactive({
-    download_name <- create_download_filename(
-      c("affinity", "spectrum", lspci_id_name_map[r_selection_drugs()])
-    )
     .data = r_selectivity_tbl_data()
 
     DT::datatable(
@@ -119,6 +122,9 @@ mod_server_affinity_tables <- function(
 
   output$table_selectivity <- DT::renderDataTable(r_table_selected_selectivity())
 
+  callModule(mod_server_download_button, "selectivity_xlsx_dl", r_selectivity_data_selected, "excel", r_download_name)
+  callModule(mod_server_download_button, "selectivity_csv_dl", r_selectivity_data_selected, "csv", r_download_name)
+
   r_tas_tbl_data <- callModule(mod_server_reference_modal, "tas", r_tas_data_selected)
 
   r_table_selected_tas <- reactive({
@@ -159,6 +165,9 @@ mod_server_affinity_tables <- function(
   })
 
   output$table_tas <- DT::renderDataTable(r_table_selected_tas())
+
+  callModule(mod_server_download_button, "tas_xlsx_dl", r_tas_data_selected, "excel", r_download_name)
+  callModule(mod_server_download_button, "tas_csv_dl", r_tas_data_selected, "csv", r_download_name)
 
   r_either_selected <- reactiveVal()
 
@@ -206,7 +215,9 @@ mod_ui_affinity_tables <- function(id) {
           dataTableOutput(
             outputId = ns("table_selectivity"),
             height = "500px"
-          )
+          ),
+          mod_ui_download_button(ns("selectivity_xlsx_dl"), "Download Excel"),
+          mod_ui_download_button(ns("selectivity_csv_dl"), "Download CSV")
         )
       ),
       navPane(
@@ -215,7 +226,9 @@ mod_ui_affinity_tables <- function(id) {
           dataTableOutput(
             outputId = ns("table_tas"),
             height = "500px"
-          )
+          ),
+          mod_ui_download_button(ns("tas_xlsx_dl"), "Download Excel"),
+          mod_ui_download_button(ns("tas_csv_dl"), "Download CSV")
         )
       )
     )
