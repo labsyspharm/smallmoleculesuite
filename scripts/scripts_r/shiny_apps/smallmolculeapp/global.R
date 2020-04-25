@@ -10,16 +10,14 @@ library(markdown)
 # library(clipr)
 # library(rclipboard)
 library(glue)
-library(aws.s3)
 library(fs)
 library(purrr)
 # library(stringr)
 library(morgancpp)
 library(stringi)
-
 library(yonder)
 
-source("awspass.config")
+# source("awspass.config")
 
 # Components used in multiple apps
 source("modules/components/chembl_tabs.R", local = TRUE)
@@ -41,4 +39,3 @@ source("constants.R", local = TRUE)
 
 enableBookmarking(store = "url")
 
-.SAVE_STATE <- new.env(parent = emptyenv())

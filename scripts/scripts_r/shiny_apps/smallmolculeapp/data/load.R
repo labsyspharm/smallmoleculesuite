@@ -42,8 +42,8 @@ for (col in c("toolscore", "affinity_Q1", "offtarget_affinity_Q1", "affinity_Q1_
   set(data_affinity_selectivity, j = col, value = signif(data_affinity_selectivity[[col]], digits = 2))
 }
 
-data_biochem <- file.path(dir_data, "shiny_biochemical_morgan_normal.fst") %>%
-  fst::read_fst(as.data.table = TRUE)
+# data_biochem <- file.path(dir_data, "shiny_biochemical_morgan_normal.fst") %>%
+#   fst::read_fst(as.data.table = TRUE)
 
-data_commercial <- file.path(dir_data, "shiny_commercial_info_morgan_normal.fst") %>%
-  fst::read_fst(as.data.table = TRUE)
+# data_commercial <- file.path(dir_data, "shiny_commercial_info_morgan_normal.fst") %>%
+#   fst::read_fst(as.data.table = TRUE)
