@@ -44,8 +44,11 @@ selectivityUI <- function(id) {
               margin(b = -3),
             formGroup(
               label = NULL,
-              input = selectInput(
-                id = ns("query_gene")
+              input = selectizeInput(
+                ns("query_gene"),
+                label = NULL,
+                choices = NULL,
+                multiple = FALSE
               ),
               help = "Search for a target gene"
             ),
@@ -141,12 +144,11 @@ selectivityUI <- function(id) {
           style = "display: flex; align-items: center;"
         ),
         div(
-          wrap_spinner(
-            plotly::plotlyOutput(
-              outputId = ns("mainplot"),
-              height = "400px"
-            )
-          )
+          plotly::plotlyOutput(
+            outputId = ns("mainplot"),
+            height = "400px"
+          ) %>%
+            shinycssloaders::withSpinner(color = "#303030")
         )
       ) %>%
         margin(bottom = 3),
@@ -186,37 +188,6 @@ selectivityServer <- function(input, output, session) {
     !is.null(input$include_genes)
   })
 
-  # update query gene select ----
-  observeEvent(selection_genes(), {
-    updateSelectInput(
-      id = "query_gene",
-      choices = selection_genes(),
-      selected = input$query_gene %||% "BRAF",
-      session = session
-    )
-  })
-
-  r_binding_data <- reactive({
-    req(input$query_gene)
-
-    copy(data_affinity_selectivity)[
-      symbol == input$query_gene
-    ][
-      , is_filter_match := !is.na(affinity_Q1) &
-        affinity_Q1 >= (10**input$affinity[1]) &
-        affinity_Q1 <= (10**input$affinity[2]) &
-        affinity_N >= input$min_measurements
-    ][
-      , c("name", "plot_alpha", "selectivity_class") := .(
-        lspci_id_name_map[lspci_id],
-        if_else(is_filter_match, 0.9, 0.2),
-        forcats::fct_rev(selectivity_class)
-      )
-    ][
-      order(is_filter_match, selectivity_class, affinity_Q1)
-    ]
-  })
-
   use_shared_data <- reactive({
     !is.null(input$use_shared)
   })
@@ -233,6 +204,41 @@ selectivityServer <- function(input, output, session) {
         unique() %>%
         sort()
     }
+  })
+
+  # update query gene select ----
+  observeEvent(selection_genes(), {
+    updateSelectizeInput(
+      "query_gene",
+      choices = c("BRAF", selection_genes()),
+      selected = if(!is.null(input$query_gene) && stringr::str_length(input$query_gene) > 0)
+        input$query_gene
+      else
+        "BRAF",
+      session = session,
+      server = TRUE
+    )
+  })
+
+  r_binding_data <- reactive({
+    req(input$query_gene)
+
+    copy(data_affinity_selectivity)[
+      symbol == input$query_gene
+      ][
+        , is_filter_match := !is.na(affinity_Q1) &
+          affinity_Q1 >= (10**input$affinity[1]) &
+          affinity_Q1 <= (10**input$affinity[2]) &
+          affinity_N >= input$min_measurements
+        ][
+          , c("name", "plot_alpha", "selectivity_class") := .(
+            lspci_id_name_map[lspci_id],
+            if_else(is_filter_match, 0.9, 0.2),
+            forcats::fct_rev(selectivity_class)
+          )
+          ][
+            order(is_filter_match, selectivity_class, affinity_Q1)
+            ]
   })
 
   # titles ----

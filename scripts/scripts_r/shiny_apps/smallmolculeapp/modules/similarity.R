@@ -163,26 +163,21 @@ similarityUI <- function(id) {
           columns(
             column(
               width = 4,
-              wrap_spinner(
-                plotly::plotlyOutput(
-                  outputId = ns("plot_pheno_struct") # mainplot1
-                )
+              plotly::plotlyOutput(
+                outputId = ns("plot_pheno_struct") # mainplot1
               )
             ),
             column(
               width = 4,
-              wrap_spinner(
-                plotly::plotlyOutput(
-                  outputId = ns("plot_target_struct") # mainplot2
-                )
-              )
+              plotly::plotlyOutput(
+                outputId = ns("plot_target_struct") # mainplot2
+              ) %>%
+                shinycssloaders::withSpinner(color = "#303030")
             ),
             column(
               width = 4,
-              wrap_spinner(
-                plotly::plotlyOutput(
-                  outputId = ns("plot_pheno_target") # mainplot3
-                )
+              plotly::plotlyOutput(
+                outputId = ns("plot_pheno_target") # mainplot3
               )
             )
           )
