@@ -141,9 +141,11 @@ selectivityUI <- function(id) {
           style = "display: flex; align-items: center;"
         ),
         div(
-          plotly::plotlyOutput(
-            outputId = ns("mainplot"),
-            height = "400px"
+          wrap_spinner(
+            plotly::plotlyOutput(
+              outputId = ns("mainplot"),
+              height = "400px"
+            )
           )
         )
       ) %>%
