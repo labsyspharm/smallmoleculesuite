@@ -47,3 +47,22 @@ for (col in c("toolscore", "affinity_Q1", "offtarget_affinity_Q1", "affinity_Q1_
 
 # data_commercial <- file.path(dir_data, "shiny_commercial_info_morgan_normal.fst") %>%
 #   fst::read_fst(as.data.table = TRUE)
+
+# save(
+#   list = c(
+#     "data_genes",
+#     "data_cmpd_info",
+#     "name_lspci_id_map",
+#     "lspci_id_name_map",
+#     "data_selection_chemprobes",
+#     "data_gene_info",
+#     "data_pfp",
+#     "data_tas",
+#     "data_affinity_selectivity"
+#   ),
+#   file = "test.rdata",
+#   ascii = FALSE,
+#   compress = "gzip"
+# )
+#
+# tic();load("test.rdata", envir = x);toc()
