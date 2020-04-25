@@ -22,8 +22,7 @@ data_selection_chemprobes <- file.path(dir_data, "shiny_chemical_probes_morgan_n
   .[avg_rating == 4]
 
 data_gene_info <- file.path(dir_data, "shiny_targets_morgan_normal.fst") %>%
-  fst::read_fst(as.data.table = TRUE) %>%
-  {.[, symbol := stringr::str_to_upper(symbol)]}
+  fst::read_fst(as.data.table = TRUE)
 
 data_pfp <- file.path(dir_data, "phenotypic_rscore_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)
