@@ -33,8 +33,6 @@ mod_server_affinity_tables <- function(
 
   r_selectivity_data_selected <- reactive({
     subset_dt(data_affinity_selectivity, r_selection_drugs())[
-      data_gene_info[, .(gene_id, symbol)], on = "gene_id", nomatch = NULL
-    ][
       order(selectivity_class, affinity_Q1)
     ][
       , c("name", "selectivity") := .(
@@ -54,8 +52,6 @@ mod_server_affinity_tables <- function(
 
   r_tas_data_selected <- reactive({
     subset_dt(data_tas, r_selection_drugs())[
-      data_gene_info[, .(gene_id, symbol)], on = "gene_id", nomatch = NULL
-    ][
       order(tas)
     ][
       , name := lspci_id_name_map[lspci_id]
@@ -97,7 +93,18 @@ mod_server_affinity_tables <- function(
         # autoWidth = TRUE,
         extensions = "Buttons",
         buttons = list(
-          list(extend = "copy")
+          list(extend = "copy"),
+          list(extend = "colvis")
+        ),
+        columnDefs = list(
+          list(
+            targets = grep(
+              x = names(.data),
+              pattern = "^(name|symbol|selectivity_class|affinity_Q1|offtarget_affinity_Q1|references)$",
+              invert = TRUE
+            ) - 1,
+            visible = FALSE
+          )
         ),
         dom = "tpB",
         language = list(
