@@ -157,13 +157,3 @@ fast_search <- function(data, req) {
   res <- shiny:::toJSON(shiny:::columnToRowData(data))
   shiny:::httpResponse(200, 'application/json', enc2utf8(res))
 }
-
-wrap_spinner <- function(ui) {
-  div(
-    div(
-      class = "lds-ring",
-      div(), div(), div(), div()
-    ),
-    ui
-  )
-}

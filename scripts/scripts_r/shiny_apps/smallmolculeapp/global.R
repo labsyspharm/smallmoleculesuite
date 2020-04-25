@@ -37,5 +37,5 @@ source("data/load.R", local = TRUE)
 source("utils.R", local = TRUE)
 source("constants.R", local = TRUE)
 
-enableBookmarking(store = "url")
+# enableBookmarking(store = "url")
 
