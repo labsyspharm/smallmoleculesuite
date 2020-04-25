@@ -209,13 +209,13 @@ selectivityServer <- function(input, output, session) {
   # update query gene select ----
   observeEvent(selection_genes(), {
     updateSelectizeInput(
+      session,
       "query_gene",
       choices = c("BRAF", selection_genes()),
       selected = if(!is.null(input$query_gene) && stringr::str_length(input$query_gene) > 0)
         input$query_gene
       else
         "BRAF",
-      session = session,
       server = TRUE
     )
   })

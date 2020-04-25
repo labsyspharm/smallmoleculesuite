@@ -58,8 +58,8 @@ function(input, output, session) {
   #   })
   # )
 
-  # callModule(
-  #   module = bindingDataServer,
-  #   id = "bd"
-  # )
+  callModule(
+    module = bindingDataServer,
+    id = "bd"
+  )
 }

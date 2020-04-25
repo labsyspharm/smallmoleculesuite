@@ -1,3 +1,18 @@
+subset_dt <- function(dt, selectors) {
+  sel <- if (!is.list(selectors)) {
+    # assume it's drug ids
+    if (length(selectors) > 0)
+      dt[["lspci_id"]] %in% selectors
+    else
+      FALSE
+  } else {
+    # List with selectors
+    imap(selectors, ~dt[[.y]] %in% .x) %>%
+      reduce(magrittr::and)
+  }
+  dt[sel]
+}
+
 #' Server module to display a tabset of tables with affinities and TAS values
 #'
 #' @param r_selection_drugs Reactive containing lspci_ids of selected compounds
@@ -17,14 +32,7 @@ mod_server_affinity_tables <- function(
   })
 
   r_selectivity_data_selected <- reactive({
-    drug_id <- r_selection_drugs()
-
-    if (length(drug_id) < 1 || is.na(drug_id))
-      return(data_affinity_selectivity[FALSE])
-
-    data_affinity_selectivity[
-      lspci_id %in% drug_id
-    ][
+    subset_dt(data_affinity_selectivity, r_selection_drugs())[
       data_gene_info[, .(gene_id, symbol)], on = "gene_id", nomatch = NULL
     ][
       order(selectivity_class, affinity_Q1)
@@ -45,14 +53,7 @@ mod_server_affinity_tables <- function(
   })
 
   r_tas_data_selected <- reactive({
-    drug_id <- r_selection_drugs()
-
-    if (length(drug_id) < 1 || is.na(drug_id))
-      return(data_tas[FALSE])
-
-    data_tas[
-      lspci_id %in% drug_id
-    ][
+    subset_dt(data_tas, r_selection_drugs())[
       data_gene_info[, .(gene_id, symbol)], on = "gene_id", nomatch = NULL
     ][
       order(tas)
@@ -63,6 +64,8 @@ mod_server_affinity_tables <- function(
   })
 
   r_selection_titles <- reactive({
+    if(is.list(r_selection_drugs()))
+      return("")
     if (length(r_selection_drugs()) < 1)
       return("Select compound above")
     paste0(
@@ -71,6 +74,8 @@ mod_server_affinity_tables <- function(
   })
 
   r_download_name <- reactive({
+    if(is.list(r_selection_drugs()))
+      return(create_download_filename(c("affinity", "spectrum")))
     create_download_filename(
       c("affinity", "spectrum", lspci_id_name_map[r_selection_drugs()])
     )
@@ -120,7 +125,10 @@ mod_server_affinity_tables <- function(
       )
   })
 
-  output$table_selectivity <- DT::renderDataTable(r_table_selected_selectivity())
+  output$table_selectivity <- DT::renderDataTable(
+    r_table_selected_selectivity(),
+    server = TRUE
+  )
 
   callModule(mod_server_download_button, "selectivity_xlsx_dl", r_selectivity_data_selected, "excel", r_download_name)
   callModule(mod_server_download_button, "selectivity_csv_dl", r_selectivity_data_selected, "csv", r_download_name)
@@ -129,9 +137,6 @@ mod_server_affinity_tables <- function(
 
   r_table_selected_tas <- reactive({
     .data = r_tas_tbl_data()
-    download_name <- create_download_filename(
-      c("affinity", "spectrum", lspci_id_name_map[r_selection_drugs()])
-    )
 
     DT::datatable(
       data = .data,
@@ -164,7 +169,10 @@ mod_server_affinity_tables <- function(
       )
   })
 
-  output$table_tas <- DT::renderDataTable(r_table_selected_tas())
+  output$table_tas <- DT::renderDataTable(
+    r_table_selected_tas(),
+    server = TRUE
+  )
 
   callModule(mod_server_download_button, "tas_xlsx_dl", r_tas_data_selected, "excel", r_download_name)
   callModule(mod_server_download_button, "tas_csv_dl", r_tas_data_selected, "csv", r_download_name)
@@ -191,13 +199,19 @@ mod_server_affinity_tables <- function(
 #' UI module to display a tabset of compound affinites and TAS values
 #'
 #' @return UI element to display two tabs with tables
-mod_ui_affinity_tables <- function(id) {
+mod_ui_affinity_tables <- function(
+  id,
+  headers = list(
+    h4("Compound affinity and selectivity"),
+    p("Showing all available data for selected compounds, ignoring filters") %>%
+      margin(b = 1)
+  )
+) {
   ns <- NS(id)
   card(
-    header = tagList(
-      h4("Compound affinity and selectivity"),
-      p("Showing all available data for selected compounds, ignoring filters") %>%
-        margin(b = 1),
+    header = exec(
+      tagList,
+      !!!headers,
       textOutput(ns("subtitle_selection"), p),
       navInput(
         appearance = "tabs",
@@ -215,7 +229,8 @@ mod_ui_affinity_tables <- function(id) {
           dataTableOutput(
             outputId = ns("table_selectivity"),
             height = "500px"
-          ),
+          ) %>%
+            shinycssloaders::withSpinner(color = "#303030"),
           mod_ui_download_button(ns("selectivity_xlsx_dl"), "Download Excel"),
           mod_ui_download_button(ns("selectivity_csv_dl"), "Download CSV")
         )
@@ -226,7 +241,8 @@ mod_ui_affinity_tables <- function(id) {
           dataTableOutput(
             outputId = ns("table_tas"),
             height = "500px"
-          ),
+          ) %>%
+            shinycssloaders::withSpinner(color = "#303030"),
           mod_ui_download_button(ns("tas_xlsx_dl"), "Download Excel"),
           mod_ui_download_button(ns("tas_csv_dl"), "Download CSV")
         )
