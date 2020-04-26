@@ -56,33 +56,51 @@ bindingDataUI <- function(id) {
 
 bindingDataServer <- function(input, output, session) {
 
-  updateSelectizeInput(
-    session,
-    "select_compound",
-    choices = c(set_names(75376L, "Roscovitine"), name_lspci_id_map),
-    selected = "75376",
-    server = TRUE,
-    options = list(
-      placeholder = "Compound name",
-      searchField = "label",
-      closeAfterSelect = TRUE
-    ),
-    callback = fast_search
-  )
+  r_query <- reactive({
+    query <- parseQueryString(session$clientData$url_search)
+    if(!is.null(query[["tool"]]) && query[["tool"]] == "reference")
+      query
+    else
+      list()
+  })
 
-  updateSelectizeInput(
-    session,
-    "select_target",
-    choices = data_affinity_selectivity[["symbol"]] %>%
-      unique() %>%
-      sort(),
-    selected = NULL,
-    server = TRUE,
-    options = list(
-      placeholder = "Target symbol",
-      closeAfterSelect = TRUE
+  observeEvent(r_query(), {
+    if(!is.null(r_query()[["tab"]])) {
+      updateNavInput(
+        id = "selectivity_nav",
+        selected = r_query()[["tab"]],
+        session = affinity_tables[["session"]]
+      )
+    }
+
+    updateSelectizeInput(
+      session,
+      "select_compound",
+      choices = c(set_names(75376L, "Roscovitine"), name_lspci_id_map),
+      selected = r_query()[["lspci_id"]] %||% "75376",
+      server = TRUE,
+      options = list(
+        placeholder = "Compound name",
+        searchField = "label",
+        closeAfterSelect = TRUE
+      ),
+      callback = fast_search
     )
-  )
+
+    updateSelectizeInput(
+      session,
+      "select_target",
+      choices = data_affinity_selectivity[["symbol"]] %>%
+        unique() %>%
+        sort(),
+      selected = r_query()[["symbol"]],
+      server = TRUE,
+      options = list(
+        placeholder = "Target symbol",
+        closeAfterSelect = TRUE
+      )
+    )
+  })
 
   r_selection <- reactive({
     selection <- list()
@@ -96,10 +114,11 @@ bindingDataServer <- function(input, output, session) {
       NULL
   })
 
-  callModule(
+  affinity_tables <- callModule(
     mod_server_affinity_tables,
     "table",
     r_selection,
     data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map
   )
+
 }
