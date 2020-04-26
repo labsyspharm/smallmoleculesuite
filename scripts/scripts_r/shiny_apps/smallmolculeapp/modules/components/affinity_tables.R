@@ -1,19 +1,24 @@
 subset_dt <- function(dt, selectors) {
-  sel <- if (!is.list(selectors)) {
+  sel <- if (!length(selectors) > 0) {
+    FALSE
+  } else if (!is.list(selectors)) {
     # assume it's drug ids
-    if (length(selectors) > 0)
-      dt[["lspci_id"]] %in% selectors
-    else
-      FALSE
+    dt[["lspci_id"]] %in% selectors
   } else {
     # List with selectors
-    imap(selectors, ~dt[[.y]] %in% .x) %>%
+    selectors %>%
+      map(~if(is.null(.x)) TRUE else .x) %>%
+      imap(~dt[[.y]] %in% .x) %>%
       reduce(magrittr::and)
   }
   dt[sel]
 }
 
 #' Server module to display a tabset of tables with affinities and TAS values
+#'
+#' If r_selection_drugs is NULL, nothing will be filtered, everything will be
+#' displayed. If r_selection is an empty list or vector, everything will be filtered
+#' and nothing will be displayed
 #'
 #' @param r_selection_drugs Reactive containing lspci_ids of selected compounds
 #' @param data_affinity_selectivity Data table with affinities and selectivities
