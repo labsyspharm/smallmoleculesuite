@@ -30,7 +30,7 @@ mod_server_reference_modal <- function(
   })
 
   r_clicked_references <- reactive({
-    req(input$clicked_reference)
+    req(input$clicked_reference, cancelOutput = TRUE)
     idx <- input$clicked_reference %>%
       stringr::str_match("reference_link_([0-9]+)$") %>%
       {.[[1, 2]]} %>%

@@ -204,6 +204,7 @@ mod_server_affinity_tables <- function(
   })
 
   list(
+    session = session,
     r_selected_lspci_ids = r_either_selected
   )
 }
