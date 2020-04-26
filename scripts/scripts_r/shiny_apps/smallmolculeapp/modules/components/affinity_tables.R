@@ -25,10 +25,11 @@ subset_dt <- function(dt, selectors) {
 #' @param data_tas Data table with TAS vectors
 #' @param data_gene_info Data table with gene information
 #' @param lspci_id_name_map Named vector mapping from lspci_id to compound name
+#' @param selection Forwarded to DT::datatable
 mod_server_affinity_tables <- function(
   input, output, session,
   r_selection_drugs,
-  data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map
+  data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map, selection = "none"
 ) {
   ns <- session$ns
 
@@ -93,6 +94,7 @@ mod_server_affinity_tables <- function(
       data = .data, # input$compound_selection),
       rownames = FALSE,
       escape = grep("^references$", names(.data), invert = TRUE, value = TRUE),
+      selection = selection,
       # fillContainer = TRUE,
       options = list(
         # autoWidth = TRUE,
@@ -111,7 +113,7 @@ mod_server_affinity_tables <- function(
             visible = FALSE
           )
         ),
-        dom = "tpB",
+        dom = "lfrtipB",
         language = list(
           emptyTable = if (length(r_selection_drugs()) < 1) {
             "Please select row(s) from the data above."
@@ -120,8 +122,8 @@ mod_server_affinity_tables <- function(
           }
         ),
         pagingType = "numbers",
-        selection = "none",
-        scrollX = TRUE
+        scrollX = TRUE,
+        searchHighlight = TRUE
       )
     ) %>%
       DT::formatStyle(
@@ -154,12 +156,13 @@ mod_server_affinity_tables <- function(
       data = .data,
       rownames = FALSE,
       escape = grep("^references$", names(.data), invert = TRUE, value = TRUE),
+      selection = selection,
       options = list(
         extensions = "Buttons",
         buttons = list(
           list(extend = "copy")
         ),
-        dom = "tpB",
+        dom = "lfrtipB",
         language = list(
           emptyTable = if (length(r_selection_drugs()) < 1) {
             "Please select row(s) from the data above."
@@ -167,9 +170,9 @@ mod_server_affinity_tables <- function(
             "No data available"
           }
         ),
-        selection = "none",
         pagingType = "numbers",
-        scrollX = TRUE
+        scrollX = TRUE,
+        searchHighlight = TRUE
       )
     ) %>%
       DT::formatStyle(
