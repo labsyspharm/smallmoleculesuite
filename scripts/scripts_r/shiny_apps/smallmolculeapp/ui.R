@@ -233,21 +233,16 @@ function(req) {
                     flex(direction = "column") %>%
                     font(align = "center")
                 ),
-                columns( # ├ binding data ----
-                  column(
-                    width = 12,
-                    h1("Binding data") %>%
-                      font(align = "center"),
-                    p(class = "lead",
-                      "Quick reference compound binding data.") %>%
-                      font(align = "center", size = "sm") %>%
-                      margin(top = -1, b = 3)
-                  ),
-                  column(
-                    width = 12,
-                    bindingDataUI("bd")
-                  )
+                h1("Binding data") %>%
+                  font(align = "center") %>%
+                  margin(top = 5),
+                p(
+                  class = "lead",
+                  "Quick reference compound binding data."
                 ) %>%
+                  font(align = "center", size = "sm") %>%
+                  margin(top = -1, b = 3),
+                bindingDataUI("bd") %>%
                   margin(top = 5, bottom = 5)
               )
             )
