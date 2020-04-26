@@ -5,6 +5,7 @@ bindingDataUI <- function(id) {
     width = 8,
     style = "margin: auto;",
     formRow(
+      id = ns("reference"),
       formGroup(
         label = "Select compounds",
         input = selectizeInput(
@@ -49,12 +50,26 @@ bindingDataUI <- function(id) {
         p("Filter by compound and target") %>%
           margin(b = 1)
       )
+    ),
+    tags$head(
+      tags$script(
+        I("
+          Shiny.addCustomMessageHandler('scrollCallback',
+            function(msg) {
+              let target = $('#' + msg);
+              let offset = target.offset();
+              $('html, body').animate({scrollTop: offset.top}, 'slow');
+            }
+          );
+        ")
+      )
     )
   ) %>%
     columns()
 }
 
 bindingDataServer <- function(input, output, session) {
+  ns <- session$ns
 
   r_query <- reactive({
     query <- parseQueryString(session$clientData$url_search)
@@ -72,6 +87,9 @@ bindingDataServer <- function(input, output, session) {
         session = affinity_tables[["session"]]
       )
     }
+
+    if(length(r_query() > 0))
+      session$sendCustomMessage(type = "scrollCallback", ns("reference"))
 
     updateSelectizeInput(
       session,
