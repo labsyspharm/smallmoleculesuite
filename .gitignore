@@ -1,5 +1,2 @@
-*.Rproj
-.DS_Store
+packrat/lib*/
 .Rproj.user
-.Rhistory
-*.config
