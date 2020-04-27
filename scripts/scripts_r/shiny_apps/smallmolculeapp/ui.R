@@ -49,12 +49,12 @@ function(req) {
         ) %>%
           background("black") %>%
           font("white"),
-        buttonInput(
-          id = "bookmark_begin",
-          label = icon("link")
-        ) %>%
-          background("black") %>%
-          font(color = "white"),
+        # buttonInput(
+        #   id = "bookmark_begin",
+        #   label = icon("link")
+        # ) %>%
+        #   background("black") %>%
+        #   font(color = "white"),
         tags$a(
           href = "https://github.com/labsyspharm/smallmoleculesuite",
           target = "_blank",
