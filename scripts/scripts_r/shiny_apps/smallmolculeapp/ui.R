@@ -8,10 +8,12 @@ function(req) {
     DT:::DTDependency("default"),
     DT:::extDependency("Buttons", "default", list()),
     tags$head(
+      tags$title("Small Molecule Suite"),
       tags$link(href="https://fonts.googleapis.com/css?family=Lato:400,700&display=swap", rel="stylesheet"),
       tags$link(rel = "stylesheet", type = "text/css", href = "sms/css/slider.css"),
       tags$link(rel = "stylesheet", type = "text/css", href = "sms/css/main.css"),
-      tags$script(src = "sms/js/main.js")
+      tags$script(src = "sms/js/main.js"),
+      tags$link(rel = "icon", type = "image/png", href = "sms/assets/img/favicon.png")
     ),
     webpage(
       nav = navbar(
