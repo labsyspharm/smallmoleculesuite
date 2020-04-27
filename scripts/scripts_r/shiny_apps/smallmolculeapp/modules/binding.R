@@ -72,30 +72,35 @@ bindingDataServer <- function(input, output, session) {
   ns <- session$ns
 
   r_query <- reactive({
-    query <- parseQueryString(session$clientData$url_search)
-    if(!is.null(query[["tool"]]) && query[["tool"]] == "reference")
-      query
-    else
-      list()
+    parseQueryString(session$clientData$url_search)
+  })
+
+  r_use_query <- reactive({
+    req(r_query())
+    !is.null(r_query()[["tool"]]) && r_query()[["tool"]] == "reference"
   })
 
   observeEvent(r_query(), {
-    if(!is.null(r_query()[["tab"]])) {
+    if(r_use_query()) {
       updateNavInput(
         id = "selectivity_nav",
         selected = r_query()[["tab"]],
         session = affinity_tables[["session"]]
       )
-    }
-
-    if(length(r_query() > 0))
       session$sendCustomMessage(type = "scrollCallback", ns("reference"))
+    }
 
     updateSelectizeInput(
       session,
       "select_compound",
-      choices = c(set_names(75376L, "Roscovitine"), name_lspci_id_map),
-      selected = r_query()[["lspci_id"]] %||% "75376",
+      choices = c(
+        if (r_use_query())
+          set_names(r_query()[["lspci_id"]], lspci_id_name_map[[r_query()[["lspci_id"]]]])
+        else
+          set_names(75376L, "Roscovitine"),
+        name_lspci_id_map
+      ),
+      selected = if (r_use_query()) r_query()[["lspci_id"]] else "75376",
       server = TRUE,
       options = list(
         placeholder = "Compound name",
@@ -111,7 +116,7 @@ bindingDataServer <- function(input, output, session) {
       choices = data_affinity_selectivity[["symbol"]] %>%
         unique() %>%
         sort(),
-      selected = r_query()[["symbol"]],
+      selected = if (r_use_query()) r_query()[["symbol"]] else NULL,
       server = TRUE,
       options = list(
         placeholder = "Target symbol",
