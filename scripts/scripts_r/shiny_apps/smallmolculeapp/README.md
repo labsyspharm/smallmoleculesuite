@@ -2,7 +2,7 @@
 
 Package dependencies are found in `global.R`. 
 
-JavaScript, CSS, and other assets are found in `www/`. 
+JavaScript, CSS, and other assets are found in `www/sms`. 
 
 CSV and text data files are found under `data/`. 
 
