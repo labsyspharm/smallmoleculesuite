@@ -25,24 +25,31 @@ mod_server_reference_modal <- function(
 ) {
   ns <- session$ns
 
-  r_references <- reactive({
+  # References before assignment of links to reference column
+  r_raw_references <- reactive({
     r_data()[[reference_col]]
   })
 
-  r_clicked_references <- reactive({
+  r_clicked_reference_idx <- reactive({
     req(input$clicked_reference, cancelOutput = TRUE)
-    idx <- input$clicked_reference %>%
+    input$clicked_reference %>%
       stringr::str_match("reference_link_([0-9]+)$") %>%
       {.[[1, 2]]} %>%
       as.integer()
-    r_references()[idx]
   })
 
-  o_reference_change <- observeEvent(r_clicked_references(), {
-    req(r_clicked_references())
+  o_reference_change <- observeEvent(r_clicked_reference_idx(), {
+    req(r_clicked_reference_idx())
+    # Need to isolate here, because otherwise if r_data changes
+    # the modal is shown again. We only want to show modal if input$clicked_references
+    # changes
+    clicked_row <- isolate(r_data())[r_clicked_reference_idx(), ]
     shiny::showModal(
       modalDialog(
-        format_references(r_clicked_references()),
+        format_references(isolate(r_raw_references())),
+        title = paste(
+          "References for", clicked_row[["name"]], "binding to", clicked_row[["symbol"]]
+        ),
         easyClose = TRUE
       )
     )
@@ -50,12 +57,13 @@ mod_server_reference_modal <- function(
 
   r_ref_links <- reactive({
     map_chr(
-      seq_along(r_references()),
+      seq_along(r_raw_references()),
       ~actionLink(
         ns("clicked_reference"),
         "References",
         icon = icon("book-open"),
         onclick = paste0("Shiny.setInputValue('", ns("clicked_reference"), "', this.id, {priority: 'event'});"),
+        # Stop selection event in column with references
         onmousedown = "event.stopPropagation();",
         id = paste0("reference_link_", .x)
       ) %>%
@@ -63,7 +71,7 @@ mod_server_reference_modal <- function(
     )
   })
 
-  reactive({
+  r_data_with_ref <- reactive({
     if(nrow(r_data()) > 0)
       set(r_data(), j = reference_col, value = r_ref_links())
     else
