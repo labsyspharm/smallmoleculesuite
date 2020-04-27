@@ -13,7 +13,7 @@ optimalKinaseModal <- function() {
           href = "https://www.cell.com/cell-chemical-biology/fulltext/S2451-9456(19)30073-X#secsectitle0010"
         )
       ),
-      img(src = "assets/img/lsp-kinase-query-target.png") %>%
+      img(src = "sms/assets/img/lsp-kinase-query-target.png") %>%
         margin(l = "auto", r = "auto", b = 2),
       p(
         "The library was developed with the aim to have a pair of inhibitors for
@@ -37,7 +37,7 @@ optimalKinaseModal <- function() {
         adds compounds from PS and UN specificity classes to maximally cover the
         user-specified list."
       ),
-      img(src = "assets/img/lsp-kinase-coverage-target.png")
+      img(src = "sms/assets/img/lsp-kinase-coverage-target.png")
     ) %>%
       display("flex") %>%
       flex(direction = "column")
@@ -57,7 +57,7 @@ moaModal <- function() {
           href = "https://www.cell.com/cell-chemical-biology/fulltext/S2451-9456(19)30073-X",
           target = "_blank")
       ),
-      img(src = "assets/img/lsp-moa-query-target.png") %>%
+      img(src = "sms/assets/img/lsp-moa-query-target.png") %>%
         margin(l = "auto", r = "auto", b = 2),
       p(
         "The library was developed with the aim to have a pair of inhibitors for
@@ -82,7 +82,7 @@ moaModal <- function() {
         adds compounds from PS and UN specificity classes to maximally cover the
         user-specified list (Figure 2)."
       ),
-      img(src = "assets/img/lsp-moa-coverage-target.png")
+      img(src = "sms/assets/img/lsp-moa-coverage-target.png")
     ) %>%
       display("flex") %>%
       flex(direction = "column")

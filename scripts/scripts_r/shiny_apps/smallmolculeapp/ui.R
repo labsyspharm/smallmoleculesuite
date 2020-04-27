@@ -9,16 +9,16 @@ function(req) {
     DT:::extDependency("Buttons", "default", list()),
     tags$head(
       tags$link(href="https://fonts.googleapis.com/css?family=Lato:400,700&display=swap", rel="stylesheet"),
-      tags$link(rel = "stylesheet", type = "text/css", href = "css/slider.css"),
-      tags$link(rel = "stylesheet", type = "text/css", href = "css/main.css"),
-      tags$script(src = "js/main.js")
+      tags$link(rel = "stylesheet", type = "text/css", href = "sms/css/slider.css"),
+      tags$link(rel = "stylesheet", type = "text/css", href = "sms/css/main.css"),
+      tags$script(src = "sms/js/main.js")
     ),
     webpage(
       nav = navbar(
         tags$a(
           class = "navbar-brand",
           href="http://sorger.med.harvard.edu/",
-          tags$img(class = "h-2", src = "../assets/img/logo.png")
+          tags$img(class = "h-2", src = "sms/assets/img/logo.png")
         ),
         navInput(
           appearance = "pills",
@@ -185,7 +185,7 @@ function(req) {
                     linkInput(
                       id = "link_selectivity",
                       label = list(
-                        tags$img(src = "assets/img/helix.png") %>%
+                        tags$img(src = "sms/assets/img/helix.png") %>%
                           height(10),
                         # icon("circle", class = "fa-6x selectivity--pink"),
                         h4("Selectivity") %>%
@@ -202,7 +202,7 @@ function(req) {
                     linkInput(
                       id = "link_similarity",
                       label = list(
-                        tags$img(src = "assets/img/molecule.png") %>%
+                        tags$img(src = "sms/assets/img/molecule.png") %>%
                           height(10),
                         # icon("circle", class = "fa-6x similarity--green"),
                         h4("Similarity") %>%
@@ -219,7 +219,7 @@ function(req) {
                   #   linkInput(
                   #     id = "link_library",
                   #     label = list(
-                  #       tags$img(src = "assets/img/flask.png") %>%
+                  #       tags$img(src = "sms/assets/img/flask.png") %>%
                   #         height(10),
                   #       # icon("circle", class = "fa-6x text-orange"),
                   #       h4("Library") %>%
