@@ -49,6 +49,13 @@ patterned after an earlier application created by
 coordination and integration center)
 
 
+For the computation of structural similarity the package
+[morgancpp](https://github.com/labsyspharm/morgancpp), developed by
+[Artem Sokolov](https://scholar.harvard.edu/artem-sokolov/home),
+[Jeremy Muhlich](https://scholar.harvard.edu/jmuhlich/home) and
+[Clemens Hug](https://scholar.harvard.edu/clemenshug), is used.
+
+
 Supervision by [Peter Sorger](https://sorger.med.harvard.edu/people/peter-sorger-phd/)
 (HMS - LINCS data and signature generation center)
 
