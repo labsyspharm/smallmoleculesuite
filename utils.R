@@ -117,7 +117,7 @@ fast_search <- function(data, req) {
   data_lower <- attr(data, "lower", exact = TRUE)
   if (is.null(data_lower)) {
     data_lower <- data %>%
-      mutate_if(is.character, stri_trans_tolower)
+      mutate_if(is.character, stringr::str_to_lower)
     setattr(data, "lower", data_lower)
   }
 

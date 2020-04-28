@@ -241,26 +241,33 @@ mod_ui_affinity_tables <- function(
     navContent(
       navPane(
         id = ns("selectivity_nav_selectivity"),
-        div(
+        tagList(
           dataTableOutput(
             outputId = ns("table_selectivity"),
             height = "500px"
           ) %>%
             shinycssloaders::withSpinner(color = "#303030"),
-          mod_ui_download_button(ns("selectivity_xlsx_dl"), "Download Excel"),
-          mod_ui_download_button(ns("selectivity_csv_dl"), "Download CSV")
+          div(
+            class = "dt-buttons",
+            mod_ui_download_button(ns("selectivity_xlsx_dl"), "Download Excel"),
+            mod_ui_download_button(ns("selectivity_csv_dl"), "Download CSV")
+          )
         )
       ),
       navPane(
         id = ns("selectivity_nav_tas"),
-        div(
+        tagList(
           dataTableOutput(
             outputId = ns("table_tas"),
             height = "500px"
           ) %>%
             shinycssloaders::withSpinner(color = "#303030"),
-          mod_ui_download_button(ns("tas_xlsx_dl"), "Download Excel"),
-          mod_ui_download_button(ns("tas_csv_dl"), "Download CSV")
+          div(
+            style = "clear: both;",
+            class = "dt-buttons",
+            mod_ui_download_button(ns("tas_xlsx_dl"), "Download Excel"),
+            mod_ui_download_button(ns("tas_csv_dl"), "Download CSV")
+          )
         )
       )
     )
