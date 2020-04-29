@@ -212,7 +212,7 @@ selectivityServer <- function(input, output, session) {
       session,
       "query_gene",
       choices = c("BRAF", selection_genes()),
-      selected = if(!is.null(input$query_gene) && stringr::str_length(input$query_gene) > 0)
+      selected = if(!is.null(input$query_gene) && str_length(input$query_gene) > 0)
         input$query_gene
       else
         "BRAF",
