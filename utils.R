@@ -1,7 +1,7 @@
 
 create_download_filename <- function(prefix, suffix = NULL) {
   full <- c(prefix, "%s", suffix)
-  formatted <- stringr::str_replace_all(tolower(full), "\\s+", "-")
+  formatted <- str_replace_all(tolower(full), "\\s+", "-")
   collapse <- paste0(formatted, collapse = "-")
 
   sprintf(collapse, Sys.Date())
@@ -117,7 +117,7 @@ fast_search <- function(data, req) {
   data_lower <- attr(data, "lower", exact = TRUE)
   if (is.null(data_lower)) {
     data_lower <- data %>%
-      mutate_if(is.character, stringr::str_to_lower)
+      mutate_if(is.character, str_to_lower)
     setattr(data, "lower", data_lower)
   }
 
@@ -133,7 +133,7 @@ fast_search <- function(data, req) {
       matches <- do.call(
         cbind,
         lapply(key, function(k) {
-          stri_detect_fixed(data_lower[[v]], k, negate = FALSE)
+          str_detect(data_lower[[v]], fixed(k), negate = FALSE)
         })
       )
       # merge column matches using OR, and match multiple keywords in one column

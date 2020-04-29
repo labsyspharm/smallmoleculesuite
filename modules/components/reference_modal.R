@@ -8,11 +8,11 @@ REFERENCE_URLS <- c(
 )
 
 format_references <- function(references) {
-  ref_split <- stringr::str_split(references, stringr::fixed("|"))[[1]]
+  ref_split <- str_split(references, fixed("|"))[[1]]
   links <- map(
     ref_split,
     function(r) {
-      s <- stringr::str_split(r, stringr::fixed(":"))[[1]]
+      s <- str_split(r, fixed(":"))[[1]]
       tags$p(tags$a(r, href = paste0(REFERENCE_URLS[s[1]], s[2]), target = "_blank"))
     }
   )
@@ -33,7 +33,7 @@ mod_server_reference_modal <- function(
   r_clicked_reference_idx <- reactive({
     req(input$clicked_reference, cancelOutput = TRUE)
     input$clicked_reference %>%
-      stringr::str_match("reference_link_([0-9]+)$") %>%
+      str_match("reference_link_([0-9]+)$") %>%
       {.[[1, 2]]} %>%
       as.integer()
   })

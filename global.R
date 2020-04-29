@@ -11,9 +11,10 @@ library(fs)
 library(purrr)
 library(morgancpp)
 library(yonder)
+library(stringr)
 
 requireNamespace("DT")
-requireNamespace("stringr")
+
 
 # source("awspass.config")
 
