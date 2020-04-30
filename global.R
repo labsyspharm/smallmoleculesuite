@@ -23,6 +23,7 @@ source("modules/components/chembl_tabs.R", local = TRUE)
 source("modules/components/affinity_tables.R", local = TRUE)
 source("modules/components/download_buttons.R", local = TRUE)
 source("modules/components/reference_modal.R", local = TRUE)
+source("modules/components/filter_commercial.R", local = TRUE)
 
 # Modules
 source("modules/selectivity.R", local = TRUE)

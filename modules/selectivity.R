@@ -81,6 +81,13 @@ selectivityUI <- function(id) {
               )
             ),
             formGroup(
+              label = "Commercial availability",
+              input = div(
+                class = "active--pink",
+                mod_ui_filter_commercial(ns(""))
+              )
+            ),
+            formGroup(
               label = "Use linked data",
               input = div(
                 class = "active--pink",
@@ -223,22 +230,28 @@ selectivityServer <- function(input, output, session) {
   r_binding_data <- reactive({
     req(input$query_gene)
 
-    copy(data_affinity_selectivity)[
+    callModule(
+      mod_server_filter_commercial,
+      "",
+      copy(data_affinity_selectivity)
+    )[
       symbol == input$query_gene
-      ][
-        , is_filter_match := !is.na(affinity_Q1) &
-          affinity_Q1 >= (10**input$affinity[1]) &
-          affinity_Q1 <= (10**input$affinity[2]) &
-          affinity_N >= input$min_measurements
-        ][
-          , c("name", "plot_alpha", "selectivity_class") := .(
-            lspci_id_name_map[lspci_id],
-            if_else(is_filter_match, 0.9, 0.2),
-            forcats::fct_rev(selectivity_class)
-          )
-          ][
-            order(is_filter_match, selectivity_class, affinity_Q1)
-            ]
+    ][
+      ,
+      is_filter_match := !is.na(affinity_Q1) &
+        affinity_Q1 >= (10**input$affinity[1]) &
+        affinity_Q1 <= (10**input$affinity[2]) &
+        affinity_N >= input$min_measurements
+    ][
+      ,
+      c("name", "plot_alpha", "selectivity_class") := .(
+        lspci_id_name_map[lspci_id],
+        if_else(is_filter_match, 0.9, 0.2),
+        forcats::fct_rev(selectivity_class)
+      )
+    ][
+      order(is_filter_match, selectivity_class, affinity_Q1)
+    ]
   })
 
   # titles ----

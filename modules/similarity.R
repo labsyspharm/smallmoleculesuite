@@ -115,6 +115,13 @@ similarityUI <- function(id) {
               )
             ),
             formGroup(
+              label = "Commercial availability",
+              input = div(
+                class = "active--green",
+                mod_ui_filter_commercial(ns(""))
+              )
+            ),
+            formGroup(
               label = "Use linked data",
               input = div(
                 class = "active--green",
@@ -279,18 +286,24 @@ similarityServer <- function(input, output, session) {
       merge(r_tas_sim(), r_pfp_sim(), by = "lspci_id", all = TRUE),
       all.y = TRUE,
       by = "lspci_id"
-    )[
-      , name := lspci_id_name_map[lspci_id]
-    ][
-      , c("pfp_correlation", "tas_similarity", "structural_similarity") :=
-        lapply(.SD, round, digits = 2),
-      .SDcols = c("pfp_correlation", "tas_similarity", "structural_similarity")
-    ][
-      , c("pfp_correlation_plot", "tas_similarity_plot", "structural_similarity_plot") :=
-        .(pfp_correlation, tas_similarity, structural_similarity)
-    ] %>%
-      setnafill(cols = "pfp_correlation_plot", fill = -1.1) %>%
-      setnafill(cols = c("tas_similarity_plot", "structural_similarity_plot"), fill = -0.1)
+    ) %>%
+      {
+        callModule(mod_server_filter_commercial, "", .)
+      } %>%
+      {
+        .[
+          , name := lspci_id_name_map[lspci_id]
+        ][
+          , c("pfp_correlation", "tas_similarity", "structural_similarity") :=
+            lapply(.SD, round, digits = 2),
+          .SDcols = c("pfp_correlation", "tas_similarity", "structural_similarity")
+        ][
+          , c("pfp_correlation_plot", "tas_similarity_plot", "structural_similarity_plot") :=
+            .(pfp_correlation, tas_similarity, structural_similarity)
+        ] %>%
+          setnafill(cols = "pfp_correlation_plot", fill = -1.1) %>%
+          setnafill(cols = c("tas_similarity_plot", "structural_similarity_plot"), fill = -0.1)
+      }
   })
 
   use_shared_data <- reactive({
