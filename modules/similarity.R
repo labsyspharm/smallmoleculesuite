@@ -330,7 +330,7 @@ similarityServer <- function(input, output, session) {
 
   r_selection_drugs <- reactive({
     if (is.null(r_sim_selection()))
-      return(NULL)
+      return(integer())
 
     r_tbl_sim_data()[["lspci_id"]][r_sim_selection()]
   })
