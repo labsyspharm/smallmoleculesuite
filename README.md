@@ -49,11 +49,17 @@ patterned after an earlier application created by
 coordination and integration center)
 
 
-For the computation of structural similarity the package
-[morgancpp](https://github.com/labsyspharm/morgancpp), developed by
+The package [morgancpp](https://github.com/labsyspharm/morgancpp), developed by
 [Artem Sokolov](https://scholar.harvard.edu/artem-sokolov/home),
 [Jeremy Muhlich](https://scholar.harvard.edu/jmuhlich/home) and
-[Clemens Hug](https://scholar.harvard.edu/clemenshug), is used.
+[Clemens Hug](https://scholar.harvard.edu/clemenshug), is used for the computation
+of tanimoto distances between compound fingerprints.
+
+
+[RDKit](https://www.rdkit.org/) was used for the computation of molecular fingerprints.
+
+
+Data on commercial availability was sourced from [ZINC](http://zinc15.docking.org/).
 
 
 Supervision by [Peter Sorger](https://sorger.med.harvard.edu/people/peter-sorger-phd/)
@@ -62,14 +68,6 @@ Supervision by [Peter Sorger](https://sorger.med.harvard.edu/people/peter-sorger
 
 Icon design and development by [Vasileios Stathias](http://ccs.miami.edu/team_member/vasileios-vas-stathias/)
 (U of Miami - LINCS data coordination and integration center)
-
-
-<p float="left">
-Project <a href="https://github.com/labsyspharm/smallmoleculesuite">github repository <img src="www/sms/assets/img/GitHub-Mark-32px.png"></a>,
-<a href="https://hub.docker.com/r/ucbd2k/smallmoleculesuite/">docker image <img src="www/sms/assets/img/moby.png" height="40px"></a>, 
-and <a href="https://rdkit.org">RDKit</a>.
-</p>
-
 
 This work was supported by NIH grants **U54-HL127365**, **U24-DK116204** and **U54-HL127624**.
 
@@ -92,7 +90,9 @@ This work was supported by NIH grants **U54-HL127365**, **U24-DK116204** and **U
 **LINCS Data and Signature Generation Centers (DSGCs)**<br>http://www.lincsproject.org/LINCS/centers/data-and-signature-generating-centers
 
 **BD2K-LINCS Data Coordination and Integration Center (DCIC)**<br>http://lincs-dcic.org/<br>
+
 ## Harvard Medical School <img src="www/sms/assets/img/logo_harvard_150.png" height = "50" width = "42" alt = "Harvard Medical School">
+
 **Laboratory of Systems Pharmacology (LSP)**<br>http://hits.harvard.edu/the-program/laboratory-of-systems-pharmacology/
 
 **Sorger Lab**<br>http://sorger.med.harvard.edu/
