@@ -11,10 +11,23 @@ mod_server_filter_commercial <- function(
   data[lspci_id %in% commercially_available]
 }
 
+mod_server_filter_commercial_name_lspci_id_map <- function(
+  input, output, session
+) {
+  reactive({
+    if (is.null(input$filter_commercial))
+      name_lspci_id_map
+    else
+      name_lspci_id_map[
+        name_lspci_id_map %in% data_commercial$lspci_id
+      ]
+  })
+}
+
 #' UI module to display a switch for commercial availability
 #'
 #' @param label Label for button
-mod_ui_filter_commercial <- function(id, label = "Download") {
+mod_ui_filter_commercial <- function(id) {
   ns <- NS(id)
   switchInput(
     id = ns("filter_commercial"),

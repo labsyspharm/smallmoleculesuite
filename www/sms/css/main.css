@@ -97,3 +97,8 @@ table.dataTable thead th {
 a[data-target] {
   cursor: pointer;
 }
+
+/* Fix display of selectize input labels without text */
+.shiny-label-null {
+  display: inline;
+}

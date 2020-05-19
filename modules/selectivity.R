@@ -413,7 +413,7 @@ selectivityServer <- function(input, output, session) {
 
   r_selection_drugs <- reactive({
     if (is.null(tbl_selection())) {
-      return(NULL)
+      return(integer())
     }
 
     tbl_data()$lspci_id[tbl_selection()]
