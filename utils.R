@@ -58,53 +58,6 @@ dataTableOutput <- function(outputId, width = "100%", height = "auto") {
   )
 }
 
-restore_input <- function(id, value, session) {
-  fun <- switch(
-    id,
-    `lib-table_display` = updateRadiobarInput,
-    # `goto_library_1` =
-    # `goto_similarity_1` =
-    # `goto_similarity_2` =
-    `select-include_genes` = updateCheckboxInput,
-    `lib-gene_list` = updateTextAreaInput,
-    # `about` =
-    `lib-filter_measurement` = updateSliderInput,
-    `lib-filter_sd` = updateSliderInput,
-    # `sim-compound_selection` = updateListGroupInput,
-    # `lib-nav` =
-    # `goto_selectivity_1` =
-    `lib-filter_affinity` = updateSliderInput,
-    `select-sd` = updateSliderInput,
-    `lib-filter_expert` = updateSliderInput,
-    # `select-select_gene` = updateListGroupInput
-    `lib-filter_phase` = updateCheckboxGroupInput,
-    # `sim-nav` =
-    `sim-n_common` = updateSliderInput,
-    `sim-n_pheno` = updateSliderInput,
-    `select-min_measurements` = updateSliderInput,
-    `lib-filter_probes` = updateCheckboxInput,
-    `sim-query_compound` = updateSelectInput,
-    `lib-gene_example` = updateSelectInput,
-    `select-query_gene` = updateSelectInput,
-    `select-affinity` = updateSliderInput
-    # `lib-gene_form` =
-  )
-
-  if (is.null(fun)) {
-    return()
-  }
-
-  if ("inputId" %in% names(as.list(args(fun)))) {
-    if (is.null(value)) {
-      return()
-    }
-
-    fun(inputId = id, value = value, session = session)
-  } else {
-    fun(id = id, selected = value, session = session)
-  }
-}
-
 fast_search <- function(data, req) {
   query <- shiny::parseQueryString(req$QUERY_STRING)
 
@@ -148,10 +101,10 @@ fast_search <- function(data, req) {
   # only return the first n rows (n = maximum options in configuration)
   idx <- utils::head(if (length(key)) which(idx) else seq_along(idx), mop)
   # make sure the selected value is in the data
-  # if (length(sel)) {
-  #   i <- stats::na.omit(match(sel, data[, vfd]))
-  #   if (length(i)) idx <- sort(utils::head(unique(c(i, idx)), mop))
-  # }
+  if (length(sel)) {
+    i <- stats::na.omit(match(sel, data[, vfd]))
+    if (length(i)) idx <- sort(utils::head(unique(c(i, idx)), mop))
+  }
   data <- data[idx, ]
 
   res <- shiny:::toJSON(shiny:::columnToRowData(data))

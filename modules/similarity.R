@@ -78,12 +78,7 @@ similarityUI <- function(id) {
             id = ns("pane_filters"),
             formGroup(
               label = "Select reference compound",
-              input = selectizeInput(
-                ns("query_compound"),
-                label = NULL,
-                choices = NULL,
-                multiple = FALSE
-              ),
+              input = mod_ui_select_compounds(ns("query")),
               help = "Search for a compound"
             ),
             formGroup(
@@ -222,30 +217,18 @@ similarityServer <- function(input, output, session) {
     )
   })
 
-  observe({
-    updateSelectizeInput(
-      session,
-      inputId = "query_compound",
-      choices = c(set_names(100531L, "Nilotinib"), name_lspci_id_map),
-      selected = "100531",
-      server = TRUE,
-      options = list(
-        maxItems = 1,
-        maxOptions = 10,
-        placeholder = "Compound name",
-        loadThrottle = 500,
-        createFilter = ".{3,}",
-        searchField = "label"
-      ),
-      callback = fast_search
-    )
-  })
+  r_eligible_lspci_ids <- callModule(mod_server_filtered_lspci_ids, "")
+
+  r_query_compound <- callModule(
+    mod_server_select_compounds, "query",
+    data_names, r_eligible_ids = r_eligible_lspci_ids, default_choice = 100531L
+  )
 
   c_binding_msg <- reactive({
     if (NROW(r_ref_data()) > 0) {
-      paste0(input$query_compound, "; ", lspci_id_name_map[[input$query_compound]])
+      paste0(r_query_compound(), "; ", lspci_id_name_map[[r_query_compound()]])
     } else {
-      paste("No gene target binding data available for", lspci_id_name_map[[input$query_compound]])
+      paste("No gene target binding data available for", lspci_id_name_map[[r_query_compound()]])
     }
   })
 
@@ -254,9 +237,9 @@ similarityServer <- function(input, output, session) {
   })
 
   r_tas_sim <- reactive({
-    req(input$query_compound)
+    req(r_query_compound())
     tas_weighted_jaccard(
-      as.integer(input$query_compound),
+      as.integer(r_query_compound()),
       2**input$n_common
     )[
       ,
@@ -265,9 +248,9 @@ similarityServer <- function(input, output, session) {
   })
 
   r_pfp_sim <- reactive({
-    req(input$query_compound)
+    req(r_query_compound())
     pfp_correlation(
-      as.integer(input$query_compound),
+      as.integer(r_query_compound()),
       2**input$n_pheno
     )[
       ,
@@ -276,8 +259,8 @@ similarityServer <- function(input, output, session) {
   })
 
   r_chem_sim <- reactive({
-    req(input$query_compound)
-    chemical_similarity(as.integer(input$query_compound))
+    req(r_query_compound())
+    chemical_similarity(as.integer(r_query_compound()))
   })
 
   r_sim_data <- reactive({
@@ -288,10 +271,9 @@ similarityServer <- function(input, output, session) {
       by = "lspci_id"
     ) %>%
       {
-        callModule(mod_server_filter_commercial, "", .)
-      } %>%
-      {
         .[
+          lspci_id %in% r_eligible_lspci_ids()
+        ][
           , name := lspci_id_name_map[lspci_id]
         ][
           , c("pfp_correlation", "tas_similarity", "structural_similarity") :=
@@ -311,10 +293,10 @@ similarityServer <- function(input, output, session) {
   })
 
   r_ref_data <- reactive({
-    req(input$query_compound)
+    req(r_query_compound())
 
     data_selectivity[
-      lspci_id == input$query_compound,
+      lspci_id == r_query_compound(),
       .(
         symbol, selectivity_class, Kd_Q1
       )
@@ -347,9 +329,9 @@ similarityServer <- function(input, output, session) {
   })
 
   make_plot <- function(id, x, y, x_axis, y_axis) {
-    text_formula <-paste0(
+    text_formula <- paste0(
       '~ paste(',
-      '"Drug 1: ", lspci_id_name_map[[input$query_compound]], "\\n",',
+      '"Drug 1: ", lspci_id_name_map[[r_query_compound()]], "\\n",',
       '"Drug 2: ", name, "\\n",',
       '"x: ", ', x, ', "\\n",',
       '"y: ", ', y, ',',
@@ -459,7 +441,7 @@ similarityServer <- function(input, output, session) {
     })
   )
 
-  observeEvent(input$query_compound, {
+  observeEvent(r_query_compound(), {
     compounds_selected(NULL)
   })
 
@@ -494,7 +476,8 @@ similarityServer <- function(input, output, session) {
         # autoWidth = TRUE,
         buttons = list(
           list(
-            extend = "colvis"
+            extend = "colvis",
+            text = "Additional columns"
           )
         ),
         columnDefs = list(
@@ -528,7 +511,7 @@ similarityServer <- function(input, output, session) {
 
   r_download_name <- reactive({
     create_download_filename(
-      c("similarity", "table", input$query_compound)
+      c("similarity", "table", r_query_compound())
     )
   })
 

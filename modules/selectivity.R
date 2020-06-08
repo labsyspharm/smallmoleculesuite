@@ -227,15 +227,13 @@ selectivityServer <- function(input, output, session) {
     )
   })
 
+  r_eligible_lspci_ids <- callModule(mod_server_filtered_lspci_ids, "")
+
   r_binding_data <- reactive({
     req(input$query_gene)
 
-    callModule(
-      mod_server_filter_commercial,
-      "",
-      copy(data_affinity_selectivity)
-    )[
-      symbol == input$query_gene
+    copy(data_affinity_selectivity)[
+      symbol == input$query_gene & lspci_id %in% r_eligible_lspci_ids()
     ][
       ,
       is_filter_match := !is.na(affinity_Q1) &
@@ -355,15 +353,10 @@ selectivityServer <- function(input, output, session) {
           list(extend = "copy"),
           list(
             extend = "colvis",
-            columns = ":not(.select-checkbox)"
+            text = "Additional columns"
           )
         ),
         columnDefs = list(
-          list(
-            className = "select-checkbox",
-            orderable = FALSE,
-            targets = 0
-          ),
           list(
             targets = grep(
               pattern = "^(name|symbol|selectivity_class|affinity_Q1|offtarget_affinity_Q1|selectivity|toolscore|strength|references)$",

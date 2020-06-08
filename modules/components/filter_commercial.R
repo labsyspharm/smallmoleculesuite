@@ -1,26 +1,14 @@
 #' Server module to filter commercially available compounds
 #'
-#' @param data Dataframe for filtering, should contain lspci_id
-#' @return Filtered dataframe
-mod_server_filter_commercial <- function(
-  input, output, session,
-  data
-) {
-  if (is.null(input$filter_commercial))
-    return(data)
-  data[lspci_id %in% commercially_available]
-}
-
-mod_server_filter_commercial_name_lspci_id_map <- function(
+#' @return Reactive returning lspci_ids according to current selection
+mod_server_filtered_lspci_ids <- function(
   input, output, session
 ) {
   reactive({
     if (is.null(input$filter_commercial))
-      name_lspci_id_map
+      data_cmpd_info$lspci_id
     else
-      name_lspci_id_map[
-        name_lspci_id_map %in% data_commercial$lspci_id
-      ]
+      data_cmpd_info[commercially_available == TRUE][["lspci_id"]]
   })
 }
 

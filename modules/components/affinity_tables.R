@@ -101,7 +101,7 @@ mod_server_affinity_tables <- function(
         extensions = "Buttons",
         buttons = list(
           list(extend = "copy"),
-          list(extend = "colvis")
+          list(extend = "colvis", text = "Additional columns")
         ),
         columnDefs = list(
           list(
