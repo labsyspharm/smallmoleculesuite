@@ -8,12 +8,7 @@ bindingDataUI <- function(id) {
       id = ns("reference"),
       formGroup(
         label = "Select compounds",
-        input = selectizeInput(
-          ns("select_compound"),
-          label = NULL,
-          choices = NULL,
-          multiple = TRUE
-        ),
+        input = mod_ui_select_compounds(ns("query")),
         help = "Search for one or more compounds",
         width = "equal"
       ),
@@ -83,61 +78,35 @@ bindingDataServer <- function(input, output, session) {
 
   use_query <- !is.null(query[["tool"]]) && query[["tool"]] == "reference"
 
-  r_name_lspci_id_map_filtered <- callModule(
-    mod_server_filter_commercial_name_lspci_id_map,
+  r_eligible_lspci_ids <- callModule(
+    mod_server_filtered_lspci_ids,
     ""
   )
 
-  first_run <- TRUE
+  r_selected_lspci_ids <- callModule(
+    mod_server_select_compounds,
+    "query",
+    data_names,
+    default_choice = if (use_query) query[["lspci_id"]] else 1L,
+    r_eligible_ids = r_eligible_lspci_ids,
+    selectize_options = list(
+      maxItems = 10
+    )
+  )
 
-  observeEvent(r_name_lspci_id_map_filtered(), {
-    req(
-      r_name_lspci_id_map_filtered()
+  updateSelectizeInput(
+    session,
+    "select_target",
+    choices = data_affinity_selectivity[["symbol"]] %>%
+      unique() %>%
+      sort(),
+    selected = if (use_query) query[["symbol"]],
+    server = TRUE,
+    options = list(
+      placeholder = "Target symbol",
+      closeAfterSelect = TRUE
     )
-    if (first_run) {
-      first_run <<- FALSE
-      updateSelectizeInput(
-        session,
-        "select_target",
-        choices = data_affinity_selectivity[["symbol"]] %>%
-          unique() %>%
-          sort(),
-        selected = if (use_query) query[["symbol"]],
-        server = TRUE,
-        options = list(
-          placeholder = "Target symbol",
-          closeAfterSelect = TRUE
-        )
-      )
-      choices <- c(
-        if (use_query)
-          set_names(query[["lspci_id"]], lspci_id_name_map[[query[["lspci_id"]]]])
-        else
-          set_names(75376L, "Roscovitine"),
-        r_name_lspci_id_map_filtered()
-      )
-      options <- list(
-        selected = if (use_query) query[["lspci_id"]] else "75376",
-        server = TRUE,
-        options = list(
-          placeholder = "Compound name",
-          searchField = "label",
-          closeAfterSelect = TRUE
-        )
-      )
-    } else {
-      choices <- r_name_lspci_id_map_filtered()
-      options <- list(selected = NULL)
-    }
-    exec(
-      updateSelectizeInput,
-      session,
-      "select_compound",
-      choices = choices,
-      callback = fast_search,
-      !!!options
-    )
-  }, ignoreInit = FALSE, ignoreNULL = TRUE)
+  )
 
   query_show <- use_query
 
@@ -146,14 +115,14 @@ bindingDataServer <- function(input, output, session) {
     # updateSelectizeInput call when a query has been sent by the user
     if (
       query_show &&
-      !isTRUE(query[["lspci_id"]] == input$select_compound) &&
+      !isTRUE(query[["lspci_id"]] == r_selected_lspci_ids()) &&
       !isTRUE(query[["target"]] != input$select_target)
     )
       return(integer())
     query_show <<- FALSE
     selection <- list()
-    if(!is.null(input$select_compound))
-      selection[["lspci_id"]] <- as.integer(input$select_compound)
+    if(!is.null(r_selected_lspci_ids()))
+      selection[["lspci_id"]] <- as.integer(r_selected_lspci_ids())
     if(!is.null(input$select_target))
       selection[["symbol"]] <- input$select_target
     message(selection)

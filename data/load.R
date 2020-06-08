@@ -9,22 +9,21 @@ dir_data <- here("data")
 data_cmpd_info <- file.path(dir_data, "shiny_compounds_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)
 
-name_lspci_id_map <- file.path(dir_data, "name_lspci_id_map.fst") %>%
-  fst::read_fst() %>%
-  {set_names(.[["lspci_id"]], .[["name"]])}
-
 lspci_id_name_map <- file.path(dir_data, "lspci_id_name_map.fst") %>%
   fst::read_fst() %>%
   {set_names(.[["name"]], .[["lspci_id"]])}
 
-data_selection_chemprobes <- file.path(dir_data, "shiny_chemical_probes_morgan_normal.fst") %>%
-  fst::read_fst(as.data.table = TRUE) %>%
-  .[avg_rating == 4]
+data_names <- file.path(dir_data, "all_names_lspci_id_map.fst") %>%
+  fst::read_fst(as.data.table = TRUE)
+
+# data_selection_chemprobes <- file.path(dir_data, "shiny_chemical_probes_morgan_normal.fst") %>%
+#   fst::read_fst(as.data.table = TRUE) %>%
+#   .[avg_rating == 4]
 
 data_gene_info <- file.path(dir_data, "shiny_targets_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)
 
-data_pfp <- file.path(dir_data, "phenotypic_rscore_morgan_normal.fst") %>%
+data_pfp <- file.path(dir_data, "shiny_phenotypic_rscore_morgan_normal.fst") %>%
   fst::read_fst(as.data.table = TRUE)
 
 data_tas <- file.path(dir_data, "shiny_tas_morgan_normal.fst") %>%
@@ -46,11 +45,11 @@ for (col in c("toolscore", "affinity_Q1", "offtarget_affinity_Q1", "affinity_Q1_
 # data_biochem <- file.path(dir_data, "shiny_biochemical_morgan_normal.fst") %>%
 #   fst::read_fst(as.data.table = TRUE)
 
-data_commercial <- file.path(dir_data, "shiny_commercial_info_morgan_normal.fst") %>%
-  fst::read_fst(as.data.table = TRUE)
+# data_commercial <- file.path(dir_data, "shiny_commercial_info_morgan_normal.fst") %>%
+#   fst::read_fst(as.data.table = TRUE)
 
-commercially_available <- data_commercial[["lspci_id"]] %>%
-  unique()
+# commercially_available <- data_commercial[["lspci_id"]] %>%
+#   unique()
 
 # save(
 #   list = c(
