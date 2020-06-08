@@ -87,7 +87,7 @@ bindingDataServer <- function(input, output, session) {
     mod_server_select_compounds,
     "query",
     data_names,
-    default_choice = if (use_query) query[["lspci_id"]] else 1L,
+    default_choice = if (use_query) query[["lspci_id"]] else 66153L,
     r_eligible_ids = r_eligible_lspci_ids,
     selectize_options = list(
       maxItems = 10

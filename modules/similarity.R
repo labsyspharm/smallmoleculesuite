@@ -221,7 +221,7 @@ similarityServer <- function(input, output, session) {
 
   r_query_compound <- callModule(
     mod_server_select_compounds, "query",
-    data_names, r_eligible_ids = r_eligible_lspci_ids, default_choice = 100531L
+    data_names, r_eligible_ids = r_eligible_lspci_ids, default_choice = 100755L
   )
 
   c_binding_msg <- reactive({
