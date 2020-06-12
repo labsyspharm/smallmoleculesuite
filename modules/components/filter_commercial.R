@@ -19,7 +19,7 @@ mod_ui_filter_commercial <- function(id) {
   ns <- NS(id)
   switchInput(
     id = ns("filter_commercial"),
-    choices = "Include only commercially available compounds. Check cross-references for ZINC.",
+    choices = "Include only commercially available compounds. Vendors available in the cross-references at ZINC.",
     values = "only_commercial",
     selected = "only_commercial"
   )

@@ -16,7 +16,7 @@ bindingDataUI <- function(id) {
         ns("reset_select_compound"),
         "",
         icon = icon("redo"),
-        onclick = glue("$('#{ns('select_compound')}').selectize()[0].selectize.clear();")
+        onclick = glue("$('#{NS(ns('query'))('select_compound')}').selectize()[0].selectize.clear();")
       ) %>%
         margin(right = 2),
       formGroup(
@@ -115,8 +115,10 @@ bindingDataServer <- function(input, output, session) {
     # updateSelectizeInput call when a query has been sent by the user
     if (
       query_show &&
-      !isTRUE(query[["lspci_id"]] == r_selected_lspci_ids()) &&
-      !isTRUE(query[["target"]] != input$select_target)
+      (
+        !(is.null(query[["lspci_id"]]) || isTRUE(query[["lspci_id"]] == r_selected_lspci_ids())) ||
+        !(is.null(query[["symbol"]]) || isTRUE(query[["symbol"]] == input$select_target))
+      )
     )
       return(integer())
     query_show <<- FALSE
@@ -125,7 +127,6 @@ bindingDataServer <- function(input, output, session) {
       selection[["lspci_id"]] <- as.integer(r_selected_lspci_ids())
     if(!is.null(input$select_target))
       selection[["symbol"]] <- input$select_target
-    message(selection)
     if(length(selection) > 0)
       selection
     else

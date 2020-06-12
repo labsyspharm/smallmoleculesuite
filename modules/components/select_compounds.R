@@ -51,7 +51,6 @@ mod_server_select_compounds <- function(
       ]
     )
   )[, .(label = name, value = lspci_id_unique, lspci_id, source)]
-  # browser()
   updateSelectizeInput(
     session,
     inputId = "select_compound",
@@ -66,6 +65,7 @@ mod_server_select_compounds <- function(
     callback = fast_search
   )
   observeEvent(r_eligible_ids(), {
+    # browser()
     updateSelectizeInput(
       session,
       inputId = "select_compound",
