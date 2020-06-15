@@ -10,7 +10,7 @@ SELECT_COMPOUND_RENDER_JS <- I(
         "hmsl_pref": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS primary",
         "hmsl_alt": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS alternate"
       };
-      return "<div class=\\"compound_result\\"><span><strong>" + escape(item.label) + "</strong> <i>#" +
+      return "<div class=\\"compound_result\\"><span><strong>" + escape(item.label) + "</strong> <i>ID#" +
         escape(item.lspci_id) + "</i></span>" + type_map[escape(item.source)] + "</div>"
     }
   }'
