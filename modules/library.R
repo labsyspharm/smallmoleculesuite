@@ -39,7 +39,7 @@ libraryUI <- function(id) {
                 )
               ),
               formSubmit(
-                label = "Pre-defined gene sets"
+                label = "Submit gene set"
               ) %>%
                 background("orange")
             ) %>%
@@ -52,9 +52,7 @@ libraryUI <- function(id) {
                   choices = names(data_genes), # data/load.R
                   selected = "Dark_Kinome"
                 )
-
                 sel$children[[1]]$attribs$placeholder <- "Dark_Kinome"
-
                 sel
               },
               help = "Selecting a choice will populate the input above with an example list of genes."
@@ -83,14 +81,14 @@ libraryUI <- function(id) {
                     inline = TRUE,
                     id = ns("filter_probes"),
                     choices = c("Most selective", "Semi-selective", "Poly-selective", "Unknown"),
-                    # values = c("best", "second", "non", "un"),
+                    # values = c("most_selective", "semi_selective", "poly_selective", "unknown_selective"),
                     selected = "Most selective"
                   ) %>%
                     active("orange"),
                   help = "Choose the selectivity levels for which you want chemical probes to be included in the library."
                 ),
                 formGroup(
-                  label = tags$h6("Maximum clinical phase") %>% margin(b = 0),
+                  label = tags$h6("Clinical phases") %>% margin(b = 0),
                   input = checkboxInput(
                     inline = TRUE,
                     id = ns("filter_phase"),
@@ -130,9 +128,9 @@ libraryUI <- function(id) {
                       inputId = ns("filter_affinity"),
                       label = NULL,
                       min = 0,
-                      max = 5,
-                      step = 0.25,
-                      value = 3
+                      max = 14,
+                      step = 1,
+                      value = 8
                     )
                   )
                 ),
@@ -192,14 +190,7 @@ libraryUI <- function(id) {
           )
         )
       ) %>%
-        margin(b = 3),
-      card(
-        h3("Reference cards"),
-        htmlOutput(
-          outputId = ns("chembl_list")
-        )
-      ) %>%
-        margin(b = 2)
+        margin(b = 3)
     )
   )
 }
@@ -208,10 +199,14 @@ libraryServer <- function(input, output, session, load_example) {
   ns <- session$ns
 
   # Define genes found in our data
-  data_all_genes <- data_selection_selectivity$symbol
+  liganded_genes <- unique(
+    data_optimal_compounds$symbol,
+    data_chemical_probes$symbol
+  )
 
   # nav ----
   observeEvent(input$nav, {
+    req(input$nav)
     switch(
       input$nav,
       filters = showNavPane(ns("pane_filters")),
@@ -244,11 +239,11 @@ libraryServer <- function(input, output, session, load_example) {
   })
 
   r_gene_unknown <- reactive({
-    dplyr::setdiff(r_gene_list(), data_all_genes)
+    dplyr::setdiff(r_gene_list(), data_gene_info$symbol)
   })
 
   r_gene_known <- reactive({
-    dplyr::intersect(data_all_genes, r_gene_list())
+    dplyr::intersect(liganded_genes, r_gene_list())
   })
 
   observeEvent(input$gene_unknowns, {
@@ -258,7 +253,7 @@ libraryServer <- function(input, output, session, load_example) {
       modal(
         id = NULL,
         header = h5("Unqualified targets"),
-        p("The following targets do not have a known qualifying ligand, please check HUGO name: "),
+        p(paste0("The following ", length(r_gene_unknown()), " targets do not have any annotated ligands: ")),
         p(paste(r_gene_unknown(), collapse = ", "))
       )
     )
@@ -275,42 +270,33 @@ libraryServer <- function(input, output, session, load_example) {
   r_selection_selectivity <- reactive({
     req(r_gene_known())
 
-    gene_select <- data_selection_selectivity %>%
-      dplyr::filter(symbol %in% r_gene_known())
-
-    if (is.null(input$filter_probes)) {
-      return(dplyr::slice(gene_select, 0))
-    }
-
-    gene_select %>%
-      dplyr::filter(selectivity_class %in% input$filter_probes)
+    # browser()
+    data_optimal_compounds[
+      symbol %in% r_gene_known() &
+        selectivity_class %in% input$filter_probes &
+        reason_included == "selectivity"
+    ]
   })
 
   r_selection_clinical <- reactive({
     req(r_gene_known())
 
-    gene_clinical <- data_selection_selectivity %>%
-      dplyr::filter(symbol %in% r_gene_known())
-
-    if (is.null(input$filter_phase)) {
-      return(dplyr::slice(gene_clinical, 0))
-    }
-
-    phase_clinical <- gene_clinical %>%
-      dplyr::filter(max_phase %in% input$filter_phase)
-
-    # sliders "sd" and "affinity" are in log10 scale
-    phase_clinical %>%
-      dplyr::filter(Kd_Q1 <= 10 ^ input$filter_affinity) %>%
-      dplyr::filter(n_measurement_kd >= input$filter_measurement)
+    data_optimal_compounds[
+      symbol %in% r_gene_known() &
+        max_phase %in% input$filter_phase &
+        reason_included == "clinical"
+    ]
   })
 
   r_selection_chemprobes <- reactive({
     req(r_gene_known())
 
-    data_selection_chemprobes %>%
-      dplyr::mutate(Kd_Q1 = NA, n_measurement_kd = NA, selectivity_class = "probe") %>%
-      dplyr::filter(symbol %in% r_gene_known())
+    data_chemical_probes[
+      symbol %in% r_gene_known() &
+        avg_rating == 4
+    ][
+      , reason_included := "expert_opinion"
+    ]
   })
 
   r_selection_table <- reactive({
@@ -320,59 +306,39 @@ libraryServer <- function(input, output, session, load_example) {
       r_selection_clinical()
     )
 
-    target_cols <- c(
-      "gene_id", "lspci_id", "KD_Q1", "SD_aff", "n_measurement_kd", "selectivity_class"
-    )
-
-    this <- dplyr::bind_rows(
-      r_selection_selectivity() %>% dplyr::select(!!target_cols),
-      r_selection_clinical() %>% dplyr::select(!!target_cols)
-    )
-
-    if (isTRUE("chem_probe" %in% input$filter_expert)) {
-      req(r_selection_chemprobes())
-
-      this <- this %>%
-        dplyr::bind_rows(
-          r_selection_chemprobes() %>% dplyr::select(!!target_cols)
-        )
-    }
-
-    this
+    rbindlist(
+      list(
+        r_selection_selectivity(),
+        r_selection_clinical()
+      ),
+      fill = TRUE
+    )[
+      affinity_Q1 <= 2**input$filter_affinity &
+        affinity_N >= input$filter_measurement
+    ] %>%
+      {
+        if (isTRUE("chem_probe" %in% input$filter_expert))
+          rbindlist(list(., r_selection_chemprobes()), fill = TRUE)
+        else .
+      }
   })
 
   r_table_entry <- reactive({
     r_selection_table() %>%
       dplyr::inner_join(
         data_cmpd_info %>%
-          dplyr::select(lspci_id, chembl_id, pref_name, max_phase),
+          dplyr::select(lspci_id, chembl_id, pref_name),
         by = "lspci_id"
-      ) %>%
-      dplyr::inner_join(
-        data_gene_info,
-        by = "gene_id"
       ) %>%
       dplyr::distinct() %>%
       dplyr::select(
         symbol, chembl_id,
-        pref_name, selectivity_class, max_phase, Kd_Q1, n_measurement_kd,
-        gene_id, tax_id
-      ) %>%
-      dplyr::mutate_at(
-        vars(symbol, chembl_id, pref_name, source, gene_id, tax_id),
-        factor
-      ) %>%
-      dplyr::mutate_at(
-        vars(max_phase),
-        as.integer
+        pref_name, selectivity_class, max_phase, affinity_Q1, affinity_N,
+        gene_id, reason_included
       ) %>%
       dplyr::mutate_at(           # rounds mean and SD to closest 0.1 if greater than 1.
-        vars(Kd_Q1),    # if less than one, rounds to two significant digits.
+        vars(affinity_Q1),    # if less than one, rounds to two significant digits.
         ~ ifelse(. > 1, round(., 1), signif(., 2))
-      ) %>%
-      dplyr::rename(
-        `Kd_Q1_(nM)` = Kd_Q1,
-        reason_included = selectivity_class
       )
   })
 
@@ -381,33 +347,21 @@ libraryServer <- function(input, output, session, load_example) {
       dplyr::inner_join(
         data_cmpd_info %>%
           dplyr::select(
-            lspci_id, chembl_id, pref_name, max_phase,
-            alt_names
+            lspci_id, chembl_id, pref_name
           ),
         by = "lspci_id"
       ) %>%
-      dplyr::inner_join(
-        data_gene_info,
-        by = "gene_id"
-      ) %>%
       dplyr::distinct() %>%
       dplyr::group_by(
-        lspci_id, chembl_id, pref_name, alt_names, max_phase
+        lspci_id, chembl_id, pref_name, max_phase
       ) %>%
       dplyr::summarise(
-        sources = paste(symbol, "; ", selectivity_class, collapse = ", ")
+        reason_included = paste(symbol, ": ", reason_included, collapse = "; ")
       ) %>%
       dplyr::ungroup() %>%
       dplyr::mutate_at(
-        vars(lspci_id, chembl_id, pref_name),
-        factor
-      ) %>%
-      dplyr::mutate_at(
         vars(max_phase),
         as.integer
-      ) %>%
-      dplyr::rename(
-        reason_included = sources
       )
   })
 
@@ -427,53 +381,21 @@ libraryServer <- function(input, output, session, load_example) {
       c("library", "small", "molecule", "suite"), c(view_type, "view")
     )
 
-    .data <- r_tbl_data() %>%
-      dplyr::mutate(
-        ` ` = NA_character_,
-        chembl_id = lapply(
-          glue(
-            "<a target='_blank'
-                href='https://www.ebi.ac.uk/chembl/compound_report_card/{ chembl_id }'>
-                { chembl_id }<sup class='ml-1'><i class='fa fa-external-link'></i></sup>
-             </a>"
-          ),
-          HTML
-        ),
-      ) %>%
-      dplyr::select(` `, everything())
+    .data <- r_tbl_data()
 
     DT::datatable(
       data = .data,
-      extensions = c("Buttons", "Select"),
+      extensions = c("Buttons"),
       fillContainer = FALSE,
       filter = "top",
+      selection = "multiple",
       rownames = FALSE,
       options = list(
         autoWidth = TRUE,
         buttons = list(
-          list(extend = "copy"),
-          list(
-            extend = "csv",
-            title = download_name
-          ),
-          list(
-            extend = "excel",
-            title = download_name
-          ),
           list(
             extend = "colvis",
-            columns = ":not(.select-checkbox)"
-          )
-        ),
-        columnDefs = list(
-          list(
-            targets = 0,
-            className = "select-checkbox",
-            orderable = FALSE
-          ),
-          list(
-            targets = 1,
-            visible = input$table_display != "compound"
+            text = "Additional columns"
           )
         ),
         dom = "lfrtipB",
@@ -482,10 +404,6 @@ libraryServer <- function(input, output, session, load_example) {
         ),
         pagingType = "numbers",
         searchHighlight = TRUE,
-        select = list(
-          style = "os",
-          selector = "td.select-checkbox"
-        ),
         scrollX = FALSE
       )
     )
@@ -495,49 +413,5 @@ libraryServer <- function(input, output, session, load_example) {
     r_tbl(),
     server = FALSE
   )
-
-  output$chembl_list <- renderUI({
-    req(input$table_results_rows_selected)
-
-    tbl_selection <- r_tbl_data()[input$table_results_rows_selected, ]
-    chembl_ids <- sort(unique(as.character(tbl_selection$chembl_id)))
-
-    chembl_first <- vector("logical", length(chembl_ids))
-    chembl_first[1] <- TRUE
-
-    nav_link <- function(x, active) {
-      active <- if (active) " active" else ""
-      glue("<a class='text-black nav-link{ active }' data-toggle='pill'
-             data-target='#{ x }' role='tab'>{ x }</a>")
-    }
-
-    tab_pane <- function(x, active) {
-      active <- if (active) " show active" else ""
-      glue("<div class='tab-pane { active }' id='{ x }'
-             style='height: 750.5px'
-             role='tabpanel'>
-             <object data='https://www.ebi.ac.uk/chembl/embed/#compound_report_card/{ x }/name_and_classification'
-              width='100%' height='100%'>
-             </object>
-           </div>")
-    }
-
-    chembl_panes <- c(
-      "<div class='row'>",
-      "<div class='col-3'>",
-      "<div class='nav flex-colum nav-pills active-orange' role='tablist'>",
-      purrr::map2_chr(chembl_ids, chembl_first, nav_link),
-      "</div>",
-      "</div>",
-      "<div class='col-9'>",
-      "<div class='tab-content'>",
-      purrr::map2_chr(chembl_ids, chembl_first, tab_pane),
-      "</div>",
-      "</div>",
-      "</div>"
-    )
-
-    HTML(glue_collapse(chembl_panes, "\n"))
-  })
 
 }

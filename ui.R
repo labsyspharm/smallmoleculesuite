@@ -28,14 +28,14 @@ function(req) {
           choices = list(
             list(icon("home"), "Home"),
             list(icon("circle", class = "selectivity--pink"), "Selectivity"),
-            list(icon("circle", class = "similarity--green"), "Similarity")
-            # list(icon("circle", class = "library--orange"), "Library")
+            list(icon("circle", class = "similarity--green"), "Similarity"),
+            list(icon("circle", class = "library--orange"), "Library")
           ),
           values = c(
             "home",
             "selectivity",
-            "similarity"
-            # "library"
+            "similarity",
+            "library"
           )
         ) %>%
           margin(left = "auto"),
@@ -138,16 +138,16 @@ function(req) {
                               "I need a full list of small molecules that target a gene of interest."
                             )
                           )
+                        ),
+                        p(
+                          linkInput(
+                            id = "goto_library_1",
+                            label = list(
+                              icon("share"),
+                              "I need two orthogonal small molecules for a set of targets"
+                            )
+                          )
                         )
-                        # p(
-                        #   linkInput(
-                        #     id = "goto_library_1",
-                        #     label = list(
-                        #       icon("share"),
-                        #       "I need two orthogonal small molecules for a set of targets"
-                        #     )
-                        #   )
-                        # )
                       ) %>%
                         shadow("small"),
                       card(
@@ -216,24 +216,24 @@ function(req) {
                   ) %>%
                     display("flex") %>%
                     flex(direction = "column") %>%
+                    font(align = "center"),
+                  column(
+                    linkInput(
+                      id = "link_library",
+                      label = list(
+                        tags$img(src = "sms/assets/img/flask.png") %>%
+                          height(10),
+                        # icon("circle", class = "fa-6x text-orange"),
+                        h4("Library") %>%
+                          font(color = "black") %>%
+                          margin(top = 2)
+                      )
+                    ),
+                    p("Library composes custom chemical genetics libraries for gene-sets of interest.")
+                  ) %>%
+                    display("flex") %>%
+                    flex(direction = "column") %>%
                     font(align = "center")
-                  # column(
-                  #   linkInput(
-                  #     id = "link_library",
-                  #     label = list(
-                  #       tags$img(src = "sms/assets/img/flask.png") %>%
-                  #         height(10),
-                  #       # icon("circle", class = "fa-6x text-orange"),
-                  #       h4("Library") %>%
-                  #         font(color = "black") %>%
-                  #         margin(top = 2)
-                  #     )
-                  #   ),
-                  #   p("Library composes custom chemical genetics libraries for gene-sets of interest.")
-                  # ) %>%
-                  #   display("flex") %>%
-                  #   flex(direction = "column") %>%
-                  #   font(align = "center")
                 ),
                 h1("Binding data") %>%
                   font(align = "center") %>%
@@ -264,12 +264,12 @@ function(req) {
             )
           ),
           # library ----
-          # navPane(
-          #   id = "page_library",
-          #   libraryUI(
-          #     id = "lib"
-          #   )
-          # )
+          navPane(
+            id = "page_library",
+            libraryUI(
+              id = "lib"
+            )
+          )
         )
       )
     )

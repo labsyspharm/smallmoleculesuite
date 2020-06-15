@@ -23,12 +23,13 @@ files <- c(
   "shiny_selectivity.fst",
   "shiny_compounds.fst",
   "shiny_targets.fst",
-  # "shiny_chemical_probes.fst",
+  "shiny_chemical_probes.fst",
   # "name_lspci_id_map.fst",
   "lspci_id_name_map.fst",
   "shiny_tas.fst",
   "shiny_commercial_info.fst",
-  "shiny_biochemical.fst"
+  "shiny_biochemical.fst",
+  "shiny_optimal_compound_table.fst"
 )
 
 walk(

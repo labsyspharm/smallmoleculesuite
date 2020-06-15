@@ -50,13 +50,13 @@ function(input, output, session) {
     id = "sim"
   )
 
-  # callModule(
-  #   module = libraryServer,
-  #   id = "lib",
-  #   load_example = reactive({
-  #     req(input$nav == "library")
-  #   })
-  # )
+  callModule(
+    module = libraryServer,
+    id = "lib",
+    load_example = reactive({
+      req(input$nav == "library")
+    })
+  )
 
   callModule(
     module = bindingDataServer,
