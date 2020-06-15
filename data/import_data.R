@@ -18,17 +18,17 @@ syn_tables <- synPluck(syn_parent, release, "db_tables", fp_name, "website")
 
 files <- c(
   "all_names_lspci_id_map.fst",
-  # "shiny_phenotypic_rscore.fst",
-  # "shiny_fingerprints.bin",
-  # "shiny_selectivity.fst",
-  # "shiny_compounds.fst",
-  # "shiny_targets.fst",
+  "shiny_phenotypic_rscore.fst",
+  "shiny_fingerprints.bin",
+  "shiny_selectivity.fst",
+  "shiny_compounds.fst",
+  "shiny_targets.fst",
   # "shiny_chemical_probes.fst",
   # "name_lspci_id_map.fst",
-  "lspci_id_name_map.fst"
-  # "shiny_tas.fst"
-  # "shiny_commercial_info.fst",
-  # "shiny_biochemical.fst"
+  "lspci_id_name_map.fst",
+  "shiny_tas.fst",
+  "shiny_commercial_info.fst",
+  "shiny_biochemical.fst"
 )
 
 walk(

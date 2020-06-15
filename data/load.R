@@ -14,7 +14,13 @@ lspci_id_name_map <- file.path(dir_data, "lspci_id_name_map.fst") %>%
   {set_names(.[["name"]], .[["lspci_id"]])}
 
 data_names <- file.path(dir_data, "all_names_lspci_id_map.fst") %>%
-  fst::read_fst(as.data.table = TRUE)
+  fst::read_fst(as.data.table = TRUE) %>%
+  # Reorder data.table so that some nice normal compounds are at the front
+  {
+    .[
+      order(lspci_id_unique %in% c("16241-1", "78621-1", "90319-1", "96316-1", "76418-1", "78036-1", "83706-1", "81903-1", "72090-1", "97590-1"), decreasing = TRUE)
+    ]
+  }
 
 # data_selection_chemprobes <- file.path(dir_data, "shiny_chemical_probes_morgan_normal.fst") %>%
 #   fst::read_fst(as.data.table = TRUE) %>%
