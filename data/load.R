@@ -48,6 +48,21 @@ for (col in c("toolscore", "affinity_Q1", "offtarget_affinity_Q1", "affinity_Q1_
   set(data_affinity_selectivity, j = col, value = signif(data_affinity_selectivity[[col]], digits = 2))
 }
 
+data_optimal_compounds <- file.path(dir_data, "shiny_optimal_compound_table_morgan_normal.fst") %>%
+  fst::read_fst(as.data.table = TRUE) %>%
+  merge(data_affinity_selectivity, by = c("lspci_id", "gene_id"), all.x = TRUE, all.y = FALSE) %>%
+  merge(data_cmpd_info[, .(lspci_id, max_phase)], by = "lspci_id", all.x = TRUE, all.y = FALSE)
+
+data_chemical_probes <- file.path(dir_data, "shiny_chemical_probes_morgan_normal.fst") %>%
+  fst::read_fst(as.data.table = TRUE) %>%
+  {
+    .[!is.na(lspci_id) & !is.na(gene_id)][
+      , gene_id := as.integer(gene_id)
+    ][
+      data_gene_info, on = "gene_id", nomatch = NULL
+    ]
+  }
+
 # data_biochem <- file.path(dir_data, "shiny_biochemical_morgan_normal.fst") %>%
 #   fst::read_fst(as.data.table = TRUE)
 
