@@ -24,7 +24,6 @@ files <- c(
   "shiny_compounds.fst",
   "shiny_targets.fst",
   "shiny_chemical_probes.fst",
-  # "name_lspci_id_map.fst",
   "lspci_id_name_map.fst",
   "shiny_tas.fst",
   "shiny_commercial_info.fst",
