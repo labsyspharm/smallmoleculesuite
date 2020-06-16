@@ -37,6 +37,19 @@ libraryUI <- function(id) {
                   "for help."
                 )
               ),
+              formGroup(
+                label = "Example gene lists",
+                input = {
+                  sel <- selectInput(
+                    id = ns("gene_example"),
+                    choices = names(data_genes), # data/load.R
+                    selected = "Dark_Kinome"
+                  )
+                  sel$children[[1]]$attribs$placeholder <- "Dark_Kinome"
+                  sel
+                },
+                help = "Selecting a choice will populate the input above with an example list of genes."
+              ),
               formSubmit(
                 label = "Submit"
               ) %>%
@@ -50,19 +63,6 @@ libraryUI <- function(id) {
                 background("orange")
             ) %>%
               margin(bottom = 3),
-            formGroup(
-              label = "Example gene lists",
-              input = {
-                sel <- selectInput(
-                  id = ns("gene_example"),
-                  choices = names(data_genes), # data/load.R
-                  selected = "Dark_Kinome"
-                )
-                sel$children[[1]]$attribs$placeholder <- "Dark_Kinome"
-                sel
-              },
-              help = "Selecting a choice will populate the input above with an example list of genes."
-            ),
             navContent(
               navPane(
                 id = ns("pane_results"),
