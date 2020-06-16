@@ -1,10 +1,14 @@
 REFERENCE_URLS <- c(
+  pubmed_id = "https://pubmed.ncbi.nlm.nih.gov/",
+  chembl_id = "https://www.ebi.ac.uk/chembl/document_report_card/",
+  patent_id = "https://patents.google.com/?q=",
+  synapse_id = "https://www.synapse.org/#!Synapse:",
+  doi = "https://dx.doi.org/",
+  hms_lincs = "http://lincs.hms.harvard.edu/db/datasets/",
   pubmed = "https://pubmed.ncbi.nlm.nih.gov/",
   chembl = "https://www.ebi.ac.uk/chembl/document_report_card/",
   patent = "https://patents.google.com/?q=",
-  synapse = "https://www.synapse.org/#!Synapse:",
-  doi = "https://dx.doi.org/",
-  hmsl = "http://lincs.hms.harvard.edu/db/datasets/"
+  synapse = "https://www.synapse.org/#!Synapse:"
 )
 
 format_references <- function(references) {
