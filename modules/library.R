@@ -22,15 +22,14 @@ libraryUI <- function(id) {
             formInput(
               id = ns("gene_form"),
               formGroup(
-                label = "Gene name of target drug",
+                label = "Find ligands for gene symbols",
                 input = shiny::textAreaInput(
                   inputId = ns("gene_list"),
                   label = NULL,
                   rows = 5
-                ) %>%
-                  margin(top = -3),
+                ),
                 help = div(
-                  "This tool uses HUGO names. Please see",
+                  "This tool uses HUGO symbols Please see",
                   tags$a(
                     target = "_blank", href = "https://genenames.org",
                     "genenames.org"
@@ -39,7 +38,14 @@ libraryUI <- function(id) {
                 )
               ),
               formSubmit(
-                label = "Submit gene set"
+                label = "Submit"
+              ) %>%
+                background("orange"),
+              actionButton(
+                ns("reset_gene_list"),
+                "Clear list",
+                icon = icon("redo"),
+                onclick = glue("$('#{ns('gene_list')}')[0].value = null;")
               ) %>%
                 background("orange")
             ) %>%
@@ -76,7 +82,7 @@ libraryUI <- function(id) {
                   margin(top = 4, bottom = 4) %>%
                   font(size = "lg"),
                 formGroup(
-                  label = tags$h6("Probes") %>% margin(b = 0),
+                  label = tags$h6("Selectivity levels") %>% margin(b = 0),
                   input = checkboxInput(
                     inline = TRUE,
                     id = ns("filter_probes"),
@@ -187,10 +193,13 @@ libraryUI <- function(id) {
           DT::dataTableOutput(
             outputId = ns("table_results"),
             height = "625px"
-          )
+          ),
+          mod_ui_download_button(ns("output_table_csv_dl"), "Download CSV"),
+          mod_ui_download_button(ns("output_table_xlsx_dl"), "Download Excel")
         )
       ) %>%
-        margin(b = 3)
+        margin(b = 3),
+      mod_ui_chembl_tabs(ns("chembl_tabs_1"))
     )
   )
 }
@@ -334,7 +343,7 @@ libraryServer <- function(input, output, session, load_example) {
       dplyr::select(
         symbol, chembl_id,
         pref_name, selectivity_class, max_phase, affinity_Q1, affinity_N,
-        gene_id, reason_included
+        gene_id, reason_included, lspci_id
       ) %>%
       dplyr::mutate_at(           # rounds mean and SD to closest 0.1 if greater than 1.
         vars(affinity_Q1),    # if less than one, rounds to two significant digits.
@@ -376,11 +385,6 @@ libraryServer <- function(input, output, session, load_example) {
   })
 
   r_tbl <- reactive({
-    view_type <- if (input$table_display == "entry") "target" else "compound"
-    download_name <- create_download_filename(
-      c("library", "small", "molecule", "suite"), c(view_type, "view")
-    )
-
     .data <- r_tbl_data()
 
     DT::datatable(
@@ -398,6 +402,16 @@ libraryServer <- function(input, output, session, load_example) {
             text = "Additional columns"
           )
         ),
+        columnDefs = list(
+          list(
+            targets = grep(
+              pattern = "^(lspci_id)$",
+              x = names(.data),
+              invert = FALSE
+            ) - 1,
+            visible = FALSE
+          )
+        ),
         dom = "lfrtipB",
         fixedHeader = list(
           header = TRUE
@@ -412,6 +426,32 @@ libraryServer <- function(input, output, session, load_example) {
   output$table_results <- DT::renderDataTable(
     r_tbl(),
     server = FALSE
+  )
+
+  r_download_name <- reactive({
+    create_download_filename(
+      c("compound", "library")
+    )
+  })
+
+  callModule(mod_server_download_button, "output_table_xlsx_dl", r_tbl_data, "excel", r_download_name)
+  callModule(mod_server_download_button, "output_table_csv_dl", r_tbl_data, "csv", r_download_name)
+
+  # table row selection ----
+  r_tbl_selection <- reactive({
+    sort(input$table_results_rows_selected)
+  })
+
+  r_selection_drugs <- reactive({
+    if (is.null(r_tbl_selection())) {
+      return(integer())
+    }
+
+    r_tbl_data()$lspci_id[r_tbl_selection()]
+  })
+
+  o_chembl_tabs <- callModule(
+    mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
   )
 
 }
