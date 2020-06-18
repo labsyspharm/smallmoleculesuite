@@ -220,7 +220,7 @@ function(req) {
                     linkInput(
                       id = "link_selectivity",
                       label = list(
-                        tags$img(src = "sms/assets/img/helix.png") %>%
+                        tags$img(src = "sms/assets/img/selectivity_logo.svg") %>%
                           height(10),
                         # icon("circle", class = "fa-6x selectivity--pink"),
                         h4("Selectivity") %>%
@@ -237,7 +237,7 @@ function(req) {
                     linkInput(
                       id = "link_similarity",
                       label = list(
-                        tags$img(src = "sms/assets/img/molecule.png") %>%
+                        tags$img(src = "sms/assets/img/similarity_logo.svg") %>%
                           height(10),
                         # icon("circle", class = "fa-6x similarity--green"),
                         h4("Similarity") %>%
@@ -254,7 +254,7 @@ function(req) {
                     linkInput(
                       id = "link_library",
                       label = list(
-                        tags$img(src = "sms/assets/img/flask.png") %>%
+                        tags$img(src = "sms/assets/img/library_logo.svg") %>%
                           height(10),
                         # icon("circle", class = "fa-6x text-orange"),
                         h4("Library") %>%
