@@ -29,13 +29,15 @@ function(req) {
             list(icon("home"), "Home"),
             list(icon("circle", class = "selectivity--pink"), "Selectivity"),
             list(icon("circle", class = "similarity--green"), "Similarity"),
-            list(icon("circle", class = "library--orange"), "Library")
+            list(icon("circle", class = "library--orange"), "Library"),
+            "Download"
           ),
           values = c(
             "home",
             "selectivity",
             "similarity",
-            "library"
+            "library",
+            "download"
           )
         ) %>%
           margin(left = "auto"),
@@ -58,7 +60,7 @@ function(req) {
         #   background("black") %>%
         #   font(color = "white"),
         tags$a(
-          href = "https://github.com/labsyspharm/smallmoleculesuite",
+          href = "https://github.com/labsyspharm/sms-website",
           target = "_blank",
           icon("github", class = "fa-lg")
         ) %>%
@@ -171,6 +173,28 @@ function(req) {
                           )
                         )
                       ) %>%
+                        shadow("small"),
+                      card(
+                        h5("I want to download data—"),
+                        p(
+                          linkInput(
+                            id = "goto_data_1",
+                            label = list(
+                              icon("share"),
+                              "As flat CSV files"
+                            )
+                          )
+                        ),
+                        p(
+                          linkInput(
+                            id = "goto_data_2",
+                            label = list(
+                              icon("share"),
+                              "As SQL database"
+                            )
+                          )
+                        )
+                      ) %>%
                         shadow("small")
                     )
                   )
@@ -268,6 +292,52 @@ function(req) {
             id = "page_library",
             libraryUI(
               id = "lib"
+            )
+          ),
+          # downloads ----
+          navPane(
+            id = "page_download",
+            card(
+              header = h4("Download Small Molecule Suite data"),
+              p(
+                "The entire Small Molecule Suite dataset is available for download.",
+                "The data are organized in separate tables. A description of each table",
+                "and documentation for columns is available."
+              ),
+              a(
+                h4("Table documentation", class = "btn btn-default btn-grey"),
+                href = "https://dbdocs.io/clemenshug/sms_db",
+                target = "_blank"
+              )
+            ) %>%
+              margin(bottom = 3),
+            columns(
+              column(
+                width = 6,
+                card(
+                  header = h4("SQL download"),
+                  p(
+                    "Gzip compressed SQL dump in PostgreSQL format."
+                  ),
+                  a(
+                    h4("SQL database", class = "btn btn-default btn-grey"),
+                    href = "https://dbdocs.io/clemenshug/sms_db"
+                  )
+                )
+              ),
+              column(
+                width = 6,
+                card(
+                  header = h4("CSV download"),
+                  p(
+                    "Gzip compressed CSV files for all tables."
+                  ),
+                  a(
+                    h4("CSV files", class = "btn btn-default btn-grey"),
+                    href = "https://dbdocs.io/clemenshug/sms_db"
+                  )
+                )
+              )
             )
           )
         )
