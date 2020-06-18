@@ -36,6 +36,10 @@ function(input, output, session) {
     navToPage("similarity")
   })
 
+  observeEvent(c(input$goto_data_1, input$goto_data_2), {
+    navToPage("download")
+  })
+
   observeEvent(c(input$link_library, input$goto_library_1), {
     navToPage("library")
   })
