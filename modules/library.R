@@ -82,6 +82,13 @@ libraryUI <- function(id) {
                   margin(top = 4, bottom = 4) %>%
                   font(size = "lg"),
                 formGroup(
+                  label = "Commercial availability",
+                  input = div(
+                    class = "active--orange",
+                    mod_ui_filter_commercial(ns(""))
+                  )
+                ),
+                formGroup(
                   label = tags$h6("Selectivity levels") %>% margin(b = 0),
                   input = checkboxInput(
                     inline = TRUE,
@@ -268,6 +275,8 @@ libraryServer <- function(input, output, session, load_example) {
     )
   })
 
+  r_eligible_lspci_ids <- callModule(mod_server_filtered_lspci_ids, "")
+
   output$gene_targets <- renderText({
     if (is.null(r_gene_list()) || length(r_gene_list()) < 1) {
       "No genes upload yet"
@@ -323,7 +332,8 @@ libraryServer <- function(input, output, session, load_example) {
       fill = TRUE
     )[
       affinity_Q1 <= 2**input$filter_affinity &
-        affinity_N >= input$filter_measurement
+        affinity_N >= input$filter_measurement &
+        lspci_id %in% r_eligible_lspci_ids()
     ] %>%
       {
         if (isTRUE("chem_probe" %in% input$filter_expert))
