@@ -159,7 +159,7 @@ function(req) {
                             id = "goto_similarity_1",
                             label = list(
                               icon("share"),
-                              "I would like to know which small molecules are similar to a small molecule of interest"
+                              "I would like to know which small molecules are similar to my of interest"
                             )
                           )
                         ),
@@ -168,7 +168,7 @@ function(req) {
                             id = "goto_similarity_2",
                             label = list(
                               icon("share"),
-                              "What are the targets?"
+                              "What are the targets of my compound?"
                             )
                           )
                         )
@@ -219,7 +219,7 @@ function(req) {
                           margin(top = 2)
                       )
                     ),
-                    p("Selectivity shows the affinity and selectivity of compounds in the HMS-LINCS collection for a gene of interest.")
+                    p("shows the affinity and selectivity of compounds for a protein of interest.")
                   ) %>%
                     display("flex") %>%
                     flex(direction = "column") %>%
@@ -236,7 +236,7 @@ function(req) {
                           margin(top = 2)
                       )
                     ),
-                    p("Similarity shows the similarity of compounds in the HMS-LINCS collection to a reference compound.")
+                    p("shows the similarity of compounds to a reference probe or drug.")
                   ) %>%
                     display("flex") %>%
                     flex(direction = "column") %>%
@@ -253,7 +253,7 @@ function(req) {
                           margin(top = 2)
                       )
                     ),
-                    p("Library composes custom chemical genetics libraries for gene-sets of interest.")
+                    p("composes custom chemical genetics libraries for gene-sets of interest.")
                   ) %>%
                     display("flex") %>%
                     flex(direction = "column") %>%
