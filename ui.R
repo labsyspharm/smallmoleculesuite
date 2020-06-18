@@ -47,12 +47,21 @@ function(req) {
         ) %>%
           background("black") %>%
           font(color = "white"),
+
         buttonInput(
           id = "funding",
           label = "Funding"
         ) %>%
           background("black") %>%
           font("white"),
+        tags$a(
+          href = "https://forms.gle/dSpCJSsbaavTbCkP6",
+          target = "_blank",
+          icon("comments", class = "fa-lg"),
+          " Feedback"
+        ) %>%
+          font(color = "white") %>%
+          margin(l = 2),
         # buttonInput(
         #   id = "bookmark_begin",
         #   label = icon("link")
@@ -65,7 +74,7 @@ function(req) {
           icon("github", class = "fa-lg")
         ) %>%
           font(color = "white") %>%
-          margin(l = 2)
+          margin(l = 3)
       ) %>%
         active("red") %>%
         padding(0, r = 3, l = 3) %>%
@@ -300,9 +309,9 @@ function(req) {
             card(
               header = h4("Download Small Molecule Suite data"),
               p(
-                "The entire Small Molecule Suite dataset is available for download.",
-                "The data are organized in separate tables. A description of each table",
-                "and documentation for columns is available."
+                "The entire Small Molecule Suite dataset is available for download.", tags$br(),
+                "The data are organized in separate normalized tables. Documentation",
+                "for each table and their relationship is available."
               ),
               a(
                 h4("Table documentation", class = "btn btn-default btn-grey"),
@@ -317,8 +326,10 @@ function(req) {
                 card(
                   header = h4("SQL download"),
                   p(
-                    "Gzip compressed SQL dump in PostgreSQL format."
+                    "Gzip compressed SQL dump of the Small Molecule Suite database",
+                    "in PostgreSQL format."
                   ),
+                  p("Based on ChEMBL v25, size x Mb"),
                   a(
                     h4("SQL database", class = "btn btn-default btn-grey"),
                     href = "https://dbdocs.io/clemenshug/sms_db"
@@ -330,8 +341,9 @@ function(req) {
                 card(
                   header = h4("CSV download"),
                   p(
-                    "Gzip compressed CSV files for all tables."
+                    "Tarball of gzip compressed CSV files."
                   ),
+                  p("Based on ChEMBL v25, size x Mb"),
                   a(
                     h4("CSV files", class = "btn btn-default btn-grey"),
                     href = "https://dbdocs.io/clemenshug/sms_db"
