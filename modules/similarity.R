@@ -459,9 +459,11 @@ similarityServer <- function(input, output, session) {
     } else {
       r_sim_data()
     })[
+      data_cmpd_info[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
+    ][
       order(-pfp_correlation, -tas_similarity, -structural_similarity)
     ] %>%
-      select(name, everything(), -ends_with("_plot"))
+      select(name, chembl_id, everything(), -ends_with("_plot"))
   })
 
   r_tbl_sim_compound <- reactive({
@@ -484,7 +486,7 @@ similarityServer <- function(input, output, session) {
           list(
             targets = grep(
               x = names(.data),
-              pattern = "^(name|structural_similarity|pfp_correlation|tas_similarity)$",
+              pattern = "^(name|chembl_id|structural_similarity|pfp_correlation|tas_similarity)$",
               invert = TRUE
             ) - 1,
             visible = FALSE

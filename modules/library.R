@@ -134,7 +134,7 @@ libraryUI <- function(id) {
                     active("orange")
                 ),
                 formGroup(
-                  label = tags$h6("Maximum Kd for query target (nM)") %>% margin(b = 0),
+                  label = tags$h6("Minimum affinity for query target (nM)") %>% margin(b = 0),
                   div(
                     class = "logify-slider active--orange",
                     shiny::sliderInput(
@@ -148,7 +148,7 @@ libraryUI <- function(id) {
                   )
                 ),
                 formGroup(
-                  label = tags$h6("Minimum number of measurements") %>% margin(b = 0),
+                  label = tags$h6("Minimum number of affinity measurements") %>% margin(b = 0),
                   div(
                     class = "active--orange",
                     shiny::sliderInput(
@@ -428,7 +428,7 @@ libraryServer <- function(input, output, session, load_example) {
         ),
         pagingType = "numbers",
         searchHighlight = TRUE,
-        scrollX = FALSE
+        scrollX = TRUE
       )
     )
   })

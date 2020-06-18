@@ -67,7 +67,7 @@ selectivityUI <- function(id) {
               )
             ),
             formGroup(
-              label = "Minimum number of measurements",
+              label = "Minimum number of affinity measurements",
               input = div(
                 class = "active--pink",
                 shiny::sliderInput(
@@ -331,9 +331,11 @@ selectivityServer <- function(input, output, session) {
     })[
       is_filter_match == TRUE
     ][
+      data_cmpd_info[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
+    ][
       order(-selectivity_class, affinity_Q1)
     ] %>%
-      select(name, symbol, selectivity_class, affinity_Q1, offtarget_affinity_Q1, everything())
+      select(name, chembl_id, symbol, selectivity_class, affinity_Q1, offtarget_affinity_Q1, everything())
   })
 
   tbl_data_formatted <- callModule(mod_server_reference_modal, "selectivity", tbl_data)
@@ -359,7 +361,7 @@ selectivityServer <- function(input, output, session) {
         columnDefs = list(
           list(
             targets = grep(
-              pattern = "^(name|symbol|selectivity_class|affinity_Q1|offtarget_affinity_Q1|selectivity|toolscore|strength|references)$",
+              pattern = "^(name|chembl_id|selectivity_class|affinity_Q1|offtarget_affinity_Q1|selectivity|references)$",
               x = names(.data),
               invert = TRUE
             ) - 1,
@@ -368,7 +370,7 @@ selectivityServer <- function(input, output, session) {
         ),
         dom = 'lfrtipB',
         pagingType = "numbers",
-        scrollX = FALSE,
+        scrollX = TRUE,
         searchHighlight = TRUE
       )
     ) %>%
