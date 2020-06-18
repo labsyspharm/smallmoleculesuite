@@ -3,7 +3,7 @@
 The Small Molecule Suite is designed by the [Harvard Program in Therapeutic Sciences](http://hits.harvard.edu/the-program/laboratory-of-systems-pharmacology/about/)to help researchers with data-driven solutions in their studies of
 molecular probes and drugs. To date, the suite has three distinct but related applications: Selectivity, Similarity and
 Library. The data underlying the applications is obtained from the public, open-access database [ChEMBL (version 25)]
-(10.6019/CHEMBL.database.25) as well as pre-publication data from the [Laboratory of Systems Pharmacology] at Harvard
+(https://doi.org/10.6019/CHEMBL.database.25) as well as pre-publication data from the [Laboratory of Systems Pharmacology] at Harvard
 Medical School.
 
 The Selectivity application lets researchers find the most selective probe for a protein of their choice. The similarity app
