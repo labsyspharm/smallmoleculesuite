@@ -257,6 +257,20 @@ mod_ui_affinity_tables <- function(
       navPane(
         id = ns("selectivity_nav_tas"),
         tagList(
+          p(
+            "Target Affinity Spectrum (TAS) values are binding affinity assertions that aggregate",
+            "compound binding data from heterogeneous sources, such as full",
+            "dose-response affinity measurements, single dose binding assays",
+            "and binding assertions from the literature."
+          ),
+          p(
+            "The binding assertions are 1, 2 and 3, with 1 representing the strongest",
+            "and 3 the weakest binding. 10 represents confirmed non-binding."
+          ),
+          p(
+            "See", a("the publication", href = "https://doi.org/10.1016/j.chembiol.2019.02.018", target = "_blank"),
+            "for details."
+          ),
           dataTableOutput(
             outputId = ns("table_tas"),
             height = "500px"
