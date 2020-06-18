@@ -39,6 +39,8 @@ mod_server_affinity_tables <- function(
 
   r_selectivity_data_selected <- reactive({
     subset_dt(data_affinity_selectivity, r_selection_drugs())[
+      data_cmpd_info[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
+    ][
       order(selectivity_class, affinity_Q1)
     ][
       , c("name", "selectivity") := .(
@@ -48,10 +50,10 @@ mod_server_affinity_tables <- function(
     ] %>%
       select(
         name,
+        chembl_id,
         symbol,
         selectivity_class,
         affinity_Q1, offtarget_affinity_Q1, selectivity,
-        -lspci_id,
         everything()
       )
   })
@@ -61,8 +63,10 @@ mod_server_affinity_tables <- function(
       order(tas)
     ][
       , name := lspci_id_name_map[lspci_id]
+    ][
+      data_cmpd_info[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
     ] %>%
-      select(name, symbol, everything(), -lspci_id)
+      select(name, chembl_id, symbol, everything())
   })
 
   r_selection_titles <- reactive({
@@ -172,7 +176,17 @@ mod_server_affinity_tables <- function(
         ),
         pagingType = "numbers",
         scrollX = TRUE,
-        searchHighlight = TRUE
+        searchHighlight = TRUE,
+        columnDefs = list(
+          list(
+            targets = grep(
+              x = names(.data),
+              pattern = "^(name|symbol|tas|source|measurement|unit|references)$",
+              invert = TRUE
+            ) - 1,
+            visible = FALSE
+          )
+        )
       )
     ) %>%
       DT::formatStyle(
