@@ -415,13 +415,14 @@ libraryServer <- function(input, output, session, load_example) {
         columnDefs = list(
           list(
             targets = grep(
-              pattern = "^(lspci_id)$",
+              pattern = "^(lspci_id|gene_id)$",
               x = names(.data),
               invert = FALSE
             ) - 1,
             visible = FALSE
           )
-        ),
+        ) %>%
+          c(column_title_defs(names(.data))),
         dom = "lfrtipB",
         fixedHeader = list(
           header = TRUE

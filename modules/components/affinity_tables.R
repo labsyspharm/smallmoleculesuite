@@ -116,7 +116,8 @@ mod_server_affinity_tables <- function(
             ) - 1,
             visible = FALSE
           )
-        ),
+        ) %>%
+          c(column_title_defs(names(.data))),
         dom = "lfrtipB",
         language = list(
           emptyTable = if (length(r_selection_drugs()) < 1) {
@@ -186,7 +187,8 @@ mod_server_affinity_tables <- function(
             ) - 1,
             visible = FALSE
           )
-        )
+        ) %>%
+          c(column_title_defs(names(.data)))
       )
     ) %>%
       DT::formatStyle(

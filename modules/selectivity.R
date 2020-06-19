@@ -367,7 +367,8 @@ selectivityServer <- function(input, output, session) {
             ) - 1,
             visible = FALSE
           )
-        ),
+        ) %>%
+          c(column_title_defs(names(.data))),
         dom = 'lfrtipB',
         pagingType = "numbers",
         scrollX = TRUE,
