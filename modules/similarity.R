@@ -495,7 +495,8 @@ similarityServer <- function(input, output, session) {
             targets = (1:ncol(.data)) - 1,
             defaultContent = "NA"
           )
-        ),
+        ) %>%
+          c(column_title_defs(names(.data))),
         selection = list(mode = "multiple", target = "column"),
         dom = "lfrtipB",
         pagingType = "numbers",
