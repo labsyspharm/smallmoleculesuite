@@ -228,7 +228,7 @@ function(req) {
                           margin(top = 2)
                       )
                     ),
-                    p("shows the affinity and selectivity of compounds for a protein of interest.")
+                    p("Show the affinity and selectivity of compounds for a protein of interest.")
                   ) %>%
                     display("flex") %>%
                     flex(direction = "column") %>%
@@ -245,7 +245,7 @@ function(req) {
                           margin(top = 2)
                       )
                     ),
-                    p("shows the similarity of compounds to a reference probe or drug.")
+                    p("Show the similarity of compounds to a reference probe or drug.")
                   ) %>%
                     display("flex") %>%
                     flex(direction = "column") %>%
@@ -262,7 +262,7 @@ function(req) {
                           margin(top = 2)
                       )
                     ),
-                    p("composes custom chemical genetics libraries for gene-sets of interest.")
+                    p("Compose custom chemical genetics libraries for gene-sets of interest.")
                   ) %>%
                     display("flex") %>%
                     flex(direction = "column") %>%
