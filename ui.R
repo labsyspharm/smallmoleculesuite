@@ -92,8 +92,16 @@ function(req) {
               column(
                 d3("The Small Molecule Suite") %>%
                   font(align = "center"),
-                p("An open-access tool developed by the Harvard Program",
-                  "in Therapeutic Sciences (HiTS) and",
+                p("The Small Molecule Suite (SMS) is a free, open-acces tool",
+                  "developed by the Harvard Program in Therapeutic Sciences (HiTS)",#hyperlink to HiTS website
+                  "and funded by the NIH", #hyperlink to 'funding2'
+                  "The goal SMS is to help scientists understand and work with the targets of",
+                  "molecular probes, approved drugs and other drug-like molecules, while acknowliging the complexity of",
+                  "polypharmacology - the phenomenon that virtually all drug-like molecules bind multiple target proteins.",
+                  "SMS combines data from the ChEMBL database with prepublished data from the Laboratory of Systems pharmacology.",
+                  "The methodology of calculating selectivities and similarities are explained in this publication",
+                  "(which can also be used to cite the Small Molecule Suite).",
+                  
                   linkInput(id = "funding2", label = "funded by the NIH")) %>%
                   font(align = "center") %>%
                   margin(b = 5),
