@@ -339,10 +339,11 @@ function(req) {
                     "Gzip compressed SQL dump of the Small Molecule Suite database",
                     "in PostgreSQL format."
                   ),
-                  p("Based on ChEMBL v25, size x Mb"),
+                  p("Based on ChEMBL v25, size 799.9 MB"),
                   a(
                     h4("SQL database", class = "btn btn-default btn-grey"),
-                    href = "https://dbdocs.io/clemenshug/sms_db"
+                    href = "sms/assets/downloads/sms_db_chembl_v25.sql.gz",
+                    target = "_blank"
                   )
                 )
               ),
@@ -353,10 +354,10 @@ function(req) {
                   p(
                     "Tarball of gzip compressed CSV files."
                   ),
-                  p("Based on ChEMBL v25, size x Mb"),
+                  p("Based on ChEMBL v25, size 782.7 MB"),
                   a(
                     h4("CSV files", class = "btn btn-default btn-grey"),
-                    href = "https://dbdocs.io/clemenshug/sms_db"
+                    href = "sms/assets/downloads/sms_tables_chembl_v25.tar"
                   )
                 )
               )
