@@ -59,7 +59,7 @@ dataTableOutput <- function(outputId, width = "100%", height = "auto") {
 }
 
 fast_search <- function(data, req) {
-  setDT(data, key = "lspci_id")
+  setDT(data)
 
   query <- shiny::parseQueryString(req$QUERY_STRING)
 
@@ -76,7 +76,7 @@ fast_search <- function(data, req) {
   if (is.null(data_lower)) {
     data_lower <- data %>%
       mutate_if(is.character, str_to_lower) %>%
-      setDT(key = "lspci_id")
+      setDT()
     setattr(data, "lower", data_lower)
   }
 
