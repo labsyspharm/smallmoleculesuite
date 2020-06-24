@@ -59,22 +59,28 @@ dataTableOutput <- function(outputId, width = "100%", height = "auto") {
 }
 
 fast_search <- function(data, req) {
+  setDT(data, key = "lspci_id")
+
   query <- shiny::parseQueryString(req$QUERY_STRING)
 
   # extract the query variables, conjunction (and/or), search string, maximum options
   var <- c(shiny:::safeFromJSON(query$field))
 
   # all keywords in lower-case, for case-insensitive matching
-  key <- unique(strsplit(tolower(query$query), '\\s+')[[1]])
+  key <- if (identical(query$query, ''))
+    character(0)
+  else
+    tolower(query$query)
 
   data_lower <- attr(data, "lower", exact = TRUE)
   if (is.null(data_lower)) {
     data_lower <- data %>%
-      mutate_if(is.character, str_to_lower)
+      mutate_if(is.character, str_to_lower) %>%
+      setDT(key = "lspci_id")
     setattr(data, "lower", data_lower)
   }
 
-  if (identical(key, '')) key <- character(0)
+
   mop <- as.numeric(query$maxop)
   vfd <- query$value  # the value field name
   sel <- attr(data, 'selected_value', exact = TRUE)
@@ -102,12 +108,18 @@ fast_search <- function(data, req) {
   idx <- utils::head(if (length(key)) which(idx) else seq_along(idx), mop)
   # make sure the selected value is in the data
   if (length(sel)) {
-    i <- stats::na.omit(match(sel, data[, vfd]))
+    i <- stats::na.omit(match(sel, data[[vfd]]))
     if (length(i)) idx <- sort(utils::head(unique(c(i, idx)), mop))
   }
-  data <- data[idx, ]
 
-  res <- shiny:::toJSON(shiny:::columnToRowData(data))
+  data_out <- data[
+    idx,
+  ][
+    # Make sure only the first result for every lspci_id is returned
+    , .SD[1, ], by = lspci_id
+  ]
+
+  res <- shiny:::toJSON(shiny:::columnToRowData(data_out))
   shiny:::httpResponse(200, 'application/json', enc2utf8(res))
 }
 

@@ -54,18 +54,17 @@ mod_server_select_compounds <- function(
   updateSelectizeInput(
     session,
     inputId = "select_compound",
-    # choices = choices,
-    choices = compounds[
-      lspci_id %in% isolate(r_eligible_ids()),
-      .(label = name, value = lspci_id_unique, lspci_id, source)
-    ],
+    choices = choices,
+    # choices = compounds[
+    #   lspci_id %in% isolate(r_eligible_ids()),
+    #   .(label = name, value = lspci_id_unique, lspci_id, source)
+    # ],
     selected = paste0(default_choice, "-1"),
     server = TRUE,
     options = selectize_options_,
     callback = fast_search
   )
   observeEvent(r_eligible_ids(), {
-    # browser()
     updateSelectizeInput(
       session,
       inputId = "select_compound",
