@@ -19,50 +19,47 @@ libraryUI <- function(id) {
               "Type or paste gene symbols in the text box below to generate a downloadable table of drugs targetting those genes.",
               "One gene per line."
             ),
-            formInput(
-              id = ns("gene_form"),
-              formGroup(
-                label = "Find ligands for gene symbols",
-                input = shiny::textAreaInput(
-                  inputId = ns("gene_list"),
-                  label = NULL,
-                  rows = 5
+            formGroup(
+              label = "Find ligands for gene symbols",
+              input = shiny::textAreaInput(
+                inputId = ns("gene_list"),
+                label = NULL,
+                rows = 5
+              ),
+              help = div(
+                "This tool uses HUGO symbols Please see",
+                tags$a(
+                  target = "_blank", href = "https://genenames.org",
+                  "genenames.org"
                 ),
-                help = div(
-                  "This tool uses HUGO symbols Please see",
-                  tags$a(
-                    target = "_blank", href = "https://genenames.org",
-                    "genenames.org"
-                  ),
-                  "for help."
+                "for help."
+              )
+            ),
+            formGroup(
+              label = "Example gene lists",
+              input = {
+                sel <- selectInput(
+                  id = ns("gene_example"),
+                  choices = names(data_genes), # data/load.R
+                  selected = "Dark_Kinome"
                 )
-              ),
-              formGroup(
-                label = "Example gene lists",
-                input = {
-                  sel <- selectInput(
-                    id = ns("gene_example"),
-                    choices = names(data_genes), # data/load.R
-                    selected = "Dark_Kinome"
-                  )
-                  sel$children[[1]]$attribs$placeholder <- "Dark_Kinome"
-                  sel
-                },
-                help = "Selecting a choice will populate the input above with an example list of genes."
-              ),
-              formSubmit(
-                label = "Submit"
-              ) %>%
-                background("orange"),
-              actionButton(
-                ns("reset_gene_list"),
-                "Clear list",
-                icon = icon("redo"),
-                onclick = glue("$('#{ns('gene_list')}')[0].value = null;")
-              ) %>%
-                background("orange")
+                sel$children[[1]]$attribs$placeholder <- "Dark_Kinome"
+                sel
+              },
+              help = "Selecting a choice will populate the input above with an example list of genes."
+            ),
+            actionButton(
+              inputId = ns("submit"),
+              label = "Submit"
             ) %>%
-              margin(bottom = 3),
+              background("orange"),
+            actionButton(
+              ns("reset_gene_list"),
+              "Clear list",
+              icon = icon("redo"),
+              onclick = glue("$('#{ns('gene_list')}')[0].value = null;")
+            ) %>%
+              background("orange"),
             p(
               shiny::textOutput(
                 outputId = ns("gene_targets"),
@@ -252,11 +249,33 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
     )
   })
 
-  r_gene_list <- reactive({
-    if (is.null(input$gene_list)) {
+  r_gene_list <- reactiveVal(NULL)
+
+  observeEvent(input$submit, {
+    gene_list <- input$gene_list
+    if (is.null(gene_list))
+      gene_list <- ""
+    else
+      gene_list <- str_split(gene_list, fixed("\n"))[[1]]
+    r_gene_list(gene_list)
+  })
+
+  update_gene_list_external <- FALSE
+  gene_list_initialized <- FALSE
+
+  observeEvent(input$gene_list, {
+    if (!update_gene_list_external && gene_list_initialized)
+      return(NULL)
+    update_gene_list_external <<- FALSE
+    gene_list <- input$gene_list
+    if (is.null(gene_list)) {
+      r_gene_list(NULL)
       return(NULL)
     }
-    strsplit(input$gene_list, "\n")[[1]]
+    if (gene_list != "")
+      gene_list_initialized <<- TRUE
+    gene_list <- str_split(gene_list, fixed("\n"))[[1]]
+    r_gene_list(gene_list)
   })
 
   r_gene_unknown <- reactive({
@@ -293,7 +312,6 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
   r_selection_selectivity <- reactive({
     req(r_gene_known())
 
-    # browser()
     data_optimal_compounds[
       symbol %in% r_gene_known() &
         selectivity_class %in% input$filter_probes &
@@ -482,7 +500,7 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
         )
       )
     }
-    updateFormInput("gene_form", submit = TRUE)
+    update_gene_list_external <<- TRUE
     if (!is.null(update_input_callback))
       update_input_callback()
   })
