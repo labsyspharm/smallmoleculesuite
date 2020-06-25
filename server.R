@@ -58,14 +58,13 @@ function(input, output, session) {
     id = "sim"
   )
 
-  library_session <- callModule(
+  library_return <- callModule(
     module = libraryServer,
-    id = "lib",
-    load_example = reactive({
-      req(input$nav)
-      input$nav == "library"
-    })
+    id = "lib", update_input_callback = function() {
+      navToPage("library", session = session)
+    }
   )
+  r_library_update_inputs <- library_return[["r_update_inputs"]]
 
   callModule(
     module = bindingDataServer,
@@ -74,19 +73,11 @@ function(input, output, session) {
 
   callModule(
     mod_server_set_library_vals_button, "kinase_lib",
-    library_session = library_session, vals = c("gene_example" = "Kinome"),
-    finish_callback = function() {
-      updateFormInput("submit", submit = TRUE, session = library_session)
-      navToPage("library", session = session)
-    }
+    vals = c("gene_example" = "Kinome"), r_update_inputs = r_library_update_inputs
   )
 
   callModule(
     mod_server_set_library_vals_button, "moa_lib",
-    library_session = library_session, vals = c("gene_example" = "Full_LigandedGenome"),
-    finish_callback = function() {
-      updateFormInput("submit", submit = TRUE, session = library_session)
-      navToPage("library", session = session)
-    }
+    vals = c("gene_example" = "Full_LigandedGenome"), r_update_inputs = r_library_update_inputs
   )
 }

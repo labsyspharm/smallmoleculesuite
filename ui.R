@@ -120,8 +120,8 @@ function(req) {
                     deck(
                       card(
                         h5("I want pre-calculated libraries—"),
-                        mod_ui_set_library_vals_button("kinase_lib", "Kinases"),
-                        mod_ui_set_library_vals_button("moa_lib", "MOA")
+                        p(mod_ui_set_library_vals_button("kinase_lib", "Kinases")),
+                        p(mod_ui_set_library_vals_button("moa_lib", "MOA"))
                       ) %>%
                         shadow("small"),
                       card(

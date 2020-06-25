@@ -51,7 +51,6 @@ libraryUI <- function(id) {
                 help = "Selecting a choice will populate the input above with an example list of genes."
               ),
               formSubmit(
-                ns("submit"),
                 label = "Submit"
               ) %>%
                 background("orange"),
@@ -64,102 +63,97 @@ libraryUI <- function(id) {
                 background("orange")
             ) %>%
               margin(bottom = 3),
-            navContent(
-              navPane(
-                id = ns("pane_results"),
-                p(
-                  shiny::textOutput(
-                    outputId = ns("gene_targets"),
-                    inline = TRUE
-                  ),
-                  linkInput(
-                    id = ns("gene_unknowns"),
-                    label = shiny::icon("exclamation-circle")
-                  ) %>%
-                    font(color = "orange")
-                ) %>%
-                  display("flex") %>%
-                  flex(justify = "between", align = "center") %>%
-                  margin(top = 4, bottom = 4) %>%
-                  font(size = "lg"),
-                formGroup(
-                  label = "Commercial availability",
-                  input = div(
-                    class = "active--orange",
-                    mod_ui_filter_commercial(ns(""))
-                  )
-                ),
-                formGroup(
-                  label = tags$h6("Selectivity levels") %>% margin(b = 0),
-                  input = checkboxInput(
-                    inline = TRUE,
-                    id = ns("filter_probes"),
-                    choices = c("Most selective", "Semi-selective", "Poly-selective", "Unknown"),
-                    # values = c("most_selective", "semi_selective", "poly_selective", "unknown_selective"),
-                    selected = "Most selective"
-                  ) %>%
-                    active("orange"),
-                  help = "Choose the selectivity levels for which you want chemical probes to be included in the library."
-                ),
-                formGroup(
-                  label = tags$h6("Clinical phases") %>% margin(b = 0),
-                  input = checkboxInput(
-                    inline = TRUE,
-                    id = ns("filter_phase"),
-                    choices = c("Approved", "Phase III", "Phase II", "Phase I"),
-                    values = c(4, 3, 2, 1),
-                    selected = 4
-                  ) %>%
-                    active("orange"),
-                  help = "Select compounds in clinical development to be added to the library."
-                ),
-                formGroup(
-                  label = tags$h6("Expert opinion compounds") %>% margin(b = 0),
-                  input = checkboxInput(
-                    inline = TRUE,
-                    id = ns("filter_expert"),
-                    choices = "chemicalprobes.org 4.0 star rating",
-                    values = "chem_probe"
-                  ) %>%
-                    active("orange"),
-                  help = "Select compounds that are endorsed by other users to be added to the library."
-                ),
-                formGroup(
-                  label = tags$h6("Output table") %>% margin(b = 0),
-                  input = radiobarInput(
-                    id = ns("table_display"),
-                    choices = c("Display per entry", "Display per compound"),
-                    values = c("entry", "compound"),
-                    selected = "entry"
-                  ) %>%
-                    active("orange")
-                ),
-                formGroup(
-                  label = tags$h6("Minimum affinity for query target (nM)") %>% margin(b = 0),
-                  div(
-                    class = "logify-slider active--orange",
-                    shiny::sliderInput(
-                      inputId = ns("filter_affinity"),
-                      label = NULL,
-                      min = 0,
-                      max = 14,
-                      step = 1,
-                      value = 8
-                    )
-                  )
-                ),
-                formGroup(
-                  label = tags$h6("Minimum number of affinity measurements") %>% margin(b = 0),
-                  div(
-                    class = "active--orange",
-                    shiny::sliderInput(
-                      inputId = ns("filter_measurement"),
-                      label = NULL,
-                      min = 1,
-                      max = 40,
-                      value = 2
-                    )
-                  )
+            p(
+              shiny::textOutput(
+                outputId = ns("gene_targets"),
+                inline = TRUE
+              ),
+              linkInput(
+                id = ns("gene_unknowns"),
+                label = shiny::icon("exclamation-circle")
+              ) %>%
+                font(color = "orange")
+            ) %>%
+              display("flex") %>%
+              flex(justify = "between", align = "center") %>%
+              margin(top = 4, bottom = 4) %>%
+              font(size = "lg"),
+            formGroup(
+              label = "Commercial availability",
+              input = div(
+                class = "active--orange",
+                mod_ui_filter_commercial(ns(""))
+              )
+            ),
+            formGroup(
+              label = tags$h6("Selectivity levels") %>% margin(b = 0),
+              input = checkboxInput(
+                inline = TRUE,
+                id = ns("filter_probes"),
+                choices = c("Most selective", "Semi-selective", "Poly-selective", "Unknown"),
+                # values = c("most_selective", "semi_selective", "poly_selective", "unknown_selective"),
+                selected = "Most selective"
+              ) %>%
+                active("orange"),
+              help = "Choose the selectivity levels for which you want chemical probes to be included in the library."
+            ),
+            formGroup(
+              label = tags$h6("Clinical phases") %>% margin(b = 0),
+              input = checkboxInput(
+                inline = TRUE,
+                id = ns("filter_phase"),
+                choices = c("Approved", "Phase III", "Phase II", "Phase I"),
+                values = c(4, 3, 2, 1),
+                selected = 4
+              ) %>%
+                active("orange"),
+              help = "Select compounds in clinical development to be added to the library."
+            ),
+            formGroup(
+              label = tags$h6("Expert opinion compounds") %>% margin(b = 0),
+              input = checkboxInput(
+                inline = TRUE,
+                id = ns("filter_expert"),
+                choices = "chemicalprobes.org 4.0 star rating",
+                values = "chem_probe"
+              ) %>%
+                active("orange"),
+              help = "Select compounds that are endorsed by other users to be added to the library."
+            ),
+            formGroup(
+              label = tags$h6("Output table") %>% margin(b = 0),
+              input = radiobarInput(
+                id = ns("table_display"),
+                choices = c("Display per entry", "Display per compound"),
+                values = c("entry", "compound"),
+                selected = "entry"
+              ) %>%
+                active("orange")
+            ),
+            formGroup(
+              label = tags$h6("Minimum affinity for query target (nM)") %>% margin(b = 0),
+              div(
+                class = "logify-slider active--orange",
+                shiny::sliderInput(
+                  inputId = ns("filter_affinity"),
+                  label = NULL,
+                  min = 0,
+                  max = 14,
+                  step = 1,
+                  value = 8
+                )
+              )
+            ),
+            formGroup(
+              label = tags$h6("Minimum number of affinity measurements") %>% margin(b = 0),
+              div(
+                class = "active--orange",
+                shiny::sliderInput(
+                  inputId = ns("filter_measurement"),
+                  label = NULL,
+                  min = 1,
+                  max = 40,
+                  value = 2
                 )
               )
             )
@@ -217,29 +211,20 @@ mod_ui_set_library_vals_button <- function(id, label, button_icon = icon("braill
   actionButton(
     ns("button"),
     label,
-    icon = button_icon
+    icon = button_icon,
+    class = "btn-blue shadow-sm"
   )
 }
 
 mod_server_set_library_vals_button <- function(
-  input, output, session, library_session, vals, finish_callback = NULL
+  input, output, session, r_update_inputs, vals
 ) {
   observeEvent(input$button, {
-    for (field in names(vals)) {
-      switch(
-        field,
-        gene_example = updateSelectInput(
-          id = "gene_example", selected = vals[[field]],
-          session = library_session
-        )
-      )
-    }
-    if (!is.null(finish_callback))
-      finish_callback()
+    r_update_inputs(vals)
   })
 }
 
-libraryServer <- function(input, output, session, load_example) {
+libraryServer <- function(input, output, session, update_input_callback = NULL) {
   ns <- session$ns
 
   # Define genes found in our data
@@ -260,20 +245,11 @@ libraryServer <- function(input, output, session, load_example) {
 
   # Load an example gene list
   observeEvent(input$gene_example, {
-    browser()
     shiny::updateTextAreaInput(
       session = session,
       inputId = "gene_list",
       value = paste0(data_genes[[input$gene_example]], collapse = "\n")
     )
-  })
-
-  observeEvent(load_example(), once = TRUE, {
-    updateFormInput(ns("submit"), submit = TRUE)
-  })
-
-  observeEvent(input$gene_form, {
-    showNavPane(ns("pane_results"))
   })
 
   r_gene_list <- reactive({
@@ -494,5 +470,25 @@ libraryServer <- function(input, output, session, load_example) {
     mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
   )
 
-  session
+  r_update_inputs <- reactiveVal()
+
+  observeEvent(r_update_inputs(), {
+    vals <- r_update_inputs()
+    for (field in names(vals)) {
+      switch(
+        field,
+        gene_example = updateSelectInput(
+          "gene_example", selected = vals[[field]]
+        )
+      )
+    }
+    updateFormInput("gene_form", submit = TRUE)
+    if (!is.null(update_input_callback))
+      update_input_callback()
+  })
+
+  list(
+    session = session,
+    r_update_inputs = r_update_inputs
+  )
 }
