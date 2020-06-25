@@ -150,3 +150,10 @@ bindingDataServer <- function(input, output, session) {
   }
 
 }
+
+mod_server_scroll_binding <- function(
+  input, output, session
+) {
+  ns <- session$ns
+  session$sendCustomMessage(type = "scrollCallback", ns("reference"))
+}

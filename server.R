@@ -1,7 +1,9 @@
 function(input, output, session) {
-  navToPage <- function(name) {
-    updateNavInput("nav", selected = name)
-    showNavPane(paste0("page_", name))
+  navToPage <- function(name, session = NULL) {
+    if (is.null(session))
+      session <- getDefaultReactiveDomain()
+    updateNavInput("nav", selected = name, session = session)
+    showNavPane(paste0("page_", name), session = session)
   }
 
   observeEvent(input$nav, {
@@ -32,9 +34,11 @@ function(input, output, session) {
     navToPage("selectivity")
   })
 
-  observeEvent(c(input$link_similarity, input$goto_similarity_1, input$goto_similarity_2), {
+  observeEvent(c(input$link_similarity, input$goto_similarity_1), {
     navToPage("similarity")
   })
+
+  observeEvent(input$goto_binding, callModule(mod_server_scroll_binding, "bd"))
 
   observeEvent(c(input$goto_data_1, input$goto_data_2), {
     navToPage("download")
@@ -54,16 +58,35 @@ function(input, output, session) {
     id = "sim"
   )
 
-  callModule(
+  library_session <- callModule(
     module = libraryServer,
     id = "lib",
     load_example = reactive({
-      req(input$nav == "library")
+      req(input$nav)
+      input$nav == "library"
     })
   )
 
   callModule(
     module = bindingDataServer,
     id = "bd"
+  )
+
+  callModule(
+    mod_server_set_library_vals_button, "kinase_lib",
+    library_session = library_session, vals = c("gene_example" = "Kinome"),
+    finish_callback = function() {
+      updateFormInput("submit", submit = TRUE, session = library_session)
+      navToPage("library", session = session)
+    }
+  )
+
+  callModule(
+    mod_server_set_library_vals_button, "moa_lib",
+    library_session = library_session, vals = c("gene_example" = "Full_LigandedGenome"),
+    finish_callback = function() {
+      updateFormInput("submit", submit = TRUE, session = library_session)
+      navToPage("library", session = session)
+    }
   )
 }

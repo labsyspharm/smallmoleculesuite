@@ -30,7 +30,6 @@ source("modules/components/select_compounds.R", local = TRUE)
 source("modules/selectivity.R", local = TRUE)
 source("modules/similarity.R", local = TRUE)
 source("modules/library.R", local = TRUE)
-source("modules/modals.R", local = TRUE)
 source("modules/binding.R", local = TRUE)
 
 source("data/load.R", local = TRUE)

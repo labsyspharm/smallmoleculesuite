@@ -51,6 +51,7 @@ libraryUI <- function(id) {
                 help = "Selecting a choice will populate the input above with an example list of genes."
               ),
               formSubmit(
+                ns("submit"),
                 label = "Submit"
               ) %>%
                 background("orange"),
@@ -211,6 +212,33 @@ libraryUI <- function(id) {
   )
 }
 
+mod_ui_set_library_vals_button <- function(id, label, button_icon = icon("braille")) {
+  ns <- NS(id)
+  actionButton(
+    ns("button"),
+    label,
+    icon = button_icon
+  )
+}
+
+mod_server_set_library_vals_button <- function(
+  input, output, session, library_session, vals, finish_callback = NULL
+) {
+  observeEvent(input$button, {
+    for (field in names(vals)) {
+      switch(
+        field,
+        gene_example = updateSelectInput(
+          id = "gene_example", selected = vals[[field]],
+          session = library_session
+        )
+      )
+    }
+    if (!is.null(finish_callback))
+      finish_callback()
+  })
+}
+
 libraryServer <- function(input, output, session, load_example) {
   ns <- session$ns
 
@@ -232,6 +260,7 @@ libraryServer <- function(input, output, session, load_example) {
 
   # Load an example gene list
   observeEvent(input$gene_example, {
+    browser()
     shiny::updateTextAreaInput(
       session = session,
       inputId = "gene_list",
@@ -240,7 +269,7 @@ libraryServer <- function(input, output, session, load_example) {
   })
 
   observeEvent(load_example(), once = TRUE, {
-    session$sendCustomMessage("click.library.sm", list())
+    updateFormInput(ns("submit"), submit = TRUE)
   })
 
   observeEvent(input$gene_form, {
@@ -465,4 +494,5 @@ libraryServer <- function(input, output, session, load_example) {
     mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
   )
 
+  session
 }

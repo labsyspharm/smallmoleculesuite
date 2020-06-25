@@ -103,10 +103,11 @@ function(req) {
                   "with prepublished data from the Laboratory of Systems pharmacology.",
                   "The methodology of calculating selectivities and similarities are explained in",
                   a("Moret et al. Cell Chem Biol 2019", href = "https://doi.org/10.1016/j.chembiol.2019.02.018", target = "_blank"),
-                  "(which can also be used to cite the Small Molecule Suite)."
+                  "(which can also be used to cite the Small Molecule Suite).",
+                  style = "max-width: 50em;"
                 ) %>%
-                  font(align = "center") %>%
-                  margin(b = 5),
+                  font(align = "justify") %>%
+                  margin(l = "auto", r = "auto", b = 5),
                 columns( # ├ use cases ----
                   column(
                     width = 12,
@@ -119,34 +120,8 @@ function(req) {
                     deck(
                       card(
                         h5("I want pre-calculated libraries—"),
-                        p(
-                          div(
-                            class = "shadow-sm d-inline-block",
-                            tags$button(
-                              class = "btn btn-blue shadow-sm",
-                              type = "button",
-                              `data-toggle` = "modal",
-                              `data-target` = "#modal_optimal_kinase",
-                              icon("window-restore"),
-                              "Kinases"
-                            )
-                          ),
-                          optimalKinaseModal()
-                        ),
-                        p(
-                          div(
-                            class = "shadow-sm d-inline-block",
-                            tags$button(
-                              class = "btn btn-blue shadow-sm",
-                              type = "button",
-                              `data-toggle` = "modal",
-                              `data-target` = "#modal_moa",
-                              icon("window-restore"),
-                              "MOA"
-                            )
-                          ),
-                          moaModal()
-                        )
+                        mod_ui_set_library_vals_button("kinase_lib", "Kinases"),
+                        mod_ui_set_library_vals_button("moa_lib", "MOA")
                       ) %>%
                         shadow("small"),
                       card(
@@ -184,7 +159,7 @@ function(req) {
                         ),
                         p(
                           linkInput(
-                            id = "goto_similarity_2",
+                            id = "goto_binding",
                             label = list(
                               icon("share"),
                               "What are the targets of my compound?"
