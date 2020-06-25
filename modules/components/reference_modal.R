@@ -50,7 +50,7 @@ mod_server_reference_modal <- function(
     clicked_row <- isolate(r_data())[r_clicked_reference_idx(), ]
     shiny::showModal(
       modalDialog(
-        format_references(isolate(r_raw_references())),
+        format_references(isolate(r_raw_references()[r_clicked_reference_idx()])),
         title = paste(
           "References for", clicked_row[["name"]], "binding to", clicked_row[["symbol"]]
         ),
