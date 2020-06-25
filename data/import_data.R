@@ -28,14 +28,20 @@ files <- c(
   "shiny_tas.fst",
   "shiny_commercial_info.fst",
   "shiny_biochemical.fst",
-  "shiny_optimal_compound_table.fst"
+  "shiny_optimal_compound_table.fst",
+  # Gene lists
+  synChildren(syn_tables) %>%
+    magrittr::extract(str_ends(names(.), fixed(".txt")))
 )
 
 walk(
   files,
   function(fn) {
     synGet(
-      synPluck(syn_tables, fn),
+      if (str_starts(fn, fixed("syn")))
+        fn
+      else
+        synPluck(syn_tables, fn),
       downloadFile = TRUE,
       downloadLocation = dir_data,
       ifcollision = "overwrite.local"
