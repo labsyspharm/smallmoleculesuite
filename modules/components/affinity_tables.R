@@ -29,7 +29,8 @@ subset_dt <- function(dt, selectors) {
 mod_server_affinity_tables <- function(
   input, output, session,
   r_selection_drugs,
-  data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map, selection = "none"
+  data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map, selection = "none",
+  r_eligible_lspci_ids = NULL
 ) {
   ns <- session$ns
 
@@ -39,6 +40,8 @@ mod_server_affinity_tables <- function(
 
   r_selectivity_data_selected <- reactive({
     subset_dt(data_affinity_selectivity, r_selection_drugs())[
+      if (is.null(r_eligible_lspci_ids)) TRUE else lspci_id %in% r_eligible_lspci_ids()
+    ][
       data_cmpd_info[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
     ][
       order(selectivity_class, affinity_Q1)
@@ -60,11 +63,13 @@ mod_server_affinity_tables <- function(
 
   r_tas_data_selected <- reactive({
     subset_dt(data_tas, r_selection_drugs())[
-      order(tas)
+      if (is.null(r_eligible_lspci_ids)) TRUE else lspci_id %in% r_eligible_lspci_ids()
     ][
       , name := lspci_id_name_map[lspci_id]
     ][
       data_cmpd_info[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
+    ][
+      order(tas, measurement)
     ] %>%
       select(name, chembl_id, symbol, everything())
   })

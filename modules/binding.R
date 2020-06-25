@@ -137,7 +137,8 @@ bindingDataServer <- function(input, output, session) {
     mod_server_affinity_tables,
     "table",
     r_selection,
-    data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map
+    data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map,
+    r_eligible_lspci_ids = r_eligible_lspci_ids
   )
 
   if (use_query) {
