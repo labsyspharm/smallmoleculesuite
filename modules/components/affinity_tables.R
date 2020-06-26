@@ -104,12 +104,10 @@ mod_server_affinity_tables <- function(
       rownames = FALSE,
       escape = grep("^references$", names(.data), invert = TRUE, value = TRUE),
       selection = selection,
-      # fillContainer = TRUE,
+      style = "bootstrap4",
+      extensions = "Buttons",
       options = list(
-        # autoWidth = TRUE,
-        extensions = "Buttons",
         buttons = list(
-          list(extend = "copy"),
           list(extend = "colvis", text = "Additional columns")
         ),
         columnDefs = list(
@@ -123,7 +121,7 @@ mod_server_affinity_tables <- function(
           )
         ) %>%
           c(column_title_defs(names(.data))),
-        dom = "lfrtipB",
+        dom = DT_DOM,
         language = list(
           emptyTable = if (length(r_selection_drugs()) < 1) {
             "Please select row(s) from the data above."
@@ -167,12 +165,16 @@ mod_server_affinity_tables <- function(
       rownames = FALSE,
       escape = grep("^references$", names(.data), invert = TRUE, value = TRUE),
       selection = selection,
+      extensions = c("Buttons"),
+      style = "bootstrap4",
       options = list(
-        extensions = "Buttons",
         buttons = list(
-          list(extend = "copy")
+          list(
+            extend = "colvis",
+            text = "Additional columns"
+          )
         ),
-        dom = "lfrtipB",
+        dom = DT_DOM,
         language = list(
           emptyTable = if (length(r_selection_drugs()) < 1) {
             "Please select row(s) from the data above."
@@ -264,15 +266,11 @@ mod_ui_affinity_tables <- function(
         id = ns("selectivity_nav_selectivity"),
         tagList(
           dataTableOutput(
-            outputId = ns("table_selectivity"),
-            height = "500px"
+            outputId = ns("table_selectivity")
           ) %>%
             shinycssloaders::withSpinner(color = "#303030"),
-          div(
-            class = "dt-buttons",
-            mod_ui_download_button(ns("selectivity_xlsx_dl"), "Download Excel"),
-            mod_ui_download_button(ns("selectivity_csv_dl"), "Download CSV")
-          )
+          mod_ui_download_button(ns("selectivity_xlsx_dl"), "Download Excel"),
+          mod_ui_download_button(ns("selectivity_csv_dl"), "Download CSV")
         )
       ),
       navPane(
@@ -293,16 +291,11 @@ mod_ui_affinity_tables <- function(
             "for details."
           ),
           dataTableOutput(
-            outputId = ns("table_tas"),
-            height = "500px"
+            outputId = ns("table_tas")
           ) %>%
             shinycssloaders::withSpinner(color = "#303030"),
-          div(
-            style = "clear: both;",
-            class = "dt-buttons",
-            mod_ui_download_button(ns("tas_xlsx_dl"), "Download Excel"),
-            mod_ui_download_button(ns("tas_csv_dl"), "Download CSV")
-          )
+          mod_ui_download_button(ns("tas_xlsx_dl"), "Download Excel"),
+          mod_ui_download_button(ns("tas_csv_dl"), "Download CSV")
         )
       )
     )

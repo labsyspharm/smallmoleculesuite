@@ -5,8 +5,6 @@ function(req) {
       "5.3.1", "www/shared/fontawesome", package = "shiny",
       stylesheet = c("css/all.min.css", "css/v4-shims.min.css")
     ),
-    DT:::DTDependency("default"),
-    DT:::extDependency("Buttons", "default", list()),
     tags$head(
       tags$title("Small Molecule Suite"),
       tags$link(href="https://fonts.googleapis.com/css?family=Lato:400,700&display=swap", rel="stylesheet"),
@@ -62,12 +60,6 @@ function(req) {
         ) %>%
           font(color = "white") %>%
           margin(l = 2),
-        # buttonInput(
-        #   id = "bookmark_begin",
-        #   label = icon("link")
-        # ) %>%
-        #   background("black") %>%
-        #   font(color = "white"),
         tags$a(
           href = "https://github.com/labsyspharm/sms-website",
           target = "_blank",

@@ -20,11 +20,4 @@ $(function() {
       logifySlider(this, base=10, precision=null);
     });
   });
-
-  // Shiny.addCustomMessageHandler("click.library.sm", function(msg) {
-  //   setTimeout(function() {
-  //     $("#lib-gene_form .yonder-form-submit").click();
-  //   }, 100);
-  // });
-
 });

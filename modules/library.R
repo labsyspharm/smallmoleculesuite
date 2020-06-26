@@ -190,8 +190,7 @@ libraryUI <- function(id) {
         h3("Output table"),
         div(
           DT::dataTableOutput(
-            outputId = ns("table_results"),
-            height = "625px"
+            outputId = ns("table_results")
           ),
           mod_ui_download_button(ns("output_table_csv_dl"), "Download CSV"),
           mod_ui_download_button(ns("output_table_xlsx_dl"), "Download Excel")
@@ -423,12 +422,11 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
     DT::datatable(
       data = .data,
       extensions = c("Buttons"),
-      fillContainer = FALSE,
-      filter = "top",
+      style = "bootstrap4",
       selection = "multiple",
       rownames = FALSE,
       options = list(
-        autoWidth = TRUE,
+        dom = DT_DOM,
         buttons = list(
           list(
             extend = "colvis",

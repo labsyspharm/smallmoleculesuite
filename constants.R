@@ -33,3 +33,5 @@ COLUMN_TITLE_MAP <- c(
   "measurement" = "Affinity measurement",
   "unit" = "Measurement unit"
 )
+
+DT_DOM <- '<"row justify-content-between"<"col-sm-12 col-md-auto"B><"col-sm-12 col-md-auto"l><"col-sm-12 col-md-auto .ml-auto"f>><"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'

@@ -346,13 +346,13 @@ selectivityServer <- function(input, output, session) {
     DT::datatable(
       .data,
       extensions = c("Buttons"),
+      style = "bootstrap4",
       rownames = FALSE,
       selection = "multiple",
       escape = setdiff(colnames(.data), "references"),
       options = list(
-        # autoWidth = TRUE,
+        dom = DT_DOM,
         buttons = list(
-          list(extend = "copy"),
           list(
             extend = "colvis",
             text = "Additional columns"
@@ -369,7 +369,6 @@ selectivityServer <- function(input, output, session) {
           )
         ) %>%
           c(column_title_defs(names(.data))),
-        dom = 'lfrtipB',
         pagingType = "numbers",
         scrollX = TRUE,
         searchHighlight = TRUE

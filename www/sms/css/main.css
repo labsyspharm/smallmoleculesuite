@@ -66,34 +66,6 @@ html {
   color: white !important;
 }
 
-table.dataTable tbody th,
-table.dataTable tbody td {
-  white-space: nowrap;
-}
-
-table.dataTable thead th {
-  padding: 8px 10px;
-  padding-right: 18px;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  background: #404040;
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  background: #bfbfbf;
-  cursor: pointer;
-}
-
 a[data-target] {
   cursor: pointer;
 }

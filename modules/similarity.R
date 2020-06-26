@@ -193,7 +193,6 @@ similarityUI <- function(id) {
         ),
         div(
           dataTableOutput(
-            # output_table
             outputId = ns("table_sim_compound")
           ),
           mod_ui_download_button(ns("output_table_csv_dl"), "Download CSV"),
@@ -473,9 +472,10 @@ similarityServer <- function(input, output, session) {
     DT::datatable(
       .data,
       extensions = c("Buttons"),
+      style = "bootstrap4",
       rownames = FALSE,
       options = list(
-        # autoWidth = TRUE,
+        dom = DT_DOM,
         buttons = list(
           list(
             extend = "colvis",
@@ -498,10 +498,8 @@ similarityServer <- function(input, output, session) {
         ) %>%
           c(column_title_defs(names(.data))),
         selection = list(mode = "multiple", target = "column"),
-        dom = "lfrtipB",
         pagingType = "numbers",
         scrollCollapse = TRUE,
-        scrollX = FALSE,
         searchHighlight = TRUE
       )
     )
