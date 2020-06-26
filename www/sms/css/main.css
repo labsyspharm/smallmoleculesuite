@@ -105,3 +105,15 @@ a[data-target] {
 .source_logo {
   height: 1em;
 }
+
+/* Make table padding tighter */
+table.dataTable tbody th,
+table.dataTable tbody td {
+  white-space: nowrap;
+}
+
+table.dataTable thead th {
+  padding: 8px 10px;
+  padding-right: 18px;
+}
+

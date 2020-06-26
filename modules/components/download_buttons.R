@@ -32,5 +32,5 @@ mod_server_download_button <- function(
 #' @param label Label for button
 mod_ui_download_button <- function(id, label = "Download") {
   ns <- NS(id)
-  downloadButton(ns("download"), label, class = "dt-button")
+  downloadButton(ns("download"), label, class = "btn-outline-black")
 }

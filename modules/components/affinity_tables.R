@@ -108,7 +108,11 @@ mod_server_affinity_tables <- function(
       extensions = "Buttons",
       options = list(
         buttons = list(
-          list(extend = "colvis", text = "Additional columns")
+          list(
+            extend = "colvis",
+            text = "Additional columns",
+            className = "btn-outline-black"
+          )
         ),
         columnDefs = list(
           list(
@@ -171,7 +175,8 @@ mod_server_affinity_tables <- function(
         buttons = list(
           list(
             extend = "colvis",
-            text = "Additional columns"
+            text = "Additional columns",
+            className = "btn-outline-black"
           )
         ),
         dom = DT_DOM,

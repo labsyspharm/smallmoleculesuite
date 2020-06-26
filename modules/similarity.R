@@ -479,7 +479,8 @@ similarityServer <- function(input, output, session) {
         buttons = list(
           list(
             extend = "colvis",
-            text = "Additional columns"
+            text = "Additional columns",
+            className = "btn-outline-black"
           )
         ),
         columnDefs = list(

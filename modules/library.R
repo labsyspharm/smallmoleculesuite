@@ -430,7 +430,8 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
         buttons = list(
           list(
             extend = "colvis",
-            text = "Additional columns"
+            text = "Additional columns",
+            className = "btn-outline-black"
           )
         ),
         columnDefs = list(
