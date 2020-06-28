@@ -65,16 +65,13 @@ libraryUI <- function(id) {
                 outputId = ns("gene_targets"),
                 inline = TRUE
               ),
-              linkInput(
-                id = ns("gene_unknowns"),
-                label = shiny::icon("exclamation-circle")
-              ) %>%
-                font(color = "orange")
+              uiOutput(
+                outputId = ns("gene_unknowns_ui"),
+                inline = TRUE
+              )
             ) %>%
-              display("flex") %>%
-              flex(justify = "between", align = "center") %>%
-              margin(top = 4, bottom = 4) %>%
-              font(size = "lg"),
+              margin(top = 4, bottom = 4),
+            tags$hr(),
             formGroup(
               label = "Commercial availability",
               input = div(
@@ -88,7 +85,6 @@ libraryUI <- function(id) {
                 inline = TRUE,
                 id = ns("filter_probes"),
                 choices = c("Most selective", "Semi-selective", "Poly-selective", "Unknown"),
-                # values = c("most_selective", "semi_selective", "poly_selective", "unknown_selective"),
                 selected = "Most selective"
               ) %>%
                 active("orange"),
@@ -301,11 +297,27 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
   r_eligible_lspci_ids <- callModule(mod_server_filtered_lspci_ids, "")
 
   output$gene_targets <- renderText({
-    if (is.null(r_gene_list()) || length(r_gene_list()) < 1) {
+    if (is.null(r_gene_list()) || (length(r_gene_list()) < 1)) {
       "No genes upload yet"
     } else {
-      paste(length(r_gene_known()), "target(s) with at least one ligand")
+      paste(
+        length(r_gene_known()),
+        "target(s) with at least one ligand."
+      )
     }
+  })
+
+
+  output$gene_unknowns_ui <- renderUI({
+    if (is.null(r_gene_unknown()) || (length(r_gene_unknown()) < 1))
+      return(NULL)
+    linkInput(
+      id = ns("gene_unknowns"),
+      label = span(
+        shiny::icon("bars"),
+        paste(length(r_gene_unknown()), "without ligands.")
+      )
+    )
   })
 
   r_selection_selectivity <- reactive({
@@ -445,10 +457,6 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
           )
         ) %>%
           c(column_title_defs(names(.data))),
-        dom = "lfrtipB",
-        fixedHeader = list(
-          header = TRUE
-        ),
         pagingType = "numbers",
         searchHighlight = TRUE,
         scrollX = TRUE

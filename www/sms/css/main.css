@@ -117,3 +117,16 @@ table.dataTable thead th {
   padding-right: 18px;
 }
 
+/* Hover shadows for application links */
+#link_selectivity:hover {
+  filter: drop-shadow(0 0 0.5rem #EC4353);
+}
+
+#link_similarity:hover {
+  filter: drop-shadow(0 0 0.5rem #00AC9F);
+}
+
+#link_library:hover {
+  filter: drop-shadow(0 0 0.5rem #ff9800);
+}
+
