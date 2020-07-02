@@ -3,15 +3,15 @@ SELECT_COMPOUND_RENDER_JS <- I(
     option: function(item, escape) {
       const type_map = {
         "vendor": "<span class=\\"compound_source vendor_source\\">vendor name</span>",
-        "chembl_id": "<span class=\\"compound_source chembl_source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source_logo\\"> ChEMBL ID",
-        "chembl_pref": "<span class=\\"compound_source chembl_source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source_logo\\"> ChEMBL primary",
-        "chembl_alt": "<span class=\\"compound_source chembl_source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source_logo\\"> ChEMBL alternate",
-        "hmsl_id": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS ID",
-        "hmsl_pref": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS primary",
-        "hmsl_alt": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS alternate"
+        "chembl_id": "<span class=\\"compound_source chembl_source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source_logo\\"> ChEMBL ID</span>",
+        "chembl_pref": "<span class=\\"compound_source chembl_source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source_logo\\"> ChEMBL primary</span>",
+        "chembl_alt": "<span class=\\"compound_source chembl_source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source_logo\\"> ChEMBL alternate</span>",
+        "hmsl_id": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS ID</span>",
+        "hmsl_pref": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS primary</span>",
+        "hmsl_alt": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS alternate</span>"
       };
-      return "<div class=\\"compound_result\\"><span><strong>" + escape(item.label) + "</strong> <i>ID#" +
-        escape(item.lspci_id) + "</i></span>" + type_map[escape(item.source)] + "</div>"
+      return "<div class=\\"compound_result\\"><span><strong>" + escape(item.label) + "</strong></span>" +
+        type_map[escape(item.source)] + "</div>"
     }
   }'
 )
