@@ -1,0 +1,57 @@
+column_id,column_name,column_description,column_type
+lspci_id,SMS internal ID,Internal compound ID,int
+hmsl_id,HMS LINCS ID,"Primary HMS LINCS compound ID, if available",varchar
+chembl_id,ChEMBL ID,"Primary ChEMBL compound ID, if available",varchar
+pref_name,Preferred name,Preferred name of the compound,varchar
+inchi,InChI,"InChI chemical indentifier for the compound, standardized using https://molvs.readthedocs.io/en/latest/guide/standardize.html",varchar
+smiles,SMILES,"SMILES chemical indentifier for the compound, standardized using https://molvs.readthedocs.io/en/latest/guide/standardize.html",varchar
+commercially_available,Comercially available,Commercially available at a vendor in the ZINC database,boolean
+priority,Priority,Annotated as primary or secondary name at source,name_priorities
+name,Compound,Compound name,varchar
+gene_id,Entrez gene ID,Entrez gene ID,int
+symbol,Gene symbol,Entrez gene symbol,varchar
+description,Description,Description of gene function,varchar
+tax_id,Taxonomy ID,Entrez taxonomy ID,int
+organism,Organism,Organism for which gene is annotated,varchar
+uniprot_id,UniProt ID,UniProt ID,varchar
+tas,TAS,Target Affinity Spectrum (TAS). A number between 1 and 10 for the affinity between compound and target. 1 being most strongly binding.,int
+selectivity_class,Selectivity class,Assertion for the selectivity of the compound to the given target.,selectivity_classes
+investigation_bias,Investigation bias,NA,float
+strength,Strength,NA,int
+wilcox_pval,Wllcoxon P,NA,float
+selectivity,Selectivity,NA,float
+tool_score,Tool score,NA,float
+ic50_difference,IC50 difference,Difference between ontarget and offtarget IC50 Q1 measurements,float
+ontarget_ic50_q1,IC50 ontarget,First quartile of ontarget IC50 measurements,float
+offtarget_ic50_q1,IC50 offtarget,First quartile of offtarget IC50 measurements,float
+ontarget_n,N ontarget,Number of ontarget IC50 measurements,int
+offtarget_n,N offtarget,Number of offtarget IC50 measurements,int
+percent_control,% control,Remaining activity of target at the given compound concentration.,float
+max_phase,Clinical phase,NA,int
+first_approval,First approval,NA,int
+oral,Oral,NA,boolean
+parenteral,Parenteral,NA,boolean
+topical,Topical,NA,boolean
+black_box_warning,Black box warning,NA,boolean
+first_in_class,First in class,NA,boolean
+prodrug,Prodrug,NA,boolean
+indication_class,Indication class,NA,varchar
+withdrawn_flag,Withdrawn drug,NA,boolean
+withdrawn_year,Withdrawal year,NA,int
+withdrawn_country,Withdrawal country,NA,varchar
+withdrawn_reason,Withdrawal reason,NA,varchar
+vendor,Vendor,The name of the vendor,varchar
+rank,Rank,Ranking of compounds for the same target. First compound is best.,int
+reason_included,Reason included,Compounds can be included either because of their selectivity or because they are approved/in clinical trials.,include_reasons
+structural_similarity,Structural similarity,Jaccard similarity between Morgan fingerprints,float
+tas_similarity,TAS similarity,Weighted jaccard similarity between target affinity spectrum (TAS) vectors,float
+pfp_correlation,Phenotypic correlation,Spearman correlation between phenotypic assay vectors,float
+selectivity_class,Selectivity class,"Selectivity assertion for compound-target pair, how selective is given compound to the target",NA
+affinity_Q1,Affinity (nM),Affinity of compound to target (aggregated by taking first quartile),NA
+offtarget_affinity_Q1,Offtarget affinity (nM),Affinity of compound off-targets (aggregated by taking first quartile),NA
+selectivity,Selectivity,NA,NA
+references,References,References for measurement,NA
+affinity_N,N measurements,Number of affinity measurements,NA
+measurement,Affinity measurement,Value of measurement used for TAS assertion,NA
+unit,Measurement unit,Unit of measurement used for TAS assertion,NA
+source,Source,Type of measurement used for TAS assertion,NA

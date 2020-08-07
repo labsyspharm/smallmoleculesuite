@@ -10,3 +10,4 @@
 .mov filter=lfs diff=lfs merge=lfs -text
 .aep filter=lfs diff=lfs merge=lfs -text
 .qgz filter=lfs diff=lfs merge=lfs -text
+data/column_specs.csv text !filter !merge !diff
