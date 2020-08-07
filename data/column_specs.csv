@@ -46,10 +46,8 @@ reason_included,Reason included,Compounds can be included either because of thei
 structural_similarity,Structural similarity,Jaccard similarity between Morgan fingerprints,float
 tas_similarity,TAS similarity,Weighted jaccard similarity between target affinity spectrum (TAS) vectors,float
 pfp_correlation,Phenotypic correlation,Spearman correlation between phenotypic assay vectors,float
-selectivity_class,Selectivity class,"Selectivity assertion for compound-target pair, how selective is given compound to the target",NA
 affinity_Q1,Affinity (nM),Affinity of compound to target (aggregated by taking first quartile),NA
 offtarget_affinity_Q1,Offtarget affinity (nM),Affinity of compound off-targets (aggregated by taking first quartile),NA
-selectivity,Selectivity,NA,NA
 references,References,References for measurement,NA
 affinity_N,N measurements,Number of affinity measurements,NA
 measurement,Affinity measurement,Value of measurement used for TAS assertion,NA
