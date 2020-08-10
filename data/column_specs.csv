@@ -53,3 +53,9 @@ affinity_N,N measurements,Number of affinity measurements,NA
 measurement,Affinity measurement,Value of measurement used for TAS assertion,NA
 unit,Measurement unit,Unit of measurement used for TAS assertion,NA
 source,Source,Type of measurement used for TAS assertion,NA
+toolscore,Tool score,NA,NA
+ontarget_affinity_N,N ontarget,Number of ontarget IC50 measurements,NA
+offtarget_affinity_N,N offtarget,Number of offtarget IC50 measurements,NA
+affinity_Q1_diff,Affinity difference,Difference between ontarget and offtarget affinity measurements,float
+n_tas_similarity,N TAS vector overlap,Number of TAS values used for calculation of TAS similarity,NA
+n_pfp_correlation,N PFP vector overlap,Number of PFP values used for calculation of PFP correlation,NA
