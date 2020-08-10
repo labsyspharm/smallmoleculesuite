@@ -122,11 +122,3 @@ fast_search <- function(data, req) {
   res <- shiny:::toJSON(shiny:::columnToRowData(data_out))
   shiny:::httpResponse(200, 'application/json', enc2utf8(res))
 }
-
-column_title_defs <- function(cols, col_map = COLUMN_TITLE_MAP) {
-  match(names(col_map), cols) %>%
-    set_names(col_map) %>%
-    na.omit() %>%
-    imap(~list(targets = .x - 1, title = .y)) %>%
-    unname()
-}

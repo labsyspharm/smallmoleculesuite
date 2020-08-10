@@ -431,12 +431,13 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
   r_tbl <- reactive({
     .data <- r_tbl_data()
 
-    DT::datatable(
+    datatable_tooltip(
       data = .data,
       extensions = c("Buttons"),
       style = "bootstrap4",
       selection = "multiple",
       rownames = FALSE,
+      column_specs = COLUMN_SPECS,
       options = list(
         dom = DT_DOM,
         buttons = list(
@@ -455,8 +456,7 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
             ) - 1,
             visible = FALSE
           )
-        ) %>%
-          c(column_title_defs(names(.data))),
+        ),
         pagingType = "numbers",
         searchHighlight = TRUE,
         scrollX = TRUE

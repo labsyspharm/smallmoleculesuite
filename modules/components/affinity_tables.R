@@ -99,13 +99,14 @@ mod_server_affinity_tables <- function(
   r_table_selected_selectivity<- reactive({
     .data = r_selectivity_tbl_data()
 
-    DT::datatable(
+    datatable_tooltip(
       data = .data, # input$compound_selection),
       rownames = FALSE,
       escape = grep("^references$", names(.data), invert = TRUE, value = TRUE),
       selection = selection,
       style = "bootstrap4",
       extensions = "Buttons",
+      column_specs = COLUMN_SPECS,
       options = list(
         buttons = list(
           list(
@@ -123,8 +124,7 @@ mod_server_affinity_tables <- function(
             ) - 1,
             visible = FALSE
           )
-        ) %>%
-          c(column_title_defs(names(.data))),
+        ),
         dom = DT_DOM,
         language = list(
           emptyTable = if (length(r_selection_drugs()) < 1) {
@@ -164,13 +164,14 @@ mod_server_affinity_tables <- function(
   r_table_selected_tas <- reactive({
     .data = r_tas_tbl_data()
 
-    DT::datatable(
+    datatable_tooltip(
       data = .data,
       rownames = FALSE,
       escape = grep("^references$", names(.data), invert = TRUE, value = TRUE),
       selection = selection,
       extensions = c("Buttons"),
       style = "bootstrap4",
+      column_specs = COLUMN_SPECS,
       options = list(
         buttons = list(
           list(
@@ -199,8 +200,7 @@ mod_server_affinity_tables <- function(
             ) - 1,
             visible = FALSE
           )
-        ) %>%
-          c(column_title_defs(names(.data)))
+        )
       )
     ) %>%
       DT::formatStyle(

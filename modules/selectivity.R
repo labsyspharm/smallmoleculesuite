@@ -343,13 +343,14 @@ selectivityServer <- function(input, output, session) {
   tbl_table <- reactive({
     .data <- tbl_data_formatted()
 
-    DT::datatable(
+    datatable_tooltip(
       .data,
       extensions = c("Buttons"),
       style = "bootstrap4",
       rownames = FALSE,
       selection = "multiple",
       escape = setdiff(colnames(.data), "references"),
+      column_specs = COLUMN_SPECS,
       options = list(
         dom = DT_DOM,
         buttons = list(
@@ -368,8 +369,7 @@ selectivityServer <- function(input, output, session) {
             ) - 1,
             visible = FALSE
           )
-        ) %>%
-          c(column_title_defs(names(.data))),
+        ),
         pagingType = "numbers",
         scrollX = TRUE,
         searchHighlight = TRUE

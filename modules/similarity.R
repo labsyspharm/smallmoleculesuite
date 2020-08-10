@@ -469,11 +469,12 @@ similarityServer <- function(input, output, session) {
     .data <- r_tbl_sim_data()
     col_types <- unname(vapply(.data, class, character(1)))
 
-    DT::datatable(
+    datatable_tooltip(
       .data,
       extensions = c("Buttons"),
       style = "bootstrap4",
       rownames = FALSE,
+      column_specs = COLUMN_SPECS,
       options = list(
         dom = DT_DOM,
         buttons = list(
@@ -496,8 +497,7 @@ similarityServer <- function(input, output, session) {
             targets = (1:ncol(.data)) - 1,
             defaultContent = "NA"
           )
-        ) %>%
-          c(column_title_defs(names(.data))),
+        ),
         selection = list(mode = "multiple", target = "column"),
         pagingType = "numbers",
         scrollCollapse = TRUE,
