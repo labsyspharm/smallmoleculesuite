@@ -12,8 +12,8 @@ library(purrr)
 library(morgancpp)
 library(yonder)
 library(stringr)
-
-requireNamespace("DT")
+library(shiny.router)
+library(DT)
 
 
 # source("awspass.config")
