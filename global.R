@@ -13,7 +13,6 @@ library(purrr)
 library(morgancpp)
 library(yonder)
 library(stringr)
-library(shiny.router)
 library(DT)
 
 # source("awspass.config")

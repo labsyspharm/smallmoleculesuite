@@ -99,23 +99,37 @@ home_page <- function() {
             width = 12,
             deck(
               card(
-                h5("I want pre-calculated libraries—"),
-                p(mod_ui_set_library_vals_button("kinase_lib", "Kinases")),
-                p(mod_ui_set_library_vals_button("moa_lib", "MOA"))
+                h5("I want pre-calculated optimized libraries for—"),
+                tags$a(
+                  type = "button",
+                  class = "btn btn-primary",
+                  icon("braille"),
+                  "Kinome",
+                  href = "/?_inputs_&tab=%22library%22&library-gene_example=%22Kinome%22"
+                ) %>%
+                  tags$p(),
+                tags$a(
+                  type = "button",
+                  class = "btn btn-primary",
+                  icon("braille"),
+                  "Liganded Proteome",
+                  href = "/?_inputs_&tab=%22library%22&library-gene_example=%22Full_LigandedGenome%22"
+                ) %>%
+                  tags$p()
               ) %>%
                 shadow("small"),
               card(
                 h5("I have a gene and—"),
                 tags$a(
                   class = "btn btn-link text-left",
-                  href = route_link("selectivity"),
+                  href = "/?_inputs_&tab=%22selectivity%22",
                   icon("share"),
                   "I need a full list of small molecules that target a gene of interest."
                 ) %>%
                   tags$p(),
                 tags$a(
                   class = "btn btn-link text-left",
-                  href = route_link("library"),
+                  href = "/?_inputs_&tab=%22library%22",
                   icon("share"),
                   "I need two orthogonal small molecules for a set of targets"
                 ) %>%
@@ -126,14 +140,14 @@ home_page <- function() {
                 h5("I have a compound and—"),
                 tags$a(
                   class = "btn btn-link text-left",
-                  href = route_link("similarity"),
+                  href = "/?_inputs_&tab=%22similarity%22",
                   icon("share"),
                   "I would like to know which small molecules are similar to my of interest"
                 ) %>%
                   tags$p(),
                 tags$a(
                   class = "btn btn-link text-left",
-                  href = route_link("binding"),
+                  href = "/?_inputs_&tab=%22binding%22",
                   icon("share"),
                   "What are the targets of my compound?"
                 ) %>%
@@ -144,14 +158,14 @@ home_page <- function() {
                 h5("I want to download data—"),
                 tags$a(
                   class = "btn btn-link text-left",
-                  href = route_link("download"),
+                  href = "/?_inputs_&tab=%22download%22",
                   icon("share"),
                   "As flat CSV files"
                 ) %>%
                   tags$p(),
                 tags$a(
                   class = "btn btn-link text-left",
-                  href = route_link("download"),
+                  href = "/?_inputs_&tab=%22download%22",
                   icon("share"),
                   "As database tables"
                 ) %>%
@@ -172,7 +186,7 @@ home_page <- function() {
           column(
             tags$a(
               id = "link_selectivity",
-              href = route_link("selectivity"),
+              href = "/?_inputs_&tab=%22selectivity%22",
               tags$img(src = "sms/assets/img/selectivity_logo.svg", style = "height: 10rem;"),
               h4("Selectivity") %>%
                 margin(top = 2),
@@ -186,7 +200,7 @@ home_page <- function() {
           column(
             tags$a(
               id = "link_similarity",
-              href = route_link("similarity"),
+              href = "/?_inputs_&tab=%22similarity%22",
               tags$img(src = "sms/assets/img/similarity_logo.svg", style = "height: 10rem;"),
               h4("Similarity") %>%
                 margin(top = 2),
@@ -200,7 +214,7 @@ home_page <- function() {
           column(
             tags$a(
               id = "link_library",
-              href = route_link("library"),
+              href ="/?_inputs_&tab=%22library%22",
               tags$img(src = "sms/assets/img/library_logo.svg", style = "height: 10rem;"),
               h4("Library") %>%
                 margin(top = 2),

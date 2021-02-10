@@ -38,12 +38,14 @@ libraryUI <- function(id) {
             formGroup(
               label = "Example gene lists",
               input = {
-                sel <- selectInput(
-                  id = ns("gene_example"),
+                sel <- shiny::selectInput(
+                  inputId = ns("gene_example"),
+                  label = NULL,
                   choices = names(data_genes), # data/load.R
-                  selected = "Dark_Kinome"
+                  selected = "Dark_Kinome",
+                  multiple = FALSE
                 )
-                sel$children[[1]]$attribs$placeholder <- "Dark_Kinome"
+                # sel$children[[1]]$attribs$placeholder <- "Dark_Kinome"
                 sel
               },
               help = "Selecting a choice will populate the input above with an example list of genes."
@@ -198,25 +200,7 @@ libraryUI <- function(id) {
   )
 }
 
-mod_ui_set_library_vals_button <- function(id, label, button_icon = icon("braille")) {
-  ns <- NS(id)
-  actionButton(
-    ns("button"),
-    label,
-    icon = button_icon,
-    class = "btn-blue shadow-sm"
-  )
-}
-
-mod_server_set_library_vals_button <- function(
-  input, output, session, r_update_inputs, vals
-) {
-  observeEvent(input$button, {
-    r_update_inputs(vals)
-  })
-}
-
-libraryServer <- function(input, output, session, update_input_callback = NULL) {
+libraryServer <- function(input, output, session) {
   ns <- session$ns
 
   # Define genes found in our data
@@ -246,7 +230,7 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
 
   r_gene_list <- reactiveVal(NULL)
 
-  observeEvent(input$submit, {
+  observeEvent(c(input$submit, input$gene_example), {
     gene_list <- input$gene_list
     if (is.null(gene_list))
       gene_list <- ""
@@ -495,29 +479,11 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
     mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
   )
 
-  r_update_inputs <- reactiveVal()
-
-  observeEvent(r_update_inputs(), {
-    vals <- r_update_inputs()
-    for (field in names(vals)) {
-      switch(
-        field,
-        gene_example = updateSelectInput(
-          "gene_example", selected = vals[[field]]
-        )
-      )
-    }
-    update_gene_list_external <<- TRUE
-    if (!is.null(update_input_callback))
-      update_input_callback()
-  })
-
   setBookmarkExclude(
     table_inputs("table_results")
   )
 
   list(
-    session = session,
-    r_update_inputs = r_update_inputs
+    session = session
   )
 }
