@@ -1,5 +1,5 @@
 NAV_ITEMS <- list(
-  home = list(icon("home"), "Home"),
+  `/` = list(icon("home"), "Home"),
   selectivity = list(icon("circle", class = "selectivity--pink"), "Selectivity"),
   similarity = list(icon("circle", class = "similarity--green"), "Similarity"),
   library = list(icon("circle", class = "library--orange"), "Library"),
@@ -8,51 +8,94 @@ NAV_ITEMS <- list(
 
 navbar_ui <- navbar(
   brand = tags$a(
-    class = "navbar-brand",
     href = "http://sorger.med.harvard.edu/",
-    tags$img(class = "h-2", src = "sms/assets/img/logo.png")
+    tags$img(
+      src = "sms/assets/img/logo.png",
+      style = "height: 2rem;"
+    )
   ),
-  navInput(
-    appearance = "tabs",
-    id = "nav",
-    choices = unname(NAV_ITEMS),
-    values = names(NAV_ITEMS),
-    class = "navbar-dark bg-dark"
-  ) %>%
-    margin(left = "auto") %>%
-    htmltools::tagAppendChildren(
+  class = "navbar-dark bg-dark",
+  tags$ul(
+    class = "yonder-nav nav nav-pills navbar-nav",
+    imap(
+      NAV_ITEMS,
+      ~tags$li(
+        class = "nav-item",
+        tags$a(
+          `data-route` = .y,
+          class = paste(
+            "nav-link btn btn-link",
+            if (.y == "/") "active"
+          ),
+          href = route_link(.y),
+          .x
+        )
+      )
+    ),
+    list(
       buttonInput(
         id = "about",
         label = "About",
         class ="nav-link btn-link"
-      ) %>%
-        tags$li(class ="nav-item"),
+      ),
       buttonInput(
         id = "funding",
         label = "Funding",
         class ="nav-link btn-link"
-      ) %>%
-        tags$li(class ="nav-item"),
+      ),
       tags$a(
         href = "https://forms.gle/dSpCJSsbaavTbCkP6",
         target = "_blank",
         icon("comments", class = "fa-lg"),
         "Feedback",
         class = "nav-link btn btn-link"
-      ) %>%
-        tags$li(class ="nav-item"),
+      ),
       tags$a(
         href = "https://github.com/labsyspharm/sms-website",
         target = "_blank",
         icon("github", class = "fa-lg"),
         class = "nav-link btn btn-link"
-      ) %>%
-        tags$li(class ="nav-item")
-    ),
+      )
+    ) %>%
+      map(tags$li, class ="nav-item")
+  ) %>%
+    margin(left = "auto")
 ) %>%
   padding(0, r = 3, l = 3) %>%
   margin(b = 4) %>%
-  shadow()
+  shadow() %>%
+  tagList(
+    tags$script(
+      r"{
+      const nav_links = $(".nav .nav-link");
+      var switchNav = function(message) {
+        const routes = $("#router-page-wrapper").find(".router");
+        var active_route = routes.filter(function() {
+          return $(this).data("path") == message;
+        });
+        var active_link = nav_links.filter(function() {
+          return $(this).data("route") == message;
+        });
+        nav_links.removeClass("active");
+        active_link.addClass("active");
+        routes.addClass('router-hidden');
+        active_route.removeClass('router-hidden');
+      };
+      Shiny.addCustomMessageHandler("switch-ui", switchNav);
+      }"
+    )
+  )
+  # tagList(
+  #   tags$script(
+  #     r"{
+  #       $(".nav .nav-link").on("click", function(){
+  #         const all_active = $(this).parent().closest(".nav").find(".active");
+  #         all_active.removeClass("active");
+  #         $(this).addClass("active");
+  #       });
+  #     }"
+  #   )
+  # )
 
 home_page <- container(
   cantered = TRUE,
