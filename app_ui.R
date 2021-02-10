@@ -224,7 +224,7 @@ home_page <- container(
       ) %>%
         font(align = "center", size = "sm") %>%
         margin(top = -1, b = 3),
-      bindingDataUI("bd") %>%
+      bindingDataUI("binding_data") %>%
         margin(top = 5, bottom = 5)
     )
   )

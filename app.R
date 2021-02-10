@@ -5,19 +5,19 @@ router <- make_router(
   route(
     "selectivity",
     selectivityUI(
-      id = "select"
+      id = "selectivity"
     )
   ),
   route(
     "similarity",
     similarityUI(
-      id = "sim"
+      id = "similarity"
     )
   ),
   route(
     "library",
     libraryUI(
-      id = "lib"
+      id = "library"
     )
   ),
   route("download", download_page)
@@ -68,11 +68,6 @@ server <- function(input, output, session) {
   callModule(
     module = similarityServer,
     id = "similarity"
-  )
-
-  callModule(
-    module = selectivityServer,
-    id = "selectivity"
   )
 
   callModule(
