@@ -30,12 +30,12 @@ navbar_ui <- function() {
         buttonInput(
           id = "about",
           label = "About",
-          class ="nav-link btn-link"
+          class = "nav-link btn-link"
         ),
         buttonInput(
           id = "funding",
           label = "Funding",
-          class ="nav-link btn-link"
+          class = "nav-link btn-link"
         ),
         tags$a(
           href = "https://forms.gle/dSpCJSsbaavTbCkP6",
@@ -52,7 +52,7 @@ navbar_ui <- function() {
           class = "nav-link btn btn-link"
         )
       ) %>%
-        map(tags$li, class ="nav-item")
+        map(tags$li, class = "nav-item")
     ) %>%
       margin(left = 0L)
   ) %>%
@@ -84,129 +84,129 @@ home_page <- function() {
         ) %>%
           font(align = "justify") %>%
           margin(l = "auto", r = "auto", b = 5),
-        columns( # ├ use cases ----
-                 column(
-                   width = 12,
-                   h1("Use cases") %>%
-                     margin(bottom = 3) %>%
-                     font(align = "center")
-                 ),
-                 column(
-                   width = 12,
-                   deck(
-                     card(
-                       h5("I want pre-calculated libraries—"),
-                       p(mod_ui_set_library_vals_button("kinase_lib", "Kinases")),
-                       p(mod_ui_set_library_vals_button("moa_lib", "MOA"))
-                     ) %>%
-                       shadow("small"),
-                     card(
-                       h5("I have a gene and—"),
-                       tags$a(
-                         class = "btn btn-link text-left",
-                         href = route_link("selectivity"),
-                         icon("share"),
-                         "I need a full list of small molecules that target a gene of interest."
-                       ) %>%
-                         tags$p(),
-                       tags$a(
-                         class = "btn btn-link text-left",
-                         href = route_link("library"),
-                         icon("share"),
-                         "I need two orthogonal small molecules for a set of targets"
-                       ) %>%
-                         tags$p()
-                     ) %>%
-                       shadow("small"),
-                     card(
-                       h5("I have a compound and—"),
-                       tags$a(
-                         class = "btn btn-link text-left",
-                         href = route_link("similarity"),
-                         icon("share"),
-                         "I would like to know which small molecules are similar to my of interest"
-                       ) %>%
-                         tags$p(),
-                       tags$a(
-                         class = "btn btn-link text-left",
-                         href = route_link("binding"),
-                         icon("share"),
-                         "What are the targets of my compound?"
-                       ) %>%
-                         tags$p()
-                     ) %>%
-                       shadow("small"),
-                     card(
-                       h5("I want to download data—"),
-                       tags$a(
-                         class = "btn btn-link text-left",
-                         href = route_link("download"),
-                         icon("share"),
-                         "As flat CSV files"
-                       ) %>%
-                         tags$p(),
-                       tags$a(
-                         class = "btn btn-link text-left",
-                         href = route_link("download"),
-                         icon("share"),
-                         "As database tables"
-                       ) %>%
-                         tags$p()
-                     ) %>%
-                       shadow("small")
-                   )
-                 )
+        columns(
+          column(
+            width = 12,
+            h1("Use cases") %>%
+              margin(bottom = 3) %>%
+              font(align = "center")
+          ),
+          column(
+            width = 12,
+            deck(
+              card(
+                h5("I want pre-calculated libraries—"),
+                p(mod_ui_set_library_vals_button("kinase_lib", "Kinases")),
+                p(mod_ui_set_library_vals_button("moa_lib", "MOA"))
+              ) %>%
+                shadow("small"),
+              card(
+                h5("I have a gene and—"),
+                tags$a(
+                  class = "btn btn-link text-left",
+                  href = route_link("selectivity"),
+                  icon("share"),
+                  "I need a full list of small molecules that target a gene of interest."
+                ) %>%
+                  tags$p(),
+                tags$a(
+                  class = "btn btn-link text-left",
+                  href = route_link("library"),
+                  icon("share"),
+                  "I need two orthogonal small molecules for a set of targets"
+                ) %>%
+                  tags$p()
+              ) %>%
+                shadow("small"),
+              card(
+                h5("I have a compound and—"),
+                tags$a(
+                  class = "btn btn-link text-left",
+                  href = route_link("similarity"),
+                  icon("share"),
+                  "I would like to know which small molecules are similar to my of interest"
+                ) %>%
+                  tags$p(),
+                tags$a(
+                  class = "btn btn-link text-left",
+                  href = route_link("binding"),
+                  icon("share"),
+                  "What are the targets of my compound?"
+                ) %>%
+                  tags$p()
+              ) %>%
+                shadow("small"),
+              card(
+                h5("I want to download data—"),
+                tags$a(
+                  class = "btn btn-link text-left",
+                  href = route_link("download"),
+                  icon("share"),
+                  "As flat CSV files"
+                ) %>%
+                  tags$p(),
+                tags$a(
+                  class = "btn btn-link text-left",
+                  href = route_link("download"),
+                  icon("share"),
+                  "As database tables"
+                ) %>%
+                  tags$p()
+              ) %>%
+                shadow("small")
+            )
+          )
         ) %>%
           margin(bottom = 5),
-        columns( # ├ applications ----
-                 column(
-                   width = 12,
-                   h1("Applications") %>%
-                     margin(bottom = 3) %>%
-                     font(align = "center")
-                 ),
-                 column(
-                   tags$a(
-                     id = "link_selectivity",
-                     href = route_link("selectivity"),
-                     tags$img(src = "sms/assets/img/selectivity_logo.svg", style = "height: 10rem;"),
-                     h4("Selectivity") %>%
-                       margin(top = 2),
-                     "Show the affinity and selectivity of compounds for a protein of interest."
-                   ) %>%
-                     tags$div()
-                 ) %>%
-                   display("flex") %>%
-                   flex(direction = "column") %>%
-                   font(align = "center"),
-                 column(
-                   tags$a(
-                     id = "link_similarity",
-                     href = route_link("similarity"),
-                     tags$img(src = "sms/assets/img/similarity_logo.svg", style = "height: 10rem;"),
-                     h4("Similarity") %>%
-                       margin(top = 2),
-                     "Show the similarity of compounds to a reference probe or drug."
-                   ) %>%
-                     tags$div()
-                 ) %>%
-                   display("flex") %>%
-                   flex(direction = "column") %>%
-                   font(align = "center"),
-                 column(
-                   tags$a(
-                     id = "link_library",
-                     href = route_link("library"),
-                     tags$img(src = "sms/assets/img/library_logo.svg", style = "height: 10rem;"),
-                     h4("Library") %>%
-                       margin(top = 2),
-                     "Compose custom chemical genetics libraries for gene-sets of interest."
-                   ) %>%
-                     tags$div()
-                 ) %>%
-                   display("flex") %>%
-                   flex(direction = "column") %>%
-                   font(align = "center"),
+        columns(
+          column(
+            width = 12,
+            h1("Applications") %>%
+              margin(bottom = 3) %>%
+              font(align = "center")
+          ),
+          column(
+            tags$a(
+              id = "link_selectivity",
+              href = route_link("selectivity"),
+              tags$img(src = "sms/assets/img/selectivity_logo.svg", style = "height: 10rem;"),
+              h4("Selectivity") %>%
+                margin(top = 2),
+              "Show the affinity and selectivity of compounds for a protein of interest."
+            ) %>%
+              tags$div()
+          ) %>%
+            display("flex") %>%
+            flex(direction = "column") %>%
+            font(align = "center"),
+          column(
+            tags$a(
+              id = "link_similarity",
+              href = route_link("similarity"),
+              tags$img(src = "sms/assets/img/similarity_logo.svg", style = "height: 10rem;"),
+              h4("Similarity") %>%
+                margin(top = 2),
+              "Show the similarity of compounds to a reference probe or drug."
+            ) %>%
+              tags$div()
+          ) %>%
+            display("flex") %>%
+            flex(direction = "column") %>%
+            font(align = "center"),
+          column(
+            tags$a(
+              id = "link_library",
+              href = route_link("library"),
+              tags$img(src = "sms/assets/img/library_logo.svg", style = "height: 10rem;"),
+              h4("Library") %>%
+                margin(top = 2),
+              "Compose custom chemical genetics libraries for gene-sets of interest."
+            ) %>%
+              tags$div()
+          ) %>%
+            display("flex") %>%
+            flex(direction = "column") %>%
+            font(align = "center"),
         )
       )
     )
