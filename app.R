@@ -1,55 +1,10 @@
 source("global.R", local = TRUE)
 
-router <- make_router(
-  default = route("home", home_page),
-  route(
-    "binding",
-    tagList(
-      p(
-        class = "lead",
-        "Quick reference compound binding data."
-      ) %>%
-        font(align = "center", size = "sm") %>%
-        margin(top = -1, b = 3),
-      bindingDataUI(
-        id = "binding"
-      )
-    )
-  ),
-  route(
-    "selectivity",
-    selectivityUI(
-      id = "selectivity"
-    )
-  ),
-  route(
-    "similarity",
-    similarityUI(
-      id = "similarity"
-    )
-  ),
-  route(
-    "library",
-    libraryUI(
-      id = "library"
-    )
-  ),
-  route("download", download_page)
-)
-
-ui <- function(request) {
-  tagList(
-    page_headers,
-    webpage(
-      nav = navbar_ui,
-      router$ui
-    )
-  )
-}
-
 server <- function(input, output, session) {
 
-  router$server(input, output, session)
+  observe({
+    showNavPane(input$tab)
+  })
 
   .modal_about <- modal(
     id = NULL,
@@ -89,6 +44,16 @@ server <- function(input, output, session) {
   callModule(
     module = libraryServer,
     id = "library"
+  )
+}
+
+ui <- function(req) {
+  tagList(
+    page_headers(),
+    webpage(
+      nav = navbar_ui(),
+      nav_content_ui()
+    )
   )
 }
 

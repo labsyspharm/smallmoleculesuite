@@ -16,6 +16,7 @@ library(stringr)
 library(shiny.router)
 library(DT)
 
+enableBookmarking(store = "url")
 
 # source("awspass.config")
 
