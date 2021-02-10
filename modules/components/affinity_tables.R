@@ -234,6 +234,15 @@ mod_server_affinity_tables <- function(
     )
   })
 
+  setBookmarkExclude(
+    table_inputs(
+      c(
+        "table_selectivity",
+        "table_tas"
+      )
+    )
+  )
+
   list(
     session = session,
     r_selected_lspci_ids = r_either_selected

@@ -51,6 +51,7 @@ navbar_ui <- navbar(
         "Feedback",
         class = "nav-link btn btn-link"
       ),
+      bookmarkButton(),
       tags$a(
         href = "https://github.com/labsyspharm/sms-website",
         target = "_blank",

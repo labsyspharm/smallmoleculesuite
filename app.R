@@ -37,13 +37,15 @@ router <- make_router(
   route("download", download_page)
 )
 
-ui <- tagList(
-  page_headers,
-  webpage(
-    nav = navbar_ui,
-    router$ui
+ui <- function(request) {
+  tagList(
+    page_headers,
+    webpage(
+      nav = navbar_ui,
+      router$ui
+    )
   )
-)
+}
 
 server <- function(input, output, session) {
 
@@ -90,4 +92,4 @@ server <- function(input, output, session) {
   )
 }
 
-shinyApp(ui, server)
+shinyApp(ui, server, enableBookmarking = "url")

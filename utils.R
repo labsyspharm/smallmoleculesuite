@@ -122,3 +122,19 @@ fast_search <- function(data, req) {
   res <- shiny:::toJSON(shiny:::columnToRowData(data_out))
   shiny:::httpResponse(200, 'application/json', enc2utf8(res))
 }
+
+table_inputs <- function(table_name) {
+  suffixes <- c(
+    "_rows_selected",
+    "_rows_all",
+    "_rows_current",
+    "_columns_selected",
+    "_search",
+    "_cells_selected",
+    "_cell_clicked",
+    "_state"
+  )
+  inputs <- outer(table_name, suffixes, FUN = "paste0")
+  dim(inputs) <- NULL
+  inputs
+}

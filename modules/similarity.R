@@ -517,6 +517,10 @@ similarityServer <- function(input, output, session) {
     )
   })
 
+  setBookmarkExclude(
+    table_inputs("table_sim_compound")
+  )
+
   callModule(mod_server_download_button, "output_table_xlsx_dl", r_tbl_sim_data, "excel", r_download_name)
   callModule(mod_server_download_button, "output_table_csv_dl", r_tbl_sim_data, "csv", r_download_name)
 

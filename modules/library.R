@@ -506,6 +506,10 @@ libraryServer <- function(input, output, session, update_input_callback = NULL) 
       update_input_callback()
   })
 
+  setBookmarkExclude(
+    table_inputs("table_results")
+  )
+
   list(
     session = session,
     r_update_inputs = r_update_inputs

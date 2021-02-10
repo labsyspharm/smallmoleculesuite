@@ -3,7 +3,6 @@ bindingDataUI <- function(id) {
 
   column(
     width = 8,
-    style = "margin: auto;",
     formRow(
       id = ns("reference"),
       formGroup(
@@ -12,13 +11,12 @@ bindingDataUI <- function(id) {
         help = "Search for one or more compounds",
         width = "equal"
       ),
-      actionButton(
-        ns("reset_select_compound"),
-        "",
-        icon = icon("redo"),
-        onclick = glue("$('#{NS(ns('query'))('select_compound')}').selectize()[0].selectize.clear();")
+      tags$a(
+        class = "btn",
+        onclick = glue("$('#{NS(ns('query'))('select_compound')}').selectize()[0].selectize.clear();"),
+        icon("times-circle")
       ) %>%
-        margin(right = 2),
+        margin("auto"),
       formGroup(
         label = "Select targets",
         selectizeInput(
@@ -31,12 +29,12 @@ bindingDataUI <- function(id) {
         width = "equal"
       ) %>%
         margin(left = 2),
-      actionButton(
-        ns("reset_select_target"),
-        "",
-        icon = icon("redo"),
-        onclick = glue("$('#{ns('select_target')}').selectize()[0].selectize.clear();")
-      )
+      tags$a(
+        class = "btn",
+        onclick = glue("$('#{ns('select_target')}').selectize()[0].selectize.clear();"),
+        icon("times-circle")
+      ) %>%
+        margin("auto")
     ),
     formRow(
       formGroup(
@@ -51,32 +49,14 @@ bindingDataUI <- function(id) {
         p("Filter by compound and target") %>%
           margin(b = 1)
       )
-    ),
-    tags$head(
-      tags$script(
-        I("
-          Shiny.addCustomMessageHandler('scrollCallback',
-            function(msg) {
-              let target = $('#' + msg);
-              let offset = target.offset();
-              $('html, body').animate({scrollTop: offset.top}, 'slow');
-            }
-          );
-        ")
-      )
     )
   ) %>%
+    margin("auto") %>%
     columns()
 }
 
 bindingDataServer <- function(input, output, session) {
   ns <- session$ns
-
-  query <- isolate(
-    parseQueryString(session$clientData$url_search)
-  )
-
-  use_query <- !is.null(query[["tool"]]) && query[["tool"]] == "reference"
 
   r_eligible_lspci_ids <- callModule(
     mod_server_filtered_lspci_ids,
@@ -87,7 +67,7 @@ bindingDataServer <- function(input, output, session) {
     mod_server_select_compounds,
     "query",
     data_names,
-    default_choice = if (use_query) query[["lspci_id"]] else 66153L,
+    default_choice = 66153L,
     r_eligible_ids = r_eligible_lspci_ids,
     selectize_options = list(
       maxItems = 10
@@ -100,7 +80,7 @@ bindingDataServer <- function(input, output, session) {
     choices = data_affinity_selectivity[["symbol"]] %>%
       unique() %>%
       sort(),
-    selected = if (use_query) query[["symbol"]],
+    selected = NULL,
     server = TRUE,
     options = list(
       placeholder = "Target symbol",
@@ -108,20 +88,7 @@ bindingDataServer <- function(input, output, session) {
     )
   )
 
-  query_show <- use_query
-
   r_selection <- reactive({
-    # Prevent input updates from firing one at a time after
-    # updateSelectizeInput call when a query has been sent by the user
-    if (
-      query_show &&
-      (
-        !(is.null(query[["lspci_id"]]) || isTRUE(query[["lspci_id"]] == r_selected_lspci_ids())) ||
-        !(is.null(query[["symbol"]]) || isTRUE(query[["symbol"]] == input$select_target))
-      )
-    )
-      return(integer())
-    query_show <<- FALSE
     selection <- list()
     if(!is.null(r_selected_lspci_ids()))
       selection[["lspci_id"]] <- as.integer(r_selected_lspci_ids())
@@ -140,21 +107,4 @@ bindingDataServer <- function(input, output, session) {
     data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map,
     r_eligible_lspci_ids = r_eligible_lspci_ids
   )
-
-  if (use_query) {
-    updateNavInput(
-      id = "selectivity_nav",
-      selected = query[["tab"]],
-      session = affinity_tables[["session"]]
-    )
-    session$sendCustomMessage(type = "scrollCallback", ns("reference"))
-  }
-
-}
-
-mod_server_scroll_binding <- function(
-  input, output, session
-) {
-  ns <- session$ns
-  session$sendCustomMessage(type = "scrollCallback", ns("reference"))
 }

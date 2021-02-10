@@ -419,6 +419,10 @@ selectivityServer <- function(input, output, session) {
     mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
   )
 
+  setBookmarkExclude(
+    table_inputs("output_table")
+  )
+
   callModule(
     mod_server_affinity_tables, "affinity_tables_1",
     r_selection_drugs,
