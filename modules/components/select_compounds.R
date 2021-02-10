@@ -28,8 +28,10 @@ mod_server_select_compounds <- function(
   r_eligible_ids = NULL,
   selectize_options = NULL
 ) {
+
   if (is.null(r_eligible_ids))
     r_eligible_ids <- function() compounds[commercially_available == TRUE][["lspci_id"]]
+
   selectize_options_ <- list(
     maxItems = 1,
     maxOptions = 10,
@@ -39,31 +41,52 @@ mod_server_select_compounds <- function(
     closeAfterSelect = TRUE,
     render = SELECT_COMPOUND_RENDER_JS
   )
+
+  r_default_choice <- reactiveVal(default_choice)
+
+  onRestore(function(state) {
+    # Have to remove -x suffix
+    r_default_choice(
+      str_split_fixed(
+        state$input$select_compound,
+        fixed("-"),
+        n = 2
+      )[, 1]
+    )
+  })
+
   for (i in seq_along(selectize_options))
     selectize_options_[[names(selectize_options)[[i]]]] <- selectize_options[[i]]
-  choices <- rbindlist(
-    list(
-      compounds[
-        match(paste0(default_choice, "-1"), lspci_id_unique)
-      ],
-      compounds[
-        lspci_id %in% isolate(r_eligible_ids()) & lspci_id_unique != paste0(default_choice, "-1")
-      ]
-    )
-  )[, .(label = name, value = lspci_id_unique, lspci_id, source)]
-  updateSelectizeInput(
-    session,
-    inputId = "select_compound",
-    choices = choices,
-    # choices = compounds[
-    #   lspci_id %in% isolate(r_eligible_ids()),
-    #   .(label = name, value = lspci_id_unique, lspci_id, source)
-    # ],
-    selected = paste0(default_choice, "-1"),
-    server = TRUE,
-    options = selectize_options_,
-    callback = fast_search
+
+  r_choices <- reactive(
+    rbindlist(
+      list(
+        compounds[
+          match(paste0(r_default_choice(), "-1"), lspci_id_unique)
+        ],
+        compounds[
+          lspci_id %in% isolate(r_eligible_ids()) & lspci_id_unique != paste0(r_default_choice(), "-1")
+        ]
+      )
+    )[, .(label = name, value = lspci_id_unique, lspci_id, source)]
   )
+
+  observe(
+    updateSelectizeInput(
+      session,
+      inputId = "select_compound",
+      choices = r_choices(),
+      # choices = compounds[
+      #   lspci_id %in% isolate(r_eligible_ids()),
+      #   .(label = name, value = lspci_id_unique, lspci_id, source)
+      # ],
+      selected = paste0(r_default_choice(), "-1"),
+      server = TRUE,
+      options = selectize_options_,
+      callback = fast_search
+    )
+  )
+
   observeEvent(r_eligible_ids(), {
     updateSelectizeInput(
       session,
