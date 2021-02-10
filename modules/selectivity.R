@@ -213,16 +213,24 @@ selectivityServer <- function(input, output, session) {
     }
   })
 
+  r_query_gene <- reactiveVal("BRAF")
+
+  observe({
+    if(!is.null(input$query_gene) && str_length(input$query_gene) > 0)
+      r_query_gene(input$query_gene)
+  })
+
+  onRestore(function(state) {
+    r_query_gene(state$input$query_gene)
+  })
+
   # update query gene select ----
-  observeEvent(selection_genes(), {
+  observe({
     updateSelectizeInput(
       session,
       "query_gene",
       choices = c("BRAF", selection_genes()),
-      selected = if(!is.null(input$query_gene) && str_length(input$query_gene) > 0)
-        input$query_gene
-      else
-        "BRAF",
+      selected = r_query_gene(),
       server = TRUE
     )
   })
