@@ -54,7 +54,7 @@ navbar_ui <- function() {
       ) %>%
         map(tags$li, class = "nav-item")
     ) %>%
-      margin(left = 0L)
+      margin(left = 0)
   ) %>%
     padding(0, r = 3, l = 3) %>%
     margin(b = 4) %>%

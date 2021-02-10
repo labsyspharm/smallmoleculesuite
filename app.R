@@ -22,7 +22,8 @@ server <- function(input, output, session) {
     header = h5("Funding"),
     p("This open-access webtool is funded by NIH grants U54-HL127365, U24-DK116204 and U54-HL127624.")
   )
-  observeEvent(c(input$funding, input$funding2), {
+  observeEvent(c(input$funding, input$funding2),
+    ignoreInit = TRUE, {
     showModal(.modal_funding)
   })
 
