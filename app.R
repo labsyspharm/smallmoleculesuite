@@ -1,7 +1,21 @@
 source("global.R", local = TRUE)
 
 router <- make_router(
-  route("/", home_page),
+  default = route("home", home_page),
+  route(
+    "binding",
+    tagList(
+      p(
+        class = "lead",
+        "Quick reference compound binding data."
+      ) %>%
+        font(align = "center", size = "sm") %>%
+        margin(top = -1, b = 3),
+      bindingDataUI(
+        id = "binding"
+      )
+    )
+  ),
   route(
     "selectivity",
     selectivityUI(
@@ -57,7 +71,7 @@ server <- function(input, output, session) {
 
   callModule(
     module = bindingDataServer,
-    id = "binding_data"
+    id = "binding"
   )
 
   callModule(

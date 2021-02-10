@@ -1,4 +1,4 @@
-DT_HEADER_FORMAT_JS = '
+DT_HEADER_FORMAT_JS = r'--{
   function(thead, data, start, end, display) {
     const tooltip_map = {`tooltip_map`};
     const new_th = $(thead).find("th:not(:has(span))");
@@ -8,14 +8,18 @@ DT_HEADER_FORMAT_JS = '
         const tooltip = tooltip_map[title];
         if (tooltip == "NA")
           return;
-        $(this).wrapInner("<span class=\'contains-tooltip\', data-toggle=\'tooltip\'></span>");
+        $(this).append(
+          '`icon`'
+        ).wrapInner(
+          "<span class='contains-tooltip', data-toggle='tooltip'></span>"
+        );
         const span = $(this).find("span");
         $(span).attr("title", tooltip);
         $(span).tooltip();
       }
     );
   }
-'
+}--'
 
 get_header_tooltip_js <- function(column_specs) {
   glue(
@@ -23,7 +27,9 @@ get_header_tooltip_js <- function(column_specs) {
     tooltip_map = with(
       column_specs,
       paste('"', column_name, '" : "', column_description, '"', sep = "", collapse = ",")
-    )
+    ),
+    icon = icon("info-circle") %>%
+      margin(l = 1)
   ) %>%
     DT::JS()
 }

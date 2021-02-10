@@ -1,5 +1,6 @@
 NAV_ITEMS <- list(
-  `/` = list(icon("home"), "Home"),
+  home = list(icon("home"), "Home"),
+  binding = list(icon("circle"), "Binding"),
   selectivity = list(icon("circle", class = "selectivity--pink"), "Selectivity"),
   similarity = list(icon("circle", class = "similarity--green"), "Similarity"),
   library = list(icon("circle", class = "library--orange"), "Library"),
@@ -25,7 +26,7 @@ navbar_ui <- navbar(
           `data-route` = .y,
           class = paste(
             "nav-link btn btn-link",
-            if (.y == "/") "active"
+            if (.y == "home") "active"
           ),
           href = route_link(.y),
           .x
@@ -137,68 +138,56 @@ home_page <- container(
               shadow("small"),
             card(
               h5("I have a gene and—"),
-              p(
-                linkInput(
-                  id = "goto_selectivity_1",
-                  label = list(
-                    icon("share"),
-                    "I need a full list of small molecules that target a gene of interest."
-                  )
-                )
-              ),
-              p(
-                linkInput(
-                  id = "goto_library_1",
-                  label = list(
-                    icon("share"),
-                    "I need two orthogonal small molecules for a set of targets"
-                  )
-                )
-              )
+              tags$a(
+                class = "btn btn-link text-left",
+                href = route_link("selectivity"),
+                icon("share"),
+                "I need a full list of small molecules that target a gene of interest."
+              ) %>%
+                tags$p(),
+              tags$a(
+                class = "btn btn-link text-left",
+                href = route_link("library"),
+                icon("share"),
+                "I need two orthogonal small molecules for a set of targets"
+              ) %>%
+                tags$p()
             ) %>%
               shadow("small"),
             card(
               h5("I have a compound and—"),
-              p(
-                linkInput(
-                  id = "goto_similarity_1",
-                  label = list(
-                    icon("share"),
-                    "I would like to know which small molecules are similar to my of interest"
-                  )
-                )
-              ),
-              p(
-                linkInput(
-                  id = "goto_binding",
-                  label = list(
-                    icon("share"),
-                    "What are the targets of my compound?"
-                  )
-                )
-              )
+              tags$a(
+                class = "btn btn-link text-left",
+                href = route_link("similarity"),
+                icon("share"),
+                "I would like to know which small molecules are similar to my of interest"
+              ) %>%
+                tags$p(),
+              tags$a(
+                class = "btn btn-link text-left",
+                href = route_link("binding"),
+                icon("share"),
+                "What are the targets of my compound?"
+              ) %>%
+                tags$p()
             ) %>%
               shadow("small"),
             card(
               h5("I want to download data—"),
-              p(
-                linkInput(
-                  id = "goto_data_1",
-                  label = list(
-                    icon("share"),
-                    "As flat CSV files"
-                  )
-                )
-              ),
-              p(
-                linkInput(
-                  id = "goto_data_2",
-                  label = list(
-                    icon("share"),
-                    "As SQL database"
-                  )
-                )
-              )
+              tags$a(
+                class = "btn btn-link text-left",
+                href = route_link("download"),
+                icon("share"),
+                "As flat CSV files"
+              ) %>%
+                tags$p(),
+              tags$a(
+                class = "btn btn-link text-left",
+                href = route_link("download"),
+                icon("share"),
+                "As database tables"
+              ) %>%
+                tags$p()
             ) %>%
               shadow("small")
           )
@@ -213,62 +202,48 @@ home_page <- container(
             font(align = "center")
         ),
         column(
-          linkInput(
+          tags$a(
             id = "link_selectivity",
-            label = list(
-              tags$img(src = "sms/assets/img/selectivity_logo.svg"),
-              # icon("circle", class = "fa-6x selectivity--pink"),
-              h4("Selectivity") %>%
-                margin(top = 2)
-            )
-          ),
-          p("Show the affinity and selectivity of compounds for a protein of interest.")
+            href = route_link("selectivity"),
+            tags$img(src = "sms/assets/img/selectivity_logo.svg", style = "height: 10rem;"),
+            h4("Selectivity") %>%
+              margin(top = 2),
+            "Show the affinity and selectivity of compounds for a protein of interest."
+          ) %>%
+            tags$div()
         ) %>%
           display("flex") %>%
           flex(direction = "column") %>%
           font(align = "center"),
         column(
-          linkInput(
+          tags$a(
             id = "link_similarity",
-            label = list(
-              tags$img(src = "sms/assets/img/similarity_logo.svg"),
-              # icon("circle", class = "fa-6x similarity--green"),
-              h4("Similarity") %>%
-                margin(top = 2)
-            )
-          ),
-          p("Show the similarity of compounds to a reference probe or drug.")
+            href = route_link("similarity"),
+            tags$img(src = "sms/assets/img/similarity_logo.svg", style = "height: 10rem;"),
+            h4("Similarity") %>%
+              margin(top = 2),
+            "Show the similarity of compounds to a reference probe or drug."
+          ) %>%
+            tags$div()
         ) %>%
           display("flex") %>%
           flex(direction = "column") %>%
           font(align = "center"),
         column(
-          linkInput(
+          tags$a(
             id = "link_library",
-            label = list(
-              tags$img(src = "sms/assets/img/library_logo.svg"),
-              # icon("circle", class = "fa-6x text-orange"),
-              h4("Library") %>%
-                margin(top = 2)
-            )
-          ),
-          p("Compose custom chemical genetics libraries for gene-sets of interest.")
+            href = route_link("library"),
+            tags$img(src = "sms/assets/img/library_logo.svg", style = "height: 10rem;"),
+            h4("Library") %>%
+              margin(top = 2),
+            "Compose custom chemical genetics libraries for gene-sets of interest."
+          ) %>%
+            tags$div()
         ) %>%
           display("flex") %>%
           flex(direction = "column") %>%
-          font(align = "center")
-      ),
-      h1("Binding data") %>%
-        font(align = "center") %>%
-        margin(top = 5),
-      p(
-        class = "lead",
-        "Quick reference compound binding data."
-      ) %>%
-        font(align = "center", size = "sm") %>%
-        margin(top = -1, b = 3),
-      bindingDataUI("binding_data") %>%
-        margin(top = 5, bottom = 5)
+          font(align = "center"),
+      )
     )
   )
 )

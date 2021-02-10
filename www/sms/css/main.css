@@ -53,18 +53,17 @@ html {
   border-color: #ff9800 !important;
 }
 
+
 .navbar .nav-link {
   color: white !important;
   border-radius: 0 !important;
 }
 
+
 .navbar .active {
   background-color: #c90016 !important;
 }
 
-.navbar .active i {
-  color: white !important;
-}
 
 a[data-target] {
   cursor: pointer;
@@ -131,6 +130,4 @@ table.dataTable thead th {
 }
 
 .contains-tooltip {
-  text-decoration: underline;
-  text-decoration-style: dashed;
 }
