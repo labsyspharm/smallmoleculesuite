@@ -44,7 +44,11 @@ navbar_ui <- function() {
           "Feedback",
           class = "nav-link btn btn-link"
         ),
-        bookmarkButton(),
+        bookmarkButton(
+          label = "Share current view",
+          icon = icon("share-square"),
+          class = "btn-link nav-link"
+        ),
         tags$a(
           href = "https://github.com/labsyspharm/sms-website",
           target = "_blank",
@@ -223,7 +227,7 @@ download_page <- function() {
         "for each table and their relationship is available."
       ),
       a(
-        h4("Table documentation", class = "btn btn-default btn-grey"),
+        h4("Table documentation", class = "btn btn-outline-secondary"),
         href = "https://dbdocs.io/clemenshug/sms_db",
         target = "_blank"
       )
@@ -240,7 +244,7 @@ download_page <- function() {
           ),
           p("Based on ChEMBL v25, size 799.9 MB"),
           a(
-            h4("SQL database", class = "btn btn-default btn-grey"),
+            h4("SQL database", class = "btn btn-outline-secondary"),
             href = "sms/assets/downloads/sms_db_chembl_v25.sql.gz",
             target = "_blank"
           )
@@ -255,7 +259,7 @@ download_page <- function() {
           ),
           p("Based on ChEMBL v25, size 782.7 MB"),
           a(
-            h4("CSV files", class = "btn btn-default btn-grey"),
+            h4("CSV files", class = "btn btn-outline-secondary"),
             href = "sms/assets/downloads/sms_tables_chembl_v25.tar"
           )
         )

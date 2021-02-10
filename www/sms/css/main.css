@@ -53,6 +53,9 @@ html {
   border-color: #ff9800 !important;
 }
 
+.bg-orange {
+  background-color: #ff9800 !important;
+}
 
 .navbar .nav-link {
   color: white !important;

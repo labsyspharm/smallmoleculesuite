@@ -50,6 +50,7 @@ libraryUI <- function(id) {
             ),
             actionButton(
               inputId = ns("submit"),
+              class = "bg-orange",
               label = "Submit"
             ),
             actionButton(
@@ -72,13 +73,14 @@ libraryUI <- function(id) {
             tags$hr(),
             formGroup(
               label = "Commercial availability",
+              class = "active--orange",
               input = div(
-                class = "active--orange",
                 mod_ui_filter_commercial(ns(""))
               )
             ),
             formGroup(
               label = tags$h6("Selectivity levels") %>% margin(b = 0),
+              class = "active--orange",
               input = checkboxInput(
                 inline = TRUE,
                 id = ns("filter_probes"),
@@ -89,6 +91,7 @@ libraryUI <- function(id) {
             ),
             formGroup(
               label = tags$h6("Clinical phases") %>% margin(b = 0),
+              class = "active--orange",
               input = checkboxInput(
                 inline = TRUE,
                 id = ns("filter_phase"),
@@ -100,6 +103,7 @@ libraryUI <- function(id) {
             ),
             formGroup(
               label = tags$h6("Expert opinion compounds") %>% margin(b = 0),
+              class = "active--orange",
               input = checkboxInput(
                 inline = TRUE,
                 id = ns("filter_expert"),
@@ -110,8 +114,10 @@ libraryUI <- function(id) {
             ),
             formGroup(
               label = tags$h6("Output table") %>% margin(b = 0),
+              class = "active--orange",
               input = radiobarInput(
                 id = ns("table_display"),
+                class = "btn-group-secondary",
                 choices = c("Display per entry", "Display per compound"),
                 values = c("entry", "compound"),
                 selected = "entry"
