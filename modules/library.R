@@ -51,15 +51,13 @@ libraryUI <- function(id) {
             actionButton(
               inputId = ns("submit"),
               label = "Submit"
-            ) %>%
-              background("orange"),
+            ),
             actionButton(
               ns("reset_gene_list"),
               "Clear list",
               icon = icon("redo"),
               onclick = glue("$('#{ns('gene_list')}')[0].value = null;")
-            ) %>%
-              background("orange"),
+            ),
             p(
               shiny::textOutput(
                 outputId = ns("gene_targets"),
@@ -86,8 +84,7 @@ libraryUI <- function(id) {
                 id = ns("filter_probes"),
                 choices = c("Most selective", "Semi-selective", "Poly-selective", "Unknown"),
                 selected = "Most selective"
-              ) %>%
-                active("orange"),
+              ),
               help = "Choose the selectivity levels for which you want chemical probes to be included in the library."
             ),
             formGroup(
@@ -98,8 +95,7 @@ libraryUI <- function(id) {
                 choices = c("Approved", "Phase III", "Phase II", "Phase I"),
                 values = c(4, 3, 2, 1),
                 selected = 4
-              ) %>%
-                active("orange"),
+              ),
               help = "Select compounds in clinical development to be added to the library."
             ),
             formGroup(
@@ -109,8 +105,7 @@ libraryUI <- function(id) {
                 id = ns("filter_expert"),
                 choices = "chemicalprobes.org 4.0 star rating",
                 values = "chem_probe"
-              ) %>%
-                active("orange"),
+              ),
               help = "Select compounds that are endorsed by other users to be added to the library."
             ),
             formGroup(
@@ -120,8 +115,7 @@ libraryUI <- function(id) {
                 choices = c("Display per entry", "Display per compound"),
                 values = c("entry", "compound"),
                 selected = "entry"
-              ) %>%
-                active("orange")
+              )
             ),
             formGroup(
               label = tags$h6("Minimum affinity for query target (nM)") %>% margin(b = 0),

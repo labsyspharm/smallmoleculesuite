@@ -1,3 +1,4 @@
+library(magrittr)
 library(dplyr)
 library(data.table)
 library(readr)
@@ -37,6 +38,9 @@ source("data/load.R", local = TRUE)
 
 source("utils.R", local = TRUE)
 source("constants.R", local = TRUE)
+
+source("app_ui.R", local = TRUE)
+
 
 # enableBookmarking(store = "url")
 

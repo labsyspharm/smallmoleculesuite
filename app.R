@@ -1,5 +1,7 @@
+source("global.R", local = TRUE)
+
 router <- make_router(
-  route("/", home_page()),
+  route("/", home_page),
   route(
     "selectivity",
     selectivityUI(
@@ -18,15 +20,16 @@ router <- make_router(
       id = "lib"
     )
   ),
-  route("download", download_page(),)
+  route("download", download_page)
 )
 
-ui <- function() {
+ui <- tagList(
+  page_headers,
   webpage(
-    nav = navbar_ui(),
+    nav = navbar_ui,
     router$ui
   )
-}
+)
 
 server <- function(input, output, session) {
 
