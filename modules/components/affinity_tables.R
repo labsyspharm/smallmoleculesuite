@@ -39,6 +39,7 @@ mod_server_affinity_tables <- function(
   })
 
   r_selectivity_data_selected <- reactive({
+
     subset_dt(data_affinity_selectivity, r_selection_drugs())[
       if (is.null(r_eligible_lspci_ids)) TRUE else lspci_id %in% r_eligible_lspci_ids()
     ][

@@ -14,6 +14,11 @@ library(morgancpp)
 library(yonder)
 library(stringr)
 library(DT)
+library(shinycssloaders)
+library(writexl)
+library(future)
+
+plan(multicore)
 
 # source("awspass.config")
 
