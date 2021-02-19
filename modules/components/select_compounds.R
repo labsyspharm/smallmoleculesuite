@@ -34,7 +34,7 @@ mod_server_select_compounds <- function(
 
   selectize_options_ <- list(
     maxItems = 1,
-    maxOptions = 10,
+    # maxOptions = 10,
     placeholder = "Compound name",
     loadThrottle = 500,
     searchField = "label",
@@ -42,65 +42,47 @@ mod_server_select_compounds <- function(
     render = SELECT_COMPOUND_RENDER_JS
   )
 
-  r_default_choice <- reactiveVal(default_choice)
-
   onRestore(function(state) {
     # Have to remove -x suffix
-    r_default_choice(
-      str_split_fixed(
-        state$input$select_compound,
-        fixed("-"),
-        n = 2
-      )[, 1]
-    )
+    if (is.null(state$input$select_compound))
+      return()
+    default_choice <- str_split_fixed(
+      state$input$select_compound,
+      fixed("-"),
+      n = 2
+    )[, 1]
   })
 
   for (i in seq_along(selectize_options))
     selectize_options_[[names(selectize_options)[[i]]]] <- selectize_options[[i]]
 
-  r_choices <- reactive({
-    req(r_default_choice(), r_eligible_ids())
-    rbindlist(
-      list(
-        compounds[
-          match(paste0(r_default_choice(), "-1"), lspci_id_unique)
-        ],
-        compounds[
-          lspci_id %in% isolate(r_eligible_ids()) & lspci_id_unique != paste0(r_default_choice(), "-1")
-        ]
-      )
-    )[, .(label = name, value = lspci_id_unique, lspci_id, source)]
+  r_eligible_compounds <- reactive({
+    req(r_eligible_ids())
+    compounds[
+      lspci_id %chin% r_eligible_ids()
+    ][
+      , .(label = name, value = lspci_id_unique, lspci_id, source)
+    ]
   })
 
   observe({
-    req(r_choices(), r_default_choice())
+    req(r_eligible_compounds())
+    # browser()
     updateSelectizeInput(
       session,
       inputId = "select_compound",
-      choices = r_choices(),
+      choices = r_eligible_compounds(),
       # choices = compounds[
       #   lspci_id %in% isolate(r_eligible_ids()),
       #   .(label = name, value = lspci_id_unique, lspci_id, source)
       # ],
-      selected = paste0(r_default_choice(), "-1"),
+      # selected = paste0(r_default_choice(), "-1"),
+      selected = paste0(default_choice, "-1"),
       server = TRUE,
       options = selectize_options_,
       callback = fast_search
     )
   })
-
-  observeEvent(r_eligible_ids(), {
-    updateSelectizeInput(
-      session,
-      inputId = "select_compound",
-      choices = compounds[
-        lspci_id %in% r_eligible_ids(),
-        .(label = name, value = lspci_id_unique, lspci_id, source)
-      ],
-      server = TRUE,
-      callback = fast_search
-    )
-  }, ignoreInit = TRUE, ignoreNULL = TRUE)
 
   reactive({
     req(input$select_compound)
@@ -115,7 +97,7 @@ mod_server_select_compounds <- function(
 #' @param selectize_options List of options passed to selectizeInput
 mod_ui_select_compounds <- function(
   id,
-  selectize_options = list(label = NULL, choices = NULL, multiple = TRUE)
+  selectize_options = list(label = NULL, choices = NULL, multiple = TRUE, width = "100%")
 ) {
   ns <- NS(id)
   exec(

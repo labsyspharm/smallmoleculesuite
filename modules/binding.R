@@ -3,43 +3,72 @@ bindingDataUI <- function(id) {
 
   column(
     width = 8,
-    formRow(
-      id = ns("reference"),
-      formGroup(
-        label = "Select compounds",
-        input = mod_ui_select_compounds(ns("query")),
-        help = "Search for one or more compounds",
-        width = "equal"
+    columns(
+      column(
+        columns(
+          column(
+            width = 11,
+            mod_ui_select_compounds(
+              ns("query"),
+              selectize_options = list(label = "Select compounds", choices = NULL, multiple = TRUE, width = "100%")
+            ) %>%
+              margin(b = 0) %>%
+              htmltools::tagAppendChild(
+                tags$small(
+                  class = "text-muted",
+                  "Search for one or more compounds"
+                )
+              )
+          ),
+          column(
+            width = 1,
+            class = "m-auto p-0",
+            tags$a(
+              class = "btn p-0",
+              onclick = glue("$('#{NS(ns('query'))('select_compound')}').selectize()[0].selectize.clear();"),
+              icon("times-circle")
+            )
+          )
+        )
       ),
-      tags$a(
-        class = "btn",
-        onclick = glue("$('#{NS(ns('query'))('select_compound')}').selectize()[0].selectize.clear();"),
-        icon("times-circle")
-      ) %>%
-        margin("auto"),
-      formGroup(
-        label = "Select targets",
-        selectizeInput(
-          ns("select_target"),
-          label = NULL,
-          choices = NULL,
-          multiple = TRUE
-        ),
-        help = "Search for one or more targets",
-        width = "equal"
-      ) %>%
-        margin(left = 2),
-      tags$a(
-        class = "btn",
-        onclick = glue("$('#{ns('select_target')}').selectize()[0].selectize.clear();"),
-        icon("times-circle")
-      ) %>%
-        margin("auto")
-    ),
-    formRow(
-      formGroup(
-        label = "Commercial availability",
-        input = mod_ui_filter_commercial(ns(""))
+      column(
+        columns(
+          column(
+            width = 11,
+            selectizeInput(
+              ns("select_target"),
+              label = "Select targets",
+              choices = NULL,
+              multiple = TRUE,
+              width = "100%"
+            ) %>%
+              margin(b = 0) %>%
+              htmltools::tagAppendChild(
+                tags$small(
+                  class = "form-text text-muted",
+                  "Search for one or more targets"
+                )
+              )
+          ),
+          column(
+            width = 1,
+            class = "m-auto p-0",
+            tags$a(
+              class = "btn p-0",
+              onclick = glue("$('#{ns('select_target')}').selectize()[0].selectize.clear();"),
+              icon("times-circle")
+            )
+          )
+        )
+      )
+    ) %>%
+      margin(b = 2),
+    columns(
+      column(
+        formGroup(
+          label = "Commercial availability",
+          input = mod_ui_filter_commercial(ns(""))
+        )
       )
     ),
     mod_ui_affinity_tables(
