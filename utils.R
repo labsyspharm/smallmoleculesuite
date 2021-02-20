@@ -66,21 +66,9 @@ fast_search <- function(data, req) {
   # extract the query variables, conjunction (and/or), search string, maximum options
   var <- c(shiny:::safeFromJSON(query$field))
 
-  # all keywords in lower-case, for case-insensitive matching
-  key <- if (identical(query$query, ''))
-    character(0)
-  else
-    tolower(query$query)
+  key <- unique(strsplit(query$query, '\\s+')[[1]])
 
-  data_lower <- attr(data, "lower", exact = TRUE)
-  if (is.null(data_lower)) {
-    data_lower <- data %>%
-      mutate_if(is.character, str_to_lower) %>%
-      setDT()
-    setattr(data, "lower", data_lower)
-  }
-
-
+  if (identical(key, '')) key <- character(0)
   mop <- as.numeric(query$maxop)
   vfd <- query$value  # the value field name
   sel <- attr(data, 'selected_value', exact = TRUE)
@@ -92,7 +80,7 @@ fast_search <- function(data, req) {
       matches <- do.call(
         cbind,
         lapply(key, function(k) {
-          str_detect(data_lower[[v]], fixed(k), negate = FALSE)
+          str_detect(data[[v]], fixed(k, ignore_case = TRUE), negate = FALSE)
         })
       )
       # merge column matches using OR, and match multiple keywords in one column

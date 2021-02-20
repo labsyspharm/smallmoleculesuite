@@ -59,7 +59,7 @@ mod_server_select_compounds <- function(
   r_eligible_compounds <- reactive({
     req(r_eligible_ids())
     compounds[
-      lspci_id %chin% r_eligible_ids()
+      lspci_id %in% r_eligible_ids()
     ][
       , .(label = name, value = lspci_id_unique, lspci_id, source)
     ]
