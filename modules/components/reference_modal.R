@@ -1,4 +1,6 @@
-REFERENCE_URLS <- c(
+library(jsonlite)
+
+REFERENCE_URLS <- list(
   pubmed_id = "https://pubmed.ncbi.nlm.nih.gov/",
   chembl_id = "https://www.ebi.ac.uk/chembl/document_report_card/",
   patent_id = "https://patents.google.com/?q=",
@@ -23,62 +25,46 @@ format_references <- function(references) {
   exec(div, !!!links)
 }
 
+REFERENCE_RENDER_JS <- r"--(
+function(data, type, row, meta) {
+  if (type !== "display")
+    return(data);
+  const reference_urls = `reference_urls`;
+  const refs = data.split("|");
+  const ref_links = "References;" + refs.map(function(r) {
+    const ref_info = r.split(":");
+    return("<a href=\"" + reference_urls[ref_info[0]] + ref_info[1] + "\" target=\"blank\">" + r + "</a>");
+  }).join("<br>");
+  return(ref_links);
+}
+)--" %>%
+  glue(
+    reference_urls = toJSON(REFERENCE_URLS, auto_unbox = TRUE),
+    .open = "`", .close = "`"
+  ) %>%
+  JS()
+
+mod_ui_reference_modal <- function(id) {
+  ns <- NS(id)
+
+  mod_ui_modal_column(ns(""))
+}
+
 mod_server_reference_modal <- function(
-  input, output, session,
-  r_data, reference_col = "references"
+  input, output, session
 ) {
   ns <- session$ns
 
-  # References before assignment of links to reference column
-  r_raw_references <- reactive({
-    r_data()[[reference_col]]
-  })
-
-  r_clicked_reference_idx <- reactive({
-    req(input$clicked_reference, cancelOutput = TRUE)
-    input$clicked_reference %>%
-      str_match("reference_link_([0-9]+)$") %>%
-      {.[[1, 2]]} %>%
-      as.integer()
-  })
-
-  o_reference_change <- observeEvent(r_clicked_reference_idx(), {
-    req(r_clicked_reference_idx())
-    # Need to isolate here, because otherwise if r_data changes
-    # the modal is shown again. We only want to show modal if input$clicked_references
-    # changes
-    clicked_row <- isolate(r_data())[r_clicked_reference_idx(), ]
-    shiny::showModal(
-      modalDialog(
-        format_references(isolate(r_raw_references()[r_clicked_reference_idx()])),
-        title = paste(
-          "References for", clicked_row[["name"]], "binding to", clicked_row[["symbol"]]
-        ),
-        easyClose = TRUE
-      )
-    )
-  })
-
-  r_ref_links <- reactive({
-    map_chr(
-      seq_along(r_raw_references()),
-      ~actionLink(
-        ns("clicked_reference"),
-        "References",
-        icon = icon("book-open"),
-        onclick = paste0("Shiny.setInputValue('", ns("clicked_reference"), "', this.id, {priority: 'event'});"),
-        # Stop selection event in column with references
-        onmousedown = "event.stopPropagation();",
-        id = paste0("reference_link_", .x)
+  list(
+    created_cell_js = callModule(
+      mod_server_modal_column,
+      "",
+      button_text = tagList(
+        icon("link"),
+        " References"
       ) %>%
         as.character()
-    )
-  })
-
-  r_data_with_ref <- reactive({
-    if(nrow(r_data()) > 0)
-      set(r_data(), j = reference_col, value = r_ref_links())
-    else
-      r_data()
-  })
+    ),
+    render_js = REFERENCE_RENDER_JS
+  )
 }

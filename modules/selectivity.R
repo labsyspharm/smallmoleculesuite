@@ -346,10 +346,10 @@ selectivityServer <- function(input, output, session) {
       select(name, chembl_id, symbol, selectivity_class, affinity_Q1, offtarget_affinity_Q1, everything())
   })
 
-  tbl_data_formatted <- callModule(mod_server_reference_modal, "selectivity", tbl_data)
+  selectivity_reference_js <- callModule(mod_server_reference_modal, "selectivity")
 
   tbl_table <- reactive({
-    .data <- tbl_data_formatted()
+    .data <- tbl_data()
 
     datatable_tooltip(
       .data,
@@ -376,6 +376,14 @@ selectivityServer <- function(input, output, session) {
               invert = TRUE
             ) - 1,
             visible = FALSE
+          ),
+          list(
+            targets = match("references", names(.data)) - 1L,
+            render = selectivity_reference_js[["render_js"]]
+          ),
+          list(
+            targets = match("references", names(.data)) - 1L,
+            createdCell = selectivity_reference_js[["created_cell_js"]]
           )
         ),
         pagingType = "numbers",

@@ -39,7 +39,6 @@ mod_server_affinity_tables <- function(
   })
 
   r_selectivity_data_selected <- reactive({
-
     subset_dt(data_affinity_selectivity, r_selection_drugs())[
       if (is.null(r_eligible_lspci_ids)) TRUE else lspci_id %in% r_eligible_lspci_ids()
     ][
@@ -95,10 +94,10 @@ mod_server_affinity_tables <- function(
 
   output$subtitle_selection <- renderText(r_selection_titles())
 
-  r_selectivity_tbl_data <- callModule(mod_server_reference_modal, "selectivity", r_selectivity_data_selected)
+  selectivity_reference_js <- callModule(mod_server_reference_modal, "selectivity")
 
   r_table_selected_selectivity<- reactive({
-    .data = r_selectivity_tbl_data()
+    .data <- r_selectivity_data_selected()
 
     datatable_tooltip(
       data = .data, # input$compound_selection),
@@ -124,6 +123,14 @@ mod_server_affinity_tables <- function(
               invert = TRUE
             ) - 1,
             visible = FALSE
+          ),
+          list(
+            targets = match("references", names(.data)) - 1L,
+            render = selectivity_reference_js[["render_js"]]
+          ),
+          list(
+            targets = match("references", names(.data)) - 1L,
+            createdCell = selectivity_reference_js[["created_cell_js"]]
           )
         ),
         dom = DT_DOM,
@@ -160,10 +167,10 @@ mod_server_affinity_tables <- function(
   callModule(mod_server_download_button, "selectivity_xlsx_dl", r_selectivity_data_selected, "excel", r_download_name)
   callModule(mod_server_download_button, "selectivity_csv_dl", r_selectivity_data_selected, "csv", r_download_name)
 
-  r_tas_tbl_data <- callModule(mod_server_reference_modal, "tas", r_tas_data_selected)
+  selectivity_reference_js <- callModule(mod_server_reference_modal, "tas")
 
   r_table_selected_tas <- reactive({
-    .data = r_tas_tbl_data()
+    .data = r_tas_data_selected()
 
     datatable_tooltip(
       data = .data,
@@ -200,6 +207,14 @@ mod_server_affinity_tables <- function(
               invert = TRUE
             ) - 1,
             visible = FALSE
+          ),
+          list(
+            targets = match("references", names(.data)) - 1L,
+            render = selectivity_reference_js[["render_js"]]
+          ),
+          list(
+            targets = match("references", names(.data)) - 1L,
+            createdCell = selectivity_reference_js[["created_cell_js"]]
           )
         )
       )
@@ -314,5 +329,9 @@ mod_ui_affinity_tables <- function(
         )
       )
     )
-  )
+  ) %>%
+    tagList(
+      mod_ui_reference_modal(ns("selectivity")),
+      mod_ui_reference_modal(ns("tas"))
+    )
 }

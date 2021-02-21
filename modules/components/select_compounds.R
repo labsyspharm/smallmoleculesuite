@@ -16,6 +16,16 @@ SELECT_COMPOUND_RENDER_JS <- I(
   }'
 )
 
+SELECTIZE_OPTIONS <- list(
+  maxItems = 1,
+  # maxOptions = 10,
+  placeholder = "Compound name",
+  loadThrottle = 500,
+  searchField = "label",
+  closeAfterSelect = TRUE
+  # render = SELECT_COMPOUND_RENDER_JS
+)
+
 #' Server module to select compounds
 #'
 #' @param compounds Dataframe of compounds, should contain lspci_id
@@ -32,16 +42,6 @@ mod_server_select_compounds <- function(
   if (is.null(r_eligible_ids))
     r_eligible_ids <- function() compounds[commercially_available == TRUE][["lspci_id"]]
 
-  selectize_options_ <- list(
-    maxItems = 1,
-    # maxOptions = 10,
-    placeholder = "Compound name",
-    loadThrottle = 500,
-    searchField = "label",
-    closeAfterSelect = TRUE,
-    render = SELECT_COMPOUND_RENDER_JS
-  )
-
   onRestore(function(state) {
     # Have to remove -x suffix
     if (is.null(state$input$select_compound))
@@ -52,6 +52,8 @@ mod_server_select_compounds <- function(
       n = 2
     )[, 1]
   })
+
+  selectize_options_ <- SELECTIZE_OPTIONS
 
   for (i in seq_along(selectize_options))
     selectize_options_[[names(selectize_options)[[i]]]] <- selectize_options[[i]]
@@ -67,7 +69,6 @@ mod_server_select_compounds <- function(
 
   observe({
     req(r_eligible_compounds())
-    # browser()
     updateSelectizeInput(
       session,
       inputId = "select_compound",
@@ -103,6 +104,7 @@ mod_ui_select_compounds <- function(
   exec(
     selectizeInput,
     ns("select_compound"),
-    !!!selectize_options
+    !!!selectize_options,
+    options = SELECTIZE_OPTIONS
   )
 }
