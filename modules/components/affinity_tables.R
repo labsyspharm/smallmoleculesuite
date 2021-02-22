@@ -1,5 +1,6 @@
 subset_dt <- function(dt, selectors) {
-  sel <- if (!length(selectors) > 0) {
+  browser()
+  sel <- if (length(selectors) == 0) {
     FALSE
   } else if (!is.list(selectors)) {
     # assume it's drug ids
@@ -7,7 +8,7 @@ subset_dt <- function(dt, selectors) {
   } else {
     # List with selectors
     selectors %>%
-      map(~if(is.null(.x)) TRUE else .x) %>%
+      map(~if(is.null(.x) || length(.x) == 0) TRUE else .x) %>%
       imap(~dt[[.y]] %in% .x) %>%
       reduce(magrittr::and)
   }

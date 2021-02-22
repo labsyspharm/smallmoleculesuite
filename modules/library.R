@@ -278,7 +278,7 @@ libraryServer <- function(input, output, session) {
     )
   })
 
-  r_eligible_lspci_ids <- callModule(mod_server_filtered_lspci_ids, "")
+  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_cmpd_info)
 
   output$gene_targets <- renderText({
     if (is.null(r_gene_list()) || (length(r_gene_list()) < 1)) {

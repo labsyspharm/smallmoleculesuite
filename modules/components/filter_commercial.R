@@ -1,15 +1,16 @@
 #' Server module to filter commercially available compounds
 #'
 #' @return Reactive returning lspci_ids according to current selection
-mod_server_filtered_lspci_ids <- function(
-  input, output, session
+mod_server_filter_commercial <- function(
+  input, output, session, compounds
 ) {
   reactive({
     if (is.null(input$filter_commercial))
-      data_cmpd_info$lspci_id
+      compounds[["lspci_id"]]
     else
-      data_cmpd_info[commercially_available == TRUE][["lspci_id"]]
-  })
+      compounds[commercially_available == TRUE][["lspci_id"]]
+  }) %>%
+    bindCache(input$filter_commercial)
 }
 
 #' UI module to display a switch for commercial availability

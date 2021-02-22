@@ -87,10 +87,7 @@ bindingDataUI <- function(id) {
 bindingDataServer <- function(input, output, session) {
   ns <- session$ns
 
-  r_eligible_lspci_ids <- callModule(
-    mod_server_filtered_lspci_ids,
-    ""
-  )
+  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_cmpd_info)
 
   r_selected_lspci_ids <- callModule(
     mod_server_select_compounds,
@@ -103,19 +100,32 @@ bindingDataServer <- function(input, output, session) {
     )
   )
 
-  updateSelectizeInput(
-    session,
-    "select_target",
-    choices = data_affinity_selectivity[["symbol"]] %>%
-      unique() %>%
-      sort(),
-    selected = NULL,
-    server = TRUE,
-    options = list(
-      placeholder = "Target symbol",
-      closeAfterSelect = TRUE
+  r_default_target <- reactiveVal()
+
+  onRestore(function(state) {
+    if (is.null(state$input$select_target))
+      return()
+    else if (state$input$select_target[1] == "")
+      r_default_target(NULL)
+    else
+      r_default_target(state$input$select_target)
+  })
+
+  observe({
+    updateSelectizeInput(
+      session,
+      "select_target",
+      choices = data_affinity_selectivity[["symbol"]] %>%
+        unique() %>%
+        sort(),
+      selected = r_default_target(),
+      server = FALSE,
+      options = list(
+        placeholder = "Target symbol",
+        closeAfterSelect = TRUE
+      )
     )
-  )
+  })
 
   r_selection <- reactive({
     selection <- list()
@@ -123,6 +133,7 @@ bindingDataServer <- function(input, output, session) {
       selection[["lspci_id"]] <- as.integer(r_selected_lspci_ids())
     if(!is.null(input$select_target))
       selection[["symbol"]] <- input$select_target
+    browser()
     if(length(selection) > 0)
       selection
     else

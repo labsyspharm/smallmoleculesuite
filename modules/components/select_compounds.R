@@ -39,18 +39,22 @@ mod_server_select_compounds <- function(
   selectize_options = NULL
 ) {
 
-  if (is.null(r_eligible_ids))
-    r_eligible_ids <- function() compounds[commercially_available == TRUE][["lspci_id"]]
+  r_default_choice <- reactiveVal(default_choice)
 
   onRestore(function(state) {
     # Have to remove -x suffix
     if (is.null(state$input$select_compound))
       return()
-    default_choice <- str_split_fixed(
-      state$input$select_compound,
-      fixed("-"),
-      n = 2
-    )[, 1]
+    if (state$input$select_compound[1] == "")
+      r_default_choice(NULL)
+    else
+      r_default_choice(
+        str_split_fixed(
+          state$input$select_compound,
+          fixed("-"),
+          n = 2
+        )[, 1]
+      )
   })
 
   selectize_options_ <- SELECTIZE_OPTIONS
@@ -78,7 +82,7 @@ mod_server_select_compounds <- function(
       #   .(label = name, value = lspci_id_unique, lspci_id, source)
       # ],
       # selected = paste0(r_default_choice(), "-1"),
-      selected = paste0(default_choice, "-1"),
+      selected = paste0(r_default_choice(), "-1"),
       server = TRUE,
       options = selectize_options_,
       callback = fast_search
@@ -86,10 +90,12 @@ mod_server_select_compounds <- function(
   })
 
   reactive({
-    req(input$select_compound)
-    unique(as.integer(
-      str_split_fixed(input$select_compound, fixed("-"), 2)[, 1]
-    ))
+    if (is.null(input$select_compound))
+      NULL
+    else
+      unique(as.integer(
+        str_split_fixed(input$select_compound, fixed("-"), 2)[, 1]
+      ))
   })
 }
 
