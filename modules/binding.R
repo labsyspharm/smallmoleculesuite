@@ -133,7 +133,6 @@ bindingDataServer <- function(input, output, session) {
       selection[["lspci_id"]] <- as.integer(r_selected_lspci_ids())
     if(!is.null(input$select_target))
       selection[["symbol"]] <- input$select_target
-    browser()
     if(length(selection) > 0)
       selection
     else

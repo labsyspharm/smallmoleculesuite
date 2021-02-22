@@ -1,5 +1,4 @@
 subset_dt <- function(dt, selectors) {
-  browser()
   sel <- if (length(selectors) == 0) {
     FALSE
   } else if (!is.list(selectors)) {
