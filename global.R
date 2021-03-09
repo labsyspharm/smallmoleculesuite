@@ -32,6 +32,7 @@ source("modules/components/filter_commercial.R", local = TRUE)
 source("modules/components/select_compounds.R", local = TRUE)
 source("modules/components/dt_header_tooltip.R", local = TRUE)
 source("modules/components/modal_column.R", local = TRUE)
+source("modules/components/select_targets.R", local = TRUE)
 
 # Modules
 source("modules/selectivity.R", local = TRUE)
