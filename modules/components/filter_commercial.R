@@ -6,9 +6,11 @@ mod_server_filter_commercial <- function(
 ) {
   reactive({
     if (is.null(input$filter_commercial))
-      compounds[["lspci_id"]]
+      compounds[["lspci_id"]] %>%
+        unique()
     else
-      compounds[commercially_available == TRUE][["lspci_id"]]
+      compounds[commercially_available == TRUE][["lspci_id"]] %>%
+        unique()
   }) %>%
     bindCache(input$filter_commercial)
 }

@@ -37,17 +37,14 @@ libraryUI <- function(id) {
             ),
             formGroup(
               label = "Example gene lists",
-              input = {
-                sel <- shiny::selectInput(
-                  inputId = ns("gene_example"),
-                  label = NULL,
-                  choices = names(data_genes), # data/load.R
-                  selected = "Dark_Kinome",
-                  multiple = FALSE
-                )
-                # sel$children[[1]]$attribs$placeholder <- "Dark_Kinome"
-                sel
-              },
+              input = shiny::selectInput(
+                inputId = ns("gene_example"),
+                label = NULL,
+                choices = data_gene_lists[["gene_list"]] %>%
+                  unique(),
+                selected = "Dark Kinome",
+                multiple = FALSE
+              ),
               help = "Selecting a choice will populate the input above with an example list of genes."
             ),
             actionButton(
@@ -204,9 +201,9 @@ libraryServer <- function(input, output, session) {
   ns <- session$ns
 
   # Define genes found in our data
-  liganded_genes <- unique(
-    data_optimal_compounds$symbol,
-    data_chemical_probes$symbol
+  liganded_genes <- union(
+    data_library$lspci_target_id,
+    data_chemical_probes$lspci_target_id
   )
 
   # nav ----
@@ -228,7 +225,7 @@ libraryServer <- function(input, output, session) {
     )
   })
 
-  r_gene_list <- reactiveVal(NULL)
+  r_symbol_list <- reactiveVal(NULL)
 
   observeEvent(c(input$submit, input$gene_example), {
     gene_list <- input$gene_list
@@ -236,7 +233,7 @@ libraryServer <- function(input, output, session) {
       gene_list <- ""
     else
       gene_list <- str_split(gene_list, fixed("\n"))[[1]]
-    r_gene_list(gene_list)
+    r_symbol_list(gene_list)
   })
 
   update_gene_list_external <- FALSE
@@ -248,21 +245,27 @@ libraryServer <- function(input, output, session) {
     update_gene_list_external <<- FALSE
     gene_list <- input$gene_list
     if (is.null(gene_list)) {
-      r_gene_list(NULL)
+      r_symbol_list(NULL)
       return(NULL)
     }
     if (gene_list != "")
       gene_list_initialized <<- TRUE
     gene_list <- str_split(gene_list, fixed("\n"))[[1]]
-    r_gene_list(gene_list)
+    r_symbol_list(gene_list)
+  })
+
+  r_target_id_list <- reactive({
+    data_target_map[
+      symbol %in% r_symbol_list()
+    ][["lspci_target_id"]]
   })
 
   r_gene_unknown <- reactive({
-    dplyr::setdiff(r_gene_list(), data_gene_info$symbol)
+    dplyr::setdiff(r_target_id_list(), liganded_genes)
   })
 
   r_gene_known <- reactive({
-    dplyr::intersect(liganded_genes, r_gene_list())
+    dplyr::intersect(liganded_genes, r_target_id_list())
   })
 
   observeEvent(input$gene_unknowns, {
@@ -273,7 +276,12 @@ libraryServer <- function(input, output, session) {
         id = NULL,
         header = h5("Unqualified targets"),
         p(paste0("The following ", length(r_gene_unknown()), " targets do not have any annotated ligands: ")),
-        p(paste(r_gene_unknown(), collapse = ", "))
+        p(paste(
+          data_targets[
+            lspci_id %in% r_gene_unknown()
+          ][["symbol"]],
+          collapse = ", "
+        ))
       )
     )
   })
@@ -281,7 +289,7 @@ libraryServer <- function(input, output, session) {
   r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_cmpd_info)
 
   output$gene_targets <- renderText({
-    if (is.null(r_gene_list()) || (length(r_gene_list()) < 1)) {
+    if (is.null(r_target_id_list()) || (length(r_target_id_list()) < 1)) {
       "No genes upload yet"
     } else {
       paste(
@@ -307,8 +315,8 @@ libraryServer <- function(input, output, session) {
   r_selection_selectivity <- reactive({
     req(r_gene_known())
 
-    data_optimal_compounds[
-      symbol %in% r_gene_known() &
+    data_library[
+      lspci_target_id %in% r_gene_known() &
         selectivity_class %in% input$filter_probes &
         reason_included == "selectivity"
     ]
@@ -317,9 +325,9 @@ libraryServer <- function(input, output, session) {
   r_selection_clinical <- reactive({
     req(r_gene_known())
 
-    data_optimal_compounds[
-      symbol %in% r_gene_known() &
-        max_phase %in% input$filter_phase &
+    data_library[
+      lspci_target_id %in% r_gene_known() &
+        highest_approval %in% input$filter_phase &
         reason_included == "clinical"
     ]
   })
@@ -328,7 +336,7 @@ libraryServer <- function(input, output, session) {
     req(r_gene_known())
 
     data_chemical_probes[
-      symbol %in% r_gene_known() &
+      lspci_target_id %in% r_gene_known() &
         avg_rating == 4
     ][
       , reason_included := "expert_opinion"
@@ -363,14 +371,14 @@ libraryServer <- function(input, output, session) {
   r_table_entry <- reactive({
     r_selection_table() %>%
       dplyr::inner_join(
-        data_cmpd_info %>%
+        data_compounds %>%
           dplyr::select(lspci_id, chembl_id, pref_name),
         by = "lspci_id"
       ) %>%
       dplyr::distinct() %>%
       dplyr::select(
         symbol, chembl_id,
-        pref_name, selectivity_class, max_phase, affinity_Q1, affinity_N,
+        pref_name, selectivity_class, highest_approval, affinity_Q1, affinity_N,
         gene_id, reason_included, lspci_id
       ) %>%
       dplyr::mutate_at(           # rounds mean and SD to closest 0.1 if greater than 1.
@@ -382,7 +390,7 @@ libraryServer <- function(input, output, session) {
   r_table_compound <- reactive({
     r_selection_table() %>%
       dplyr::inner_join(
-        data_cmpd_info %>%
+        data_compounds %>%
           dplyr::select(
             lspci_id, chembl_id, pref_name
           ),
@@ -390,14 +398,14 @@ libraryServer <- function(input, output, session) {
       ) %>%
       dplyr::distinct() %>%
       dplyr::group_by(
-        lspci_id, chembl_id, pref_name, max_phase
+        lspci_id, chembl_id, pref_name, highest_approval
       ) %>%
       dplyr::summarise(
         reason_included = paste(symbol, ": ", reason_included, collapse = "; ")
       ) %>%
       dplyr::ungroup() %>%
       dplyr::mutate_at(
-        vars(max_phase),
+        vars(highest_approval),
         as.integer
       )
   })

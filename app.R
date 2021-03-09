@@ -1,5 +1,3 @@
-source("global.R", local = TRUE)
-
 server <- function(input, output, session) {
 
   observe({
@@ -31,21 +29,21 @@ server <- function(input, output, session) {
     module = bindingDataServer,
     id = "binding"
   )
-
-  callModule(
-    module = selectivityServer,
-    id = "selectivity"
-  )
-
-  callModule(
-    module = similarityServer,
-    id = "similarity"
-  )
-
-  callModule(
-    module = libraryServer,
-    id = "library"
-  )
+#
+#   callModule(
+#     module = selectivityServer,
+#     id = "selectivity"
+#   )
+#
+#   callModule(
+#     module = similarityServer,
+#     id = "similarity"
+#   )
+#
+#   callModule(
+#     module = libraryServer,
+#     id = "library"
+#   )
 }
 
 ui <- function(req) {
@@ -58,4 +56,12 @@ ui <- function(req) {
   )
 }
 
-shinyApp(ui, server, enableBookmarking = "url")
+#' @import dplyr
+#' @import shiny
+#' @import yonder
+#' @import magrittr
+#' @import tibble
+start_app <- function(...) {
+  shinyApp(ui, server, enableBookmarking = "url", ...)
+}
+

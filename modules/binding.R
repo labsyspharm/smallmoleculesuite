@@ -35,18 +35,15 @@ bindingDataUI <- function(id) {
         columns(
           column(
             width = 11,
-            selectizeInput(
-              ns("select_target"),
-              label = "Select targets",
-              choices = NULL,
-              multiple = TRUE,
-              width = "100%"
+            mod_ui_select_targets(
+              ns("target"),
+              selectize_options = list(label = "Select target genes", choices = NULL, multiple = TRUE, width = "100%")
             ) %>%
               margin(b = 0) %>%
               htmltools::tagAppendChild(
                 tags$small(
-                  class = "form-text text-muted",
-                  "Search for one or more targets"
+                  class = "text-muted",
+                  "Search for one or more target genes"
                 )
               )
           ),
@@ -92,7 +89,7 @@ bindingDataServer <- function(input, output, session) {
   r_selected_lspci_ids <- callModule(
     mod_server_select_compounds,
     "query",
-    data_names,
+    data_compound_names,
     default_choice = 66153L,
     r_eligible_ids = r_eligible_lspci_ids,
     selectize_options = list(
@@ -100,39 +97,22 @@ bindingDataServer <- function(input, output, session) {
     )
   )
 
-  r_default_target <- reactiveVal()
+  r_eligible_targets <- reactive({"all"})
 
-  onRestore(function(state) {
-    if (is.null(state$input$select_target))
-      return()
-    else if (state$input$select_target[1] == "")
-      r_default_target(NULL)
-    else
-      r_default_target(state$input$select_target)
-  })
-
-  observe({
-    updateSelectizeInput(
-      session,
-      "select_target",
-      choices = data_affinity_selectivity[["symbol"]] %>%
-        unique() %>%
-        sort(),
-      selected = r_default_target(),
-      server = FALSE,
-      options = list(
-        placeholder = "Target symbol",
-        closeAfterSelect = TRUE
-      )
-    )
-  })
+  r_selected_targets <- callModule(
+    mod_server_select_targets,
+    "target",
+    data_target_map,
+    default_choice = 487L,
+    r_eligible_targets = r_eligible_targets
+  )
 
   r_selection <- reactive({
     selection <- list()
     if(!is.null(r_selected_lspci_ids()))
       selection[["lspci_id"]] <- as.integer(r_selected_lspci_ids())
     if(!is.null(input$select_target))
-      selection[["symbol"]] <- input$select_target
+      selection[["lspci_target_id"]] <- as.integer(r_selected_targets)
     if(length(selection) > 0)
       selection
     else

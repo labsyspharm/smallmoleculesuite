@@ -14,7 +14,7 @@ syn_release <- synPluck(syn_parent, release)
 
 dir_data <- here("data")
 
-syn <- synDownloader(dir_data, ifcollision = "overwrite")
+syn <- synDownloader(dir_data, ifcollision = "overwrite.local")
 
 syn_tables <- synPluck(syn_parent, release, "website_tables")
 

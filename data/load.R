@@ -9,17 +9,21 @@ c(
   "shiny_pfp.fst",
   "shiny_selectivity.fst",
   "shiny_targets.fst",
+  "shiny_target_map.fst",
   "shiny_tas.fst"
 ) %>%
   set_names(
     str_replace(., fixed("shiny"), "data") %>%
       str_replace(fixed(".fst"), "")
   ) %>%
-  map(
-    ~read_fst(
-      file.path(dir_data, .x),
-      as.data.table = TRUE
-    )
+  imap(
+    ~{
+      message("Loading ", .y)
+      read_fst(
+        file.path(dir_data, .x),
+        as.data.table = TRUE
+      )
+    }
   ) %>%
   iwalk(
     ~assign(.y, .x, envir = .GlobalEnv)

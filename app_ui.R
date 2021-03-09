@@ -321,24 +321,24 @@ nav_content_ui <- function() {
         )
       )
     ),
-    navPane(
-      id = "selectivity",
-      selectivityUI(
-        id = "selectivity"
-      )
-    ),
-    navPane(
-      id = "similarity",
-      similarityUI(
-        id = "similarity"
-      )
-    ),
-    navPane(
-      id = "library",
-      libraryUI(
-        id = "library"
-      )
-    ),
+    # navPane(
+    #   id = "selectivity",
+    #   selectivityUI(
+    #     id = "selectivity"
+    #   )
+    # ),
+    # navPane(
+    #   id = "similarity",
+    #   similarityUI(
+    #     id = "similarity"
+    #   )
+    # ),
+    # navPane(
+    #   id = "library",
+    #   libraryUI(
+    #     id = "library"
+    #   )
+    # ),
     navPane(
       id = "download",
       download_page()

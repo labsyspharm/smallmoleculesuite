@@ -39,10 +39,10 @@ source("modules/similarity.R", local = TRUE)
 source("modules/library.R", local = TRUE)
 source("modules/binding.R", local = TRUE)
 
-source("R/load.R", local = TRUE)
+source("data/load.R", local = TRUE)
 
-source("utils.R", local = TRUE)
-source("constants.R", local = TRUE)
+source("utils/utils.R", local = TRUE)
+source("utils/constants.R", local = TRUE)
 
 source("app_ui.R", local = TRUE)
 
