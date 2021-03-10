@@ -1,21 +1,28 @@
 SELECT_COMPOUND_RENDER_JS <- I(
-  '{
+  r'--({
     option: function(item, escape) {
       const type_map = {
-        "emolecules": "<span class=\\"compound-source vendor-source\\">emolecules name</span>",
-        "chembl": "<span class=\\"compound-source chembl-source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source-logo\\"> ChEMBL</span>",
-        "hmsl": "<span class=\\"compound-source hmsl-source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source-logo\\"> HMS LINCS</span>",
+        "emolecules": "<span class=\"compound-source vendor-source\">emolecules name</span>",
+        "chembl": "<span class=\"compound-source chembl-source\"><img alt=\"ChEMBL logo\" src=\"sms/assets/img/chembl_logo.png\" class=\"source-logo\"> ChEMBL</span>",
+        "hmsl": "<span class=\"compound-source hmsl-source\"><img alt=\"LINCS logo\" src=\"sms/assets/img/lincs_logo.png\" class=\"source-logo\"> HMS LINCS</span>",
       };
-      return "<div class=\\"compound-result\\"><span><strong>" + escape(item.name) + "</strong></span>" +
-        type_map[escape(item.source)] + "</div>"
+      return `<div class="compound-result"><span><strong>${escape(item.name)}</strong></span>
+        ${type_map[escape(item.source)]}</div>`.replace(
+          /\{\{([0-9]+)\}\}/g, " <span class=\"text-muted\">(#$1)</span>"
+        );
+    },
+    item: function(item, escape) {
+      return `<div class="item">${item.name}</div>`.replace(
+        /\{\{([0-9]+)\}\}/g, " <span class=\"text-muted\">(#$1)</span>"
+      );
     }
-  }'
+  })--'
 )
 
 SELECT_COMPOUNDS_OPTIONS <- list(
   maxItems = 10,
   maxOptions = 10,
-  placeholder = "Compound name",
+  placeholder = "Select compounds",
   loadThrottle = 500,
   searchField = "name",
   valueField = "name_id",

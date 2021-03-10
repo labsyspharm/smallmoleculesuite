@@ -310,12 +310,11 @@ nav_content_ui <- function() {
     navPane(
       id = "binding",
       tagList(
-        p(
-          class = "lead",
-          "Quick reference compound binding data."
+        h1(
+          class = "text-center",
+          "Compound affinity and binding assertions"
         ) %>%
-          font(align = "center", size = "sm") %>%
-          margin(top = -1, b = 3),
+          margin(b = 3),
         bindingDataUI(
           id = "binding"
         )

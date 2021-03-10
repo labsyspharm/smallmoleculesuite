@@ -10,15 +10,8 @@ bindingDataUI <- function(id) {
             width = 11,
             mod_ui_select_compounds(
               ns("query"),
-              selectize_options = list(label = "Select compounds", choices = NULL, multiple = TRUE, width = "100%")
-            ) %>%
-              margin(b = 0) %>%
-              htmltools::tagAppendChild(
-                tags$small(
-                  class = "text-muted",
-                  "Search for one or more compounds"
-                )
-              )
+              selectize_options = list(label = "Query by compound", choices = NULL, multiple = TRUE, width = "100%")
+            )
           ),
           column(
             width = 1,
@@ -37,22 +30,16 @@ bindingDataUI <- function(id) {
             width = 11,
             mod_ui_select_targets(
               ns("target"),
-              selectize_options = list(label = "Select target genes", choices = NULL, multiple = TRUE, width = "100%")
-            ) %>%
-              margin(b = 0) %>%
-              htmltools::tagAppendChild(
-                tags$small(
-                  class = "text-muted",
-                  "Search for one or more target genes"
-                )
-              )
+              selectize_options = list(label = "Query by target", choices = NULL, multiple = TRUE, width = "100%")
+            )
           ),
           column(
             width = 1,
             class = "m-auto p-0",
             tags$a(
               class = "btn p-0",
-              onclick = glue("$('#{ns('select_target')}').selectize()[0].selectize.clear();"),
+              # onclick = glue("$('#{ns('select_target')}').selectize()[0].selectize.clear();"),
+              onclick = glue("$('#{NS(ns('target'))('select_target')}').selectize()[0].selectize.clear();"),
               icon("times-circle")
             )
           )

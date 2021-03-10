@@ -11,7 +11,7 @@ SELECT_TARGET_RENDER_JS <- I(
         10090: "Mouse"
       };
       return `<div class=\"target-result\"><span><strong>${escape(item.name)}</strong></span>` +
-        `${type_map[escape(item.type)]} (${species_map[escape(item.tax_id)]})</span></div>`
+        `${type_map[escape(item.type)]} (${species_map[escape(item.tax_id)]})</span></div>`;
     }
   })--'
 )
@@ -19,7 +19,7 @@ SELECT_TARGET_RENDER_JS <- I(
 SELECT_TARGET_OPTIONS <- list(
   maxItems = 10,
   maxOptions = 10,
-  placeholder = "Target gene",
+  placeholder = "Select targets",
   loadThrottle = 500,
   searchField = "name",
   closeAfterSelect = TRUE,

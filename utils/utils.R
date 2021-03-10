@@ -62,6 +62,7 @@ fast_search <- function(data, req) {
       match_len
     )
   ][
+    ,
     match_len := NULL
   ]
   # data_out <- data_out[
