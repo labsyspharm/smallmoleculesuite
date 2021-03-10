@@ -84,7 +84,7 @@ bindingDataUI <- function(id) {
 bindingDataServer <- function(input, output, session) {
   ns <- session$ns
 
-  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_cmpd_info)
+  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)
 
   r_selected_lspci_ids <- callModule(
     mod_server_select_compounds,
@@ -103,20 +103,21 @@ bindingDataServer <- function(input, output, session) {
     mod_server_select_targets,
     "target",
     data_target_map,
-    default_choice = 487L,
+    default_choice = NULL,
     r_eligible_targets = r_eligible_targets
   )
 
   r_selection <- reactive({
     selection <- list()
     if(!is.null(r_selected_lspci_ids()))
-      selection[["lspci_id"]] <- as.integer(r_selected_lspci_ids())
-    if(!is.null(input$select_target))
-      selection[["lspci_target_id"]] <- as.integer(r_selected_targets)
-    if(length(selection) > 0)
+      selection[["lspci_id"]] <- r_selected_lspci_ids()
+    if(!is.null(r_selected_targets()))
+      selection[["lspci_target_id"]] <- r_selected_targets()
+    selection <- if(length(selection) > 0)
       selection
     else
       integer()
+    selection
   })
 
   affinity_tables <- callModule(

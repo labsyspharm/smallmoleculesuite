@@ -2,28 +2,26 @@ SELECT_COMPOUND_RENDER_JS <- I(
   '{
     option: function(item, escape) {
       const type_map = {
-        "vendor": "<span class=\\"compound_source vendor_source\\">vendor name</span>",
-        "chembl_id": "<span class=\\"compound_source chembl_source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source_logo\\"> ChEMBL ID</span>",
-        "chembl_pref": "<span class=\\"compound_source chembl_source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source_logo\\"> ChEMBL primary</span>",
-        "chembl_alt": "<span class=\\"compound_source chembl_source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source_logo\\"> ChEMBL alternate</span>",
-        "hmsl_id": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS ID</span>",
-        "hmsl_pref": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS primary</span>",
-        "hmsl_alt": "<span class=\\"compound_source hmsl_source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source_logo\\"> HMS LINCS alternate</span>"
+        "emolecules": "<span class=\\"compound-source vendor-source\\">emolecules name</span>",
+        "chembl": "<span class=\\"compound-source chembl-source\\"><img alt=\\"ChEMBL logo\\" src=\\"sms/assets/img/chembl_logo.png\\" class=\\"source-logo\\"> ChEMBL</span>",
+        "hmsl": "<span class=\\"compound-source hmsl-source\\"><img alt=\\"LINCS logo\\" src=\\"sms/assets/img/lincs_logo.png\\" class=\\"source-logo\\"> HMS LINCS</span>",
       };
-      return "<div class=\\"compound_result\\"><span><strong>" + escape(item.label) + "</strong></span>" +
+      return "<div class=\\"compound-result\\"><span><strong>" + escape(item.name) + "</strong></span>" +
         type_map[escape(item.source)] + "</div>"
     }
   }'
 )
 
-SELECTIZE_OPTIONS <- list(
-  maxItems = 1,
-  # maxOptions = 10,
+SELECT_COMPOUNDS_OPTIONS <- list(
+  maxItems = 10,
+  maxOptions = 10,
   placeholder = "Compound name",
   loadThrottle = 500,
-  searchField = "label",
-  closeAfterSelect = TRUE
-  # render = SELECT_COMPOUND_RENDER_JS
+  searchField = "name",
+  valueField = "name_id",
+  labelField = "name",
+  closeAfterSelect = TRUE,
+  render = SELECT_COMPOUND_RENDER_JS
 )
 
 #' Server module to select compounds
@@ -57,36 +55,40 @@ mod_server_select_compounds <- function(
       )
   })
 
-  selectize_options_ <- SELECTIZE_OPTIONS
+  selectize_options_ <- SELECT_COMPOUNDS_OPTIONS
 
   for (i in seq_along(selectize_options))
     selectize_options_[[names(selectize_options)[[i]]]] <- selectize_options[[i]]
 
   r_eligible_compounds <- reactive({
     req(r_eligible_ids())
-    compounds[
+    data_compound_names[
       lspci_id %in% r_eligible_ids()
     ][
-      , .(label = name, value = lspci_id_unique, lspci_id, source)
+      , .(name, name_id, source)
     ]
   })
 
   observe({
     req(r_eligible_compounds())
+    # Don't react to r_default_choice() because we are only interested in the initial value
+    default_choice <- isolate(r_default_choice())
+    # Append already selected compounds on update, but don't react to them
+    selected <- c(
+      if (!is.null(default_choice)) paste0(default_choice, "-1"),
+      isolate(input$select_compound)
+    )
     updateSelectizeInput(
       session,
       inputId = "select_compound",
       choices = r_eligible_compounds(),
-      # choices = compounds[
-      #   lspci_id %in% isolate(r_eligible_ids()),
-      #   .(label = name, value = lspci_id_unique, lspci_id, source)
-      # ],
-      # selected = paste0(r_default_choice(), "-1"),
-      selected = paste0(r_default_choice(), "-1"),
+      selected = selected,
       server = TRUE,
       options = selectize_options_,
       callback = fast_search
     )
+    # Only use default once upon loading
+    r_default_choice(NULL)
   })
 
   reactive({
@@ -111,6 +113,6 @@ mod_ui_select_compounds <- function(
     selectizeInput,
     ns("select_compound"),
     !!!selectize_options,
-    options = SELECTIZE_OPTIONS
+    options = SELECT_COMPOUNDS_OPTIONS
   )
 }

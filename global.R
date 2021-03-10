@@ -17,9 +17,9 @@ library(stringr)
 library(DT)
 library(shinycssloaders)
 library(writexl)
-library(future)
+# library(future)
 
-plan(multicore)
+# plan(multicore)
 
 # source("awspass.config")
 

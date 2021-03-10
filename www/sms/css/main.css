@@ -78,34 +78,57 @@ a[data-target] {
 }
 
 /* CSS for compound selector */
-.compound_result {
+.compound-result {
   vertical-align: middle;
   display: flex;
   justify-content: space-between;
 }
 
-.compound_source {
+.compound-source {
   border-radius: 5px;
   display: inline-block;
   padding: 0.1em 0.2em 0.1em 0.2em;
   vertical-align: middle;
 }
 
-.chembl_source {
+.chembl-source {
   background-color: rgb(9, 151, 155);
   color: rgb(255, 255, 255);
 }
 
-.hmsl_source {
+.hmsl-source {
   background-color: rgb(255, 205, 20);
 }
 
-.vendor_source {
+.vendor-source {
   background-color: rgb(255, 149, 99);
 }
 
-.source_logo {
+.source-logo {
   height: 1em;
+}
+
+/* CSS for target selector */
+.target-result {
+  vertical-align: middle;
+  display: flex;
+  justify-content: space-between;
+}
+
+.target-source {
+  border-radius: 5px;
+  display: inline-block;
+  padding: 0.1em 0.2em 0.1em 0.2em;
+  vertical-align: middle;
+}
+
+.target-source-symbol {
+  background-color: rgb(9, 151, 155);
+  color: rgb(255, 255, 255);
+}
+
+.target-source-gene-id {
+  background-color: rgb(255, 205, 20);
 }
 
 /* Make table padding tighter */

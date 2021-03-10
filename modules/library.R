@@ -286,7 +286,7 @@ libraryServer <- function(input, output, session) {
     )
   })
 
-  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_cmpd_info)
+  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)
 
   output$gene_targets <- renderText({
     if (is.null(r_target_id_list()) || (length(r_target_id_list()) < 1)) {
@@ -484,7 +484,7 @@ libraryServer <- function(input, output, session) {
   })
 
   o_chembl_tabs <- callModule(
-    mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
+    mod_server_chembl_tabs, "chembl_tabs_1", data_compounds, r_selection_drugs, lspci_id_name_map
   )
 
   setBookmarkExclude(

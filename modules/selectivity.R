@@ -235,7 +235,7 @@ selectivityServer <- function(input, output, session) {
     )
   })
 
-  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_cmpd_info)
+  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)
 
   r_binding_data <- reactive({
     req(input$query_gene)
@@ -339,7 +339,7 @@ selectivityServer <- function(input, output, session) {
     })[
       is_filter_match == TRUE
     ][
-      data_cmpd_info[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
+      data_compounds[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
     ][
       order(-selectivity_class, affinity_Q1)
     ] %>%
@@ -432,7 +432,7 @@ selectivityServer <- function(input, output, session) {
   })
 
   o_chembl_tabs <- callModule(
-    mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
+    mod_server_chembl_tabs, "chembl_tabs_1", data_compounds, r_selection_drugs, lspci_id_name_map
   )
 
   setBookmarkExclude(

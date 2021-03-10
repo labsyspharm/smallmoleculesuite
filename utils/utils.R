@@ -50,15 +50,9 @@ fast_search <- function(data, req) {
     i <- stats::na.omit(match(sel, data[[vfd]]))
     if (length(i)) idx <- sort(utils::head(unique(c(i, idx)), mop))
   }
+  data <- data[idx, ]
 
-  data_out <- data[
-    idx,
-  ][
-    # Make sure only the first result for every lspci_id is returned
-    , .SD[1, ], by = lspci_id
-  ]
-
-  res <- shiny:::toJSON(shiny:::columnToRowData(data_out))
+  res <- shiny:::toJSON(shiny:::columnToRowData(data))
   shiny:::httpResponse(200, 'application/json', enc2utf8(res))
 }
 

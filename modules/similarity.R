@@ -216,7 +216,7 @@ similarityServer <- function(input, output, session) {
     )
   })
 
-  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_cmpd_info)
+  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)
 
   r_query_compound <- callModule(
     mod_server_select_compounds, "query",
@@ -448,7 +448,7 @@ similarityServer <- function(input, output, session) {
 ###############################################################################-
 
   o_chembl_tabs <- callModule(
-    mod_server_chembl_tabs, "chembl_tabs_1", data_cmpd_info, r_selection_drugs, lspci_id_name_map
+    mod_server_chembl_tabs, "chembl_tabs_1", data_compounds, r_selection_drugs, lspci_id_name_map
   )
 
   r_tbl_sim_data <- reactive({
@@ -458,7 +458,7 @@ similarityServer <- function(input, output, session) {
     } else {
       r_sim_data()
     })[
-      data_cmpd_info[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
+      data_compounds[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
     ][
       order(-pfp_correlation, -tas_similarity, -structural_similarity)
     ] %>%

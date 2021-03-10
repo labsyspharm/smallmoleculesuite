@@ -1,28 +1,29 @@
 SELECT_TARGET_RENDER_JS <- I(
-  '{
+  r'--({
     option: function(item, escape) {
       const type_map = {
-        "symbol": "<span class=\\"gene-source gene-source-symbol\\">Symbol</span>",
-        "gene_id": "<span class=\\"gene-source gene-source-gene-id\\">Gene ID</span>",
+        "symbol": "<span class=\"target-source target-source-symbol\">Symbol",
+        "gene_id": "<span class=\"target-source target-source-gene-id\">Gene ID",
       };
       const species_map = {
         9606: "Human",
         10116: "Rat",
         10090: "Mouse"
       };
-      return "<div class=\\"gene-result\\"><span><strong>" + escape(item.name) + "</strong></span>" +
-        type_map[escape(item.type)] + "</div>"
+      return `<div class=\"target-result\"><span><strong>${escape(item.name)}</strong></span>` +
+        `${type_map[escape(item.type)]} (${species_map[escape(item.tax_id)]})</span></div>`
     }
-  }'
+  })--'
 )
 
-SELECTIZE_OPTIONS <- list(
+SELECT_TARGET_OPTIONS <- list(
   maxItems = 10,
-  # maxOptions = 10,
+  maxOptions = 10,
   placeholder = "Target gene",
   loadThrottle = 500,
   searchField = "name",
   closeAfterSelect = TRUE,
+  labelField = "name",
   valueField = "lspci_target_id_unique",
   render = SELECT_TARGET_RENDER_JS
 )
@@ -47,7 +48,7 @@ mod_server_select_targets <- function(
       r_default_choice(select_target)
   })
 
-  selectize_options_ <- SELECTIZE_OPTIONS
+  selectize_options_ <- SELECT_TARGET_OPTIONS
 
   for (i in seq_along(selectize_options))
     selectize_options_[[names(selectize_options)[[i]]]] <- selectize_options[[i]]
@@ -64,19 +65,23 @@ mod_server_select_targets <- function(
 
   observe({
     req(r_target_map_eligible())
+    # Don't react to r_default_choice() because we are only interested in the initial value
+    default_choice <- isolate(r_default_choice())
+    # Append already selected compounds on update, but don't react to them
+    selected <- c(
+      if (!is.null(default_choice)) paste0(default_choice, "-1"),
+      isolate(input$select_target)
+    )
     updateSelectizeInput(
       session,
       inputId = "select_target",
       choices = r_target_map_eligible(),
-      # choices = compounds[
-      #   lspci_id %in% isolate(r_eligible_ids()),
-      #   .(label = name, value = lspci_id_unique, lspci_id, source)
-      # ],
-      selected =  paste0(r_default_choice(), "-1"),
+      selected = selected,
       server = TRUE,
       options = selectize_options_,
       callback = fast_search
     )
+    r_default_choice(NULL)
   })
 
   reactive({

@@ -39,24 +39,23 @@ mod_server_affinity_tables <- function(
   })
 
   r_selectivity_data_selected <- reactive({
-    subset_dt(data_affinity_selectivity, r_selection_drugs())[
+    subset_dt(data_selectivity, r_selection_drugs())[
       if (is.null(r_eligible_lspci_ids)) TRUE else lspci_id %in% r_eligible_lspci_ids()
     ][
-      data_cmpd_info[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
+      data_compounds[, .(lspci_id, chembl_id, name = pref_name)], on = "lspci_id", nomatch = NULL
     ][
-      order(selectivity_class, affinity_Q1)
+      data_targets[, .(lspci_target_id, symbol, gene_id)], on = "lspci_target_id", nomatch = NULL
     ][
-      , c("name", "selectivity") := .(
-        lspci_id_name_map[lspci_id],
-        round(selectivity, digits = 2)
-      )
+      order(selectivity_class, ontarget_ic50_q1)
+    ][
+      , selectivity := round(selectivity, digits = 2)
     ] %>%
       select(
         name,
         chembl_id,
         symbol,
         selectivity_class,
-        affinity_Q1, offtarget_affinity_Q1, selectivity,
+        ontarget_ic50_q1, offtarget_ic50_q1, selectivity,
         everything()
       )
   })
@@ -65,9 +64,9 @@ mod_server_affinity_tables <- function(
     subset_dt(data_tas, r_selection_drugs())[
       if (is.null(r_eligible_lspci_ids)) TRUE else lspci_id %in% r_eligible_lspci_ids()
     ][
-      , name := lspci_id_name_map[lspci_id]
+      data_compounds[, .(lspci_id, chembl_id, name = pref_name)], on = "lspci_id", nomatch = NULL
     ][
-      data_cmpd_info[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
+      data_targets[, .(lspci_target_id, symbol, gene_id)], on = "lspci_target_id", nomatch = NULL
     ][
       order(tas, measurement)
     ] %>%
@@ -88,7 +87,7 @@ mod_server_affinity_tables <- function(
     if(is.list(r_selection_drugs()))
       return(create_download_filename(c("affinity", "spectrum")))
     create_download_filename(
-      c("affinity", "spectrum", lspci_id_name_map[r_selection_drugs()])
+      c("affinity", "spectrum", data_compounds[lspci_id %in%r_selection_drugs()][["pref_name"]])
     )
   })
 
@@ -119,17 +118,14 @@ mod_server_affinity_tables <- function(
           list(
             targets = grep(
               x = names(.data),
-              pattern = "^(name|symbol|selectivity_class|affinity_Q1|offtarget_affinity_Q1|references)$",
+              pattern = "^(name|symbol|selectivity_class|ontarget_ic50_q1|offtarget_ic50_q1|references)$",
               invert = TRUE
             ) - 1,
             visible = FALSE
           ),
           list(
             targets = match("references", names(.data)) - 1L,
-            render = selectivity_reference_js[["render_js"]]
-          ),
-          list(
-            targets = match("references", names(.data)) - 1L,
+            render = selectivity_reference_js[["render_js"]],
             createdCell = selectivity_reference_js[["created_cell_js"]]
           )
         ),
@@ -203,17 +199,14 @@ mod_server_affinity_tables <- function(
           list(
             targets = grep(
               x = names(.data),
-              pattern = "^(name|symbol|tas|source|measurement|unit|references)$",
+              pattern = "^(name|symbol|tas|derived_from|measurement|unit|references)$",
               invert = TRUE
             ) - 1,
             visible = FALSE
           ),
           list(
             targets = match("references", names(.data)) - 1L,
-            render = selectivity_reference_js[["render_js"]]
-          ),
-          list(
-            targets = match("references", names(.data)) - 1L,
+            render = selectivity_reference_js[["render_js"]],
             createdCell = selectivity_reference_js[["created_cell_js"]]
           )
         )

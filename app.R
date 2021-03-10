@@ -1,3 +1,5 @@
+source("global.R", local = TRUE)
+
 server <- function(input, output, session) {
 
   observe({
@@ -56,12 +58,4 @@ ui <- function(req) {
   )
 }
 
-#' @import dplyr
-#' @import shiny
-#' @import yonder
-#' @import magrittr
-#' @import tibble
-start_app <- function(...) {
-  shinyApp(ui, server, enableBookmarking = "url", ...)
-}
-
+app <- shinyApp(ui, server, enableBookmarking = "url")

@@ -11,8 +11,7 @@ mod_server_filter_commercial <- function(
     else
       compounds[commercially_available == TRUE][["lspci_id"]] %>%
         unique()
-  }) %>%
-    bindCache(input$filter_commercial)
+  })
 }
 
 #' UI module to display a switch for commercial availability
