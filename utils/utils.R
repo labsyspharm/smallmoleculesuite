@@ -24,35 +24,55 @@ fast_search <- function(data, req) {
   vfd <- query$value  # the value field name
   sel <- attr(data, 'selected_value', exact = TRUE)
 
-  # start searching for keywords in all specified columns
-  idx <- logical(nrow(data))
-  if (length(key)) {
-    for (v in var) {
-      matches <- do.call(
-        cbind,
-        lapply(key, function(k) {
-          str_detect(data[[v]], fixed(k, ignore_case = TRUE), negate = FALSE)
-        })
-      )
-      # merge column matches using OR, and match multiple keywords in one column
-      # using the conjunction setting (AND or OR)
-      matches <- rowSums(matches)
-      if (query$conju == 'and')
-        idx <- idx | (matches == length(key))
-      else
-        idx <- idx | matches
-    }
-  }
-  # only return the first n rows (n = maximum options in configuration)
-  idx <- utils::head(if (length(key)) which(idx) else seq_along(idx), mop)
-  # make sure the selected value is in the data
-  if (length(sel)) {
-    i <- stats::na.omit(match(sel, data[[vfd]]))
-    if (length(i)) idx <- sort(utils::head(unique(c(i, idx)), mop))
-  }
-  data <- data[idx, ]
+  if (length(var) > 1)
+    stop("More than one search column not supported: ", var)
 
-  res <- shiny:::toJSON(shiny:::columnToRowData(data))
+  if (length(key) > 1)
+    stop("More than one key not supported: ", key)
+
+  # Make sure selection is also in results
+  # sel_match <- chmatch(sel, data[[vfd]])
+  # key_match <- str_which(data[[var]], fixed(key, ignore_case = TRUE))
+  # data_out <- data[
+  #   unique(
+  #     c(
+  #       sel_match,
+  #       key_match
+  #     )
+  #   )
+  # ][
+  #   ,
+  #   match_len := str_length(get(var))
+  # [
+  #   o
+  # ] %>%
+  #   head(n = mop)
+  # Make sure selection is also in results
+  sel_match <- if (length(sel)) data[[vfd]] == sel else logical(nrow(data))
+  key_match <- if (length(key)) str_detect(data[[var]], fixed(key, ignore_case = TRUE)) else logical(nrow(data))
+  both_match <- sel_match | key_match
+  data_out <- data[
+    both_match
+  ][
+    ,
+    match_len := str_length(get(var))
+  ][
+    order(
+      !sel_match[both_match],
+      match_len
+    )
+  ][
+    match_len := NULL
+  ]
+  # data_out <- data_out[
+  #   order(
+  #     !sel_match,
+  #
+  #   )
+  # ] %>%
+  #   head(n = mop)
+
+  res <- shiny:::toJSON(shiny:::columnToRowData(data_out))
   shiny:::httpResponse(200, 'application/json', enc2utf8(res))
 }
 
