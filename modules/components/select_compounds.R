@@ -110,7 +110,7 @@ mod_server_select_compounds <- function(
       integer()
     else
       strip_compound_suffix(input$select_compound)
-  })
+  }, label = "r_selected_compounds")
 }
 
 #' UI module to display a search bar for

@@ -94,7 +94,7 @@ mod_server_select_targets <- function(
       integer()
     else
       strip_target_suffix(input$select_target)
-  })
+  }, label = "r_selected_targets")
 }
 
 mod_ui_select_targets <- function(

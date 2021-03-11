@@ -95,7 +95,7 @@ selectivityUI <- function(id) {
               input = div(
                 class = "active--pink",
                 switchInput(
-                  id = ns("use_shared"),
+                  id = ns("use_linked"),
                   choices = "Using linked data may slow down graph load times, but will allow interaction between the graphs and tables.",
                   values = "use",
                   selected = "use"
@@ -174,8 +174,8 @@ selectivityUI <- function(id) {
           mod_ui_download_button(ns("output_table_xlsx_dl"), "Download Excel")
         )
       ) %>%
-        margin(bottom = 3)
-      # mod_ui_affinity_tables(ns("affinity_tables_1"))
+        margin(bottom = 3),
+      mod_ui_affinity_tables(ns("affinity_tables"))
     )
   )
 }
@@ -194,11 +194,13 @@ selectivityServer <- function(input, output, session) {
   })
 
   r_include_non_human <- reactive({
-    !is.null(input$include_genes)
+    req(!is.null(input$include_genes))
+    input$include_genes
   })
 
-  use_shared_data <- reactive({
-    !is.null(input$use_shared)
+  r_use_linked_data <- reactive({
+    req(!is.null(input$use_linked))
+    input$use_linked
   })
 
   r_selection_genes <- reactive({
@@ -215,7 +217,7 @@ selectivityServer <- function(input, output, session) {
     }
   })
 
-  r_query_gene <- callModule(
+  r_query_target <- callModule(
     mod_server_select_targets,
     "query_gene",
     data_target_map,
@@ -223,16 +225,27 @@ selectivityServer <- function(input, output, session) {
     r_eligible_targets = r_selection_genes
   )
 
+  r_query_symbol <- reactive({
+    req(r_query_target())
+    # Show either symbol or, if NA, the gene ID
+    with(
+      data_targets[
+        lspci_target_id == r_query_target()
+      ],
+      fcoalesce(symbol, as.character(gene_id))
+    )
+  })
+
   r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)
 
   r_binding_data <- reactive({
     req(
-      r_query_gene(),
+      r_query_target(),
       r_eligible_lspci_ids()
     )
-    message("Calculating binding ", r_query_gene())
+    message("Calculating binding ", r_query_target())
     data_selectivity[
-      lspci_target_id == r_query_gene() & lspci_id %in% r_eligible_lspci_ids()
+      lspci_target_id == r_query_target() & lspci_id %in% r_eligible_lspci_ids()
     ][
       data_compounds[
         ,
@@ -266,7 +279,7 @@ selectivityServer <- function(input, output, session) {
   # titles ----
   r_subtitle <- reactive({
     paste(
-      "Showing compounds binding", r_query_gene(), "that meet the filter criteria<br>
+      "Showing compounds binding", r_query_symbol(), "that meet the filter criteria<br>
       Select compounds here for additional information"
     )
   })
@@ -276,7 +289,7 @@ selectivityServer <- function(input, output, session) {
 
   # mainplot ----
   output$mainplot <- renderPlotly({
-    req(r_binding_data)
+    req(r_binding_data())
     message("Plotting binding data ", nrow(r_binding_data()))
 
     matched_data <- r_binding_data()
@@ -332,15 +345,19 @@ selectivityServer <- function(input, output, session) {
 
   # output_table ----
 
-  r_selected_compounds <- reactive({
+  r_selected_compounds_plot <- reactive({
     event_data("plotly_selected", "mainplot")$customdata
   })
 
-  tbl_data <- reactive({
-    req(r_binding_data(), use_shared_data(), r_selected_compounds())
+  observe({message("Plot selected: ", r_selected_compounds_plot())})
 
-    (if (use_shared_data() && length(r_selected_compounds()) > 0) {
-      r_binding_data()[lspci_id %in% r_selected_compounds()]
+  r_tbl_data <- reactive({
+    req(r_binding_data(), !is.null(r_use_linked_data()))
+    (if (r_use_linked_data()) {
+      if (length(r_selected_compounds_plot()) > 0)
+        r_binding_data()[lspci_id %in% r_selected_compounds_plot()]
+      else
+        r_binding_data()
     } else {
       r_binding_data()
     })[
@@ -351,12 +368,14 @@ selectivityServer <- function(input, output, session) {
       select(name, chembl_id, symbol, gene_id, selectivity_class, ontarget_ic50_q1, offtarget_ic50_q1, everything())
   })
 
-  selectivity_reference_js <- callModule(mod_server_reference_modal, "selectivity")
+  selectivity_reference_js <- callModule(
+    mod_server_reference_modal, "selectivity"
+  )
 
-  tbl_table <- reactive({
-    req(tbl_data())
+  r_table_dt <- reactive({
+    req(r_tbl_data())
 
-    .data <- tbl_data()
+    .data <- r_tbl_data()
 
     datatable_tooltip(
       .data,
@@ -408,41 +427,46 @@ selectivityServer <- function(input, output, session) {
       )
   })
 
-  output$output_table <- DT::renderDataTable(
-    tbl_table(),
-    server = FALSE
+  output$output_table <- DT::renderDataTable({
+      req(r_table_dt())
+      r_table_dt()
+    },
+    server = TRUE
   )
 
   r_download_name <- reactive({
     create_download_filename(
-      c("compounds", "targeting", r_query_gene())
+      c("compounds", "targeting", r_query_symbol())
     )
   })
 
-  callModule(mod_server_download_button, "output_table_xlsx_dl", tbl_data, "excel", r_download_name)
-  callModule(mod_server_download_button, "output_table_csv_dl", tbl_data, "csv", r_download_name)
+  callModule(mod_server_download_button, "output_table_xlsx_dl", r_tbl_data, "excel", r_download_name)
+  callModule(mod_server_download_button, "output_table_csv_dl", r_tbl_data, "csv", r_download_name)
 
-  # table row selection ----
-  tbl_selection <- reactive({
+  r_selected_rows_table <- reactive({
+    req(input$output_table_rows_selected)
     sort(input$output_table_rows_selected)
   })
 
-  r_selection_drugs <- reactive({
-    if (is.null(tbl_selection())) {
-      return(integer())
-    }
-
-    tbl_data()$lspci_id[tbl_selection()]
+  r_selected_compounds_table <- reactive({
+    req(r_tbl_data(), r_selected_rows_table())
+    browser()
+    isolate(r_tbl_data())[
+      r_selected_rows_table()
+    ][["lspci_id"]]
   })
 
   setBookmarkExclude(
     table_inputs("output_table")
   )
 
-  # callModule(
-  #   mod_server_affinity_tables, "affinity_tables_1",
-  #   r_selection_drugs,
-  #   data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map
-  # )
+  r_eligible_compounds_affinity_tables <- reactive("all")
+
+  callModule(
+    mod_server_affinity_tables, "affinity_tables",
+    r_selected_compounds_table,
+    data_selectivity, data_tas, data_targets, data_compounds,
+    r_eligible_lspci_ids = r_eligible_compounds_affinity_tables
+  )
 
 }

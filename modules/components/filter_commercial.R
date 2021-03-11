@@ -12,7 +12,7 @@ mod_server_filter_commercial <- function(
     else
       compounds[["lspci_id"]] %>%
         unique()
-  })
+  }, label = "r_commercially_available")
 }
 
 #' UI module to display a switch for commercial availability
