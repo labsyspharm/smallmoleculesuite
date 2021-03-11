@@ -15,22 +15,11 @@ subset_dt <- function(dt, selectors) {
 }
 
 #' Server module to display a tabset of tables with affinities and TAS values
-#'
-#' If r_selection_drugs is NULL, nothing will be filtered, everything will be
-#' displayed. If r_selection is an empty list or vector, everything will be filtered
-#' and nothing will be displayed
-#'
-#' @param r_selection_drugs Reactive containing lspci_ids of selected compounds
-#' @param data_affinity_selectivity Data table with affinities and selectivities
-#' @param data_tas Data table with TAS vectors
-#' @param data_gene_info Data table with gene information
-#' @param lspci_id_name_map Named vector mapping from lspci_id to compound name
-#' @param selection Forwarded to DT::datatable
 mod_server_affinity_tables <- function(
   input, output, session,
-  r_selection_drugs,
-  data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map, selection = "none",
-  r_eligible_lspci_ids = NULL
+  r_selection,
+  data_selectivity, data_tas, data_targets, data_compounds, selection = "none",
+  r_eligible_lspci_ids
 ) {
   ns <- session$ns
 
@@ -38,14 +27,18 @@ mod_server_affinity_tables <- function(
     showNavPane(ns(paste0("selectivity_nav_", input$selectivity_nav)))
   })
 
-  r_selectivity_data_selected <- reactive({
+  r_selectivity_data <- reactive({
     req(
-      is.null(r_eligible_lspci_ids) |
-        length(r_eligible_lspci_ids()) > 0,
-      !is.null(r_selection_drugs())
+      r_eligible_lspci_ids(),
+      !is.null(r_selection())
     )
-    subset_dt(data_selectivity, r_selection_drugs())[
-      if (is.null(r_eligible_lspci_ids)) TRUE else lspci_id %in% r_eligible_lspci_ids()
+    message(
+      "Making selectivity table for: ", r_selection(),
+      " Eligible lspci_ids: ", r_eligible_lspci_ids()
+    )
+
+    subset_dt(data_selectivity, r_selection())[
+      if (r_eligible_lspci_ids() == "all") TRUE else lspci_id %in% r_eligible_lspci_ids()
     ][
       data_compounds[, .(lspci_id, chembl_id, name = pref_name)], on = "lspci_id", nomatch = NULL
     ][
@@ -65,14 +58,13 @@ mod_server_affinity_tables <- function(
       )
   })
 
-  r_tas_data_selected <- reactive({
+  r_tas_data <- reactive({
     req(
-      is.null(r_eligible_lspci_ids) |
-        length(r_eligible_lspci_ids()) > 0,
-      !is.null(r_selection_drugs())
+      r_eligible_lspci_ids(),
+      !is.null(r_selection())
     )
-    subset_dt(data_tas, r_selection_drugs())[
-      if (is.null(r_eligible_lspci_ids)) TRUE else lspci_id %in% r_eligible_lspci_ids()
+    subset_dt(data_tas, r_selection())[
+      if (r_eligible_lspci_ids() == "all") TRUE else lspci_id %in% r_eligible_lspci_ids()
     ][
       data_compounds[, .(lspci_id, chembl_id, name = pref_name)], on = "lspci_id", nomatch = NULL
     ][
@@ -84,20 +76,20 @@ mod_server_affinity_tables <- function(
   })
 
   r_selection_titles <- reactive({
-    if(is.list(r_selection_drugs()))
+    if(is.list(r_selection()))
       return("")
-    if (length(r_selection_drugs()) < 1)
+    if (length(r_selection()) < 1)
       return("Select compound above")
     paste0(
-      "Selected: ", paste(lspci_id_name_map[r_selection_drugs()], collapse = "; ")
+      "Selected: ", paste(lspci_id_name_map[r_selection()], collapse = "; ")
     )
   })
 
   r_download_name <- reactive({
-    if(is.list(r_selection_drugs()))
+    if(is.list(r_selection()))
       return(create_download_filename(c("affinity", "spectrum")))
     create_download_filename(
-      c("affinity", "spectrum", data_compounds[lspci_id %in%r_selection_drugs()][["pref_name"]])
+      c("affinity", "spectrum", data_compounds[lspci_id %in%r_selection()][["pref_name"]])
     )
   })
 
@@ -105,8 +97,11 @@ mod_server_affinity_tables <- function(
 
   selectivity_reference_js <- callModule(mod_server_reference_modal, "selectivity")
 
-  r_table_selected_selectivity<- reactive({
-    .data <- r_selectivity_data_selected()
+  r_table_selected_selectivity <- reactive({
+    req(r_selectivity_data())
+    message("Preparing selectivity table: ", nrow(r_selectivity_data()))
+
+    .data <- r_selectivity_data()
 
     datatable_tooltip(
       data = .data, # input$compound_selection),
@@ -141,7 +136,7 @@ mod_server_affinity_tables <- function(
         ),
         dom = DT_DOM,
         language = list(
-          emptyTable = if (length(r_selection_drugs()) < 1) {
+          emptyTable = if (length(r_selection()) < 1) {
             "Please select row(s) from the data above."
           } else {
             "No data available"
@@ -165,18 +160,23 @@ mod_server_affinity_tables <- function(
       )
   })
 
-  output$table_selectivity <- DT::renderDataTable(
-    r_table_selected_selectivity(),
+  output$table_selectivity <- DT::renderDataTable({
+      req(r_table_selected_selectivity())
+      message("Drawing selectivity table")
+      r_table_selected_selectivity()
+    },
     server = TRUE
   )
 
-  callModule(mod_server_download_button, "selectivity_xlsx_dl", r_selectivity_data_selected, "excel", r_download_name)
-  callModule(mod_server_download_button, "selectivity_csv_dl", r_selectivity_data_selected, "csv", r_download_name)
+  callModule(mod_server_download_button, "selectivity_xlsx_dl", r_selectivity_data, "excel", r_download_name)
+  callModule(mod_server_download_button, "selectivity_csv_dl", r_selectivity_data, "csv", r_download_name)
 
   selectivity_reference_js <- callModule(mod_server_reference_modal, "tas")
 
   r_table_selected_tas <- reactive({
-    .data = r_tas_data_selected()
+    req(r_tas_data())
+
+    .data = r_tas_data()
 
     datatable_tooltip(
       data = .data,
@@ -196,7 +196,7 @@ mod_server_affinity_tables <- function(
         ),
         dom = DT_DOM,
         language = list(
-          emptyTable = if (length(r_selection_drugs()) < 1) {
+          emptyTable = if (length(r_selection()) < 1) {
             "Please select row(s) from the data above."
           } else {
             "No data available"
@@ -231,25 +231,27 @@ mod_server_affinity_tables <- function(
       )
   })
 
-  output$table_tas <- DT::renderDataTable(
-    r_table_selected_tas(),
+  output$table_tas <- DT::renderDataTable({
+      req(r_table_selected_tas())
+      r_table_selected_tas()
+    },
     server = TRUE
   )
 
-  callModule(mod_server_download_button, "tas_xlsx_dl", r_tas_data_selected, "excel", r_download_name)
-  callModule(mod_server_download_button, "tas_csv_dl", r_tas_data_selected, "csv", r_download_name)
+  callModule(mod_server_download_button, "tas_xlsx_dl", r_tas_data, "excel", r_download_name)
+  callModule(mod_server_download_button, "tas_csv_dl", r_tas_data, "csv", r_download_name)
 
   r_either_selected <- reactiveVal()
 
   observeEvent(input$table_tas_rows_selected, {
     r_either_selected(
-      r_tas_data_selected()[["lspci_id"]][sort(input$table_tas_rows_selected)]
+      r_tas_data()[["lspci_id"]][sort(input$table_tas_rows_selected)]
     )
   })
 
   observeEvent(input$table_selectivity_rows_selected, {
     r_either_selected(
-      r_selectivity_data_selected()[["lspci_id"]][sort(input$table_selectivity_rows_selected)]
+      r_selectivity_data()[["lspci_id"]][sort(input$table_selectivity_rows_selected)]
     )
   })
 

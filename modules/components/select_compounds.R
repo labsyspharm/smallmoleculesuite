@@ -107,7 +107,7 @@ mod_server_select_compounds <- function(
 
   reactive({
     if (is.null(input$select_compound) || input$select_compound[1] == "")
-      NULL
+      integer()
     else
       strip_compound_suffix(input$select_compound)
   })

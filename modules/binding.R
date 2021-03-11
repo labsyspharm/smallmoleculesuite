@@ -84,7 +84,7 @@ bindingDataServer <- function(input, output, session) {
     )
   )
 
-  r_eligible_targets <- reactive({"all"})
+  r_eligible_targets <- reactive("all")
 
   r_selected_targets <- callModule(
     mod_server_select_targets,
@@ -95,15 +95,17 @@ bindingDataServer <- function(input, output, session) {
   )
 
   r_selection <- reactive({
+    req(
+      !is.null(r_selected_lspci_ids()),
+      !is.null(r_selected_targets())
+    )
     selection <- list()
-    if(!is.null(r_selected_lspci_ids()))
+    if(length(r_selected_lspci_ids()) > 0)
       selection[["lspci_id"]] <- r_selected_lspci_ids()
-    if(!is.null(r_selected_targets()))
+    if(length(r_selected_targets()) > 0)
       selection[["lspci_target_id"]] <- r_selected_targets()
-    selection <- if(length(selection) > 0)
-      selection
-    else
-      integer()
+    if(length(selection) == 0)
+      selection <- integer()
     selection
   })
 
@@ -111,7 +113,7 @@ bindingDataServer <- function(input, output, session) {
     mod_server_affinity_tables,
     "table",
     r_selection,
-    data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map,
-    r_eligible_lspci_ids = r_eligible_lspci_ids
+    data_selectivity, data_tas, data_targets, data_compounds,
+    r_eligible_lspci_ids = function() "all"
   )
 }

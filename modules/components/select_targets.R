@@ -38,7 +38,7 @@ mod_server_select_targets <- function(
   input, output, session,
   target_map,
   default_choice = integer(),
-  r_eligible_targets = NULL,
+  r_eligible_targets = "all",
   selectize_options = NULL
 ) {
 
