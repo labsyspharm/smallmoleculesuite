@@ -320,12 +320,12 @@ nav_content_ui <- function() {
         )
       )
     ),
-    # navPane(
-    #   id = "selectivity",
-    #   selectivityUI(
-    #     id = "selectivity"
-    #   )
-    # ),
+    navPane(
+      id = "selectivity",
+      selectivityUI(
+        id = "selectivity"
+      )
+    ),
     # navPane(
     #   id = "similarity",
     #   similarityUI(

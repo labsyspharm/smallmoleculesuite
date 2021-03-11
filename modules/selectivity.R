@@ -1,11 +1,11 @@
 
 axis_choices <- tribble(
   ~label, ~value, ~type,
-  "Affinity Q1 (nM)", "affinity_Q1", "log",
+  "Affinity Q1 (nM)", "ontarget_ic50_q1", "log",
   "Selectivity", "selectivity", "linear",
-  "Tool score", "toolscore", "linear",
-  "Offtarget Affinity Q1 (nM)", "offtarget_affinity_Q1", "log",
-  "Affinity difference (nM)", "affinity_Q1_diff", "linear",
+  "Tool score", "tool_score", "linear",
+  "Offtarget Affinity Q1 (nM)", "offtarget_ic50_q1", "log",
+  "Affinity difference (nM)", "ic50_difference", "linear",
   "Investigation bias", "investigation_bias", "linear",
   "Strength", "strength", "linear",
   "Wilcox p-value", "wilcox_pval", "linear"
@@ -44,11 +44,14 @@ selectivityUI <- function(id) {
               margin(b = -3),
             formGroup(
               label = NULL,
-              input = selectizeInput(
+              input = mod_ui_select_targets(
                 ns("query_gene"),
-                label = NULL,
-                choices = NULL,
-                multiple = FALSE
+                selectize_options = list(
+                  label = NULL,
+                  choices = NULL,
+                  multiple = FALSE,
+                  width = "100%"
+                )
               ),
               help = "Search for a target gene"
             ),
@@ -121,8 +124,7 @@ selectivityUI <- function(id) {
           )
         )
       ) %>%
-        margin(bottom = 3),
-      mod_ui_chembl_tabs(ns("chembl_tabs_1"))
+        margin(bottom = 3)
     ),
     column(
       width = 8,
@@ -146,7 +148,7 @@ selectivityUI <- function(id) {
             ns("y_var"),
             choices = axis_choices[["label"]],
             values = axis_choices[["value"]],
-            selected = "affinity_Q1"
+            selected = "ontarget_ic50_q1"
           ),
           style = "display: flex; align-items: center;"
         ),
@@ -172,8 +174,8 @@ selectivityUI <- function(id) {
           mod_ui_download_button(ns("output_table_xlsx_dl"), "Download Excel")
         )
       ) %>%
-        margin(bottom = 3),
-      mod_ui_affinity_tables(ns("affinity_tables_1"))
+        margin(bottom = 3)
+      # mod_ui_affinity_tables(ns("affinity_tables_1"))
     )
   )
 }
@@ -191,7 +193,7 @@ selectivityServer <- function(input, output, session) {
     )
   })
 
-  include_non_human <- reactive({
+  r_include_non_human <- reactive({
     !is.null(input$include_genes)
   })
 
@@ -199,72 +201,72 @@ selectivityServer <- function(input, output, session) {
     !is.null(input$use_shared)
   })
 
-  selection_genes <- reactive({
-    if (include_non_human()) { # all genes
-      data_affinity_selectivity[["symbol"]] %>%
-        unique() %>%
-        sort()
+  r_selection_genes <- reactive({
+    req(!is.null(r_include_non_human()))
+    if (r_include_non_human()) { # all genes
+      data_selectivity[["lspci_target_id"]] %>%
+        unique()
     } else { # just human genes
-      data_affinity_selectivity[
-        gene_id %in% (data_gene_info[tax_id == 9606][["gene_id"]])
-      ][["symbol"]] %>%
-        unique() %>%
-        sort()
+      data_target_map[
+        tax_id == 9606 &
+          lspci_target_id %in% data_selectivity[["lspci_target_id"]],
+        .(lspci_target_id)
+      ][["lspci_target_id"]]
     }
   })
 
-  r_query_gene <- reactiveVal("BRAF")
-
-  observe({
-    if(!is.null(input$query_gene) && str_length(input$query_gene) > 0)
-      r_query_gene(input$query_gene)
-  })
-
-  onRestore(function(state) {
-    r_query_gene(state$input$query_gene)
-  })
-
-  # update query gene select ----
-  observe({
-    updateSelectizeInput(
-      session,
-      "query_gene",
-      choices = c("BRAF", selection_genes()),
-      selected = r_query_gene(),
-      server = TRUE
-    )
-  })
+  r_query_gene <- callModule(
+    mod_server_select_targets,
+    "query_gene",
+    data_target_map,
+    default_choice = 487L,
+    r_eligible_targets = r_selection_genes
+  )
 
   r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)
 
   r_binding_data <- reactive({
-    req(input$query_gene)
-
-    copy(data_affinity_selectivity)[
-      symbol == input$query_gene & lspci_id %in% r_eligible_lspci_ids()
+    req(
+      r_query_gene(),
+      r_eligible_lspci_ids()
+    )
+    message("Calculating binding ", r_query_gene())
+    data_selectivity[
+      lspci_target_id == r_query_gene() & lspci_id %in% r_eligible_lspci_ids()
+    ][
+      data_compounds[
+        ,
+        .(lspci_id, name = pref_name, chembl_id)
+      ],
+      on = .(lspci_id),
+      nomatch = NULL
+    ][
+      data_targets[
+        ,
+        .(lspci_target_id, symbol, gene_id)
+      ],
+      on = .(lspci_target_id), nomatch = NULL
     ][
       ,
-      is_filter_match := !is.na(affinity_Q1) &
-        affinity_Q1 >= (10**input$affinity[1]) &
-        affinity_Q1 <= (10**input$affinity[2]) &
-        affinity_N >= input$min_measurements
+      is_filter_match := !is.na(ontarget_ic50_q1) &
+        ontarget_ic50_q1 >= (10**input$affinity[1]) &
+        ontarget_ic50_q1 <= (10**input$affinity[2]) &
+        ontarget_n >= input$min_measurements
     ][
       ,
-      c("name", "plot_alpha", "selectivity_class") := .(
-        lspci_id_name_map[lspci_id],
+      c("plot_alpha", "selectivity_class") := .(
         if_else(is_filter_match, 0.9, 0.2),
         forcats::fct_rev(selectivity_class)
       )
     ][
-      order(is_filter_match, selectivity_class, affinity_Q1)
+      order(is_filter_match, selectivity_class, ontarget_ic50_q1)
     ]
   })
 
   # titles ----
   r_subtitle <- reactive({
-    req(input$query_gene)
     paste(
-      "Showing compounds binding", input$query_gene, "that meet the filter criteria<br>
+      "Showing compounds binding", r_query_gene(), "that meet the filter criteria<br>
       Select compounds here for additional information"
     )
   })
@@ -274,6 +276,9 @@ selectivityServer <- function(input, output, session) {
 
   # mainplot ----
   output$mainplot <- renderPlotly({
+    req(r_binding_data)
+    message("Plotting binding data ", nrow(r_binding_data()))
+
     matched_data <- r_binding_data()
 
     x_axis_vals <- axis_choice_map[[input$x_var]]
@@ -332,6 +337,8 @@ selectivityServer <- function(input, output, session) {
   })
 
   tbl_data <- reactive({
+    req(r_binding_data(), use_shared_data(), r_selected_compounds())
+
     (if (use_shared_data() && length(r_selected_compounds()) > 0) {
       r_binding_data()[lspci_id %in% r_selected_compounds()]
     } else {
@@ -339,16 +346,16 @@ selectivityServer <- function(input, output, session) {
     })[
       is_filter_match == TRUE
     ][
-      data_compounds[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
-    ][
-      order(-selectivity_class, affinity_Q1)
+      order(-selectivity_class, ontarget_ic50_q1)
     ] %>%
-      select(name, chembl_id, symbol, selectivity_class, affinity_Q1, offtarget_affinity_Q1, everything())
+      select(name, chembl_id, symbol, gene_id, selectivity_class, ontarget_ic50_q1, offtarget_ic50_q1, everything())
   })
 
   selectivity_reference_js <- callModule(mod_server_reference_modal, "selectivity")
 
   tbl_table <- reactive({
+    req(tbl_data())
+
     .data <- tbl_data()
 
     datatable_tooltip(
@@ -371,7 +378,7 @@ selectivityServer <- function(input, output, session) {
         columnDefs = list(
           list(
             targets = grep(
-              pattern = "^(name|chembl_id|selectivity_class|affinity_Q1|offtarget_affinity_Q1|selectivity|references)$",
+              pattern = "^(name|chembl_id|selectivity_class|ontarget_ic50_q1|offtarget_ic50_q1|selectivity|references)$",
               x = names(.data),
               invert = TRUE
             ) - 1,
@@ -379,10 +386,7 @@ selectivityServer <- function(input, output, session) {
           ),
           list(
             targets = match("references", names(.data)) - 1L,
-            render = selectivity_reference_js[["render_js"]]
-          ),
-          list(
-            targets = match("references", names(.data)) - 1L,
+            render = selectivity_reference_js[["render_js"]],
             createdCell = selectivity_reference_js[["created_cell_js"]]
           )
         ),
@@ -411,7 +415,7 @@ selectivityServer <- function(input, output, session) {
 
   r_download_name <- reactive({
     create_download_filename(
-      c("compounds", "targeting", input$query_gene)
+      c("compounds", "targeting", r_query_gene())
     )
   })
 
@@ -431,18 +435,14 @@ selectivityServer <- function(input, output, session) {
     tbl_data()$lspci_id[tbl_selection()]
   })
 
-  o_chembl_tabs <- callModule(
-    mod_server_chembl_tabs, "chembl_tabs_1", data_compounds, r_selection_drugs, lspci_id_name_map
-  )
-
   setBookmarkExclude(
     table_inputs("output_table")
   )
 
-  callModule(
-    mod_server_affinity_tables, "affinity_tables_1",
-    r_selection_drugs,
-    data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map
-  )
+  # callModule(
+  #   mod_server_affinity_tables, "affinity_tables_1",
+  #   r_selection_drugs,
+  #   data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map
+  # )
 
 }

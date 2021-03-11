@@ -39,6 +39,11 @@ mod_server_affinity_tables <- function(
   })
 
   r_selectivity_data_selected <- reactive({
+    req(
+      is.null(r_eligible_lspci_ids) |
+        length(r_eligible_lspci_ids()) > 0,
+      !is.null(r_selection_drugs())
+    )
     subset_dt(data_selectivity, r_selection_drugs())[
       if (is.null(r_eligible_lspci_ids)) TRUE else lspci_id %in% r_eligible_lspci_ids()
     ][
@@ -61,6 +66,11 @@ mod_server_affinity_tables <- function(
   })
 
   r_tas_data_selected <- reactive({
+    req(
+      is.null(r_eligible_lspci_ids) |
+        length(r_eligible_lspci_ids()) > 0,
+      !is.null(r_selection_drugs())
+    )
     subset_dt(data_tas, r_selection_drugs())[
       if (is.null(r_eligible_lspci_ids)) TRUE else lspci_id %in% r_eligible_lspci_ids()
     ][

@@ -31,11 +31,11 @@ server <- function(input, output, session) {
     module = bindingDataServer,
     id = "binding"
   )
-#
-#   callModule(
-#     module = selectivityServer,
-#     id = "selectivity"
-#   )
+
+  callModule(
+    module = selectivityServer,
+    id = "selectivity"
+  )
 #
 #   callModule(
 #     module = similarityServer,

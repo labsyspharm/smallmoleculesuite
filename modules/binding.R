@@ -90,7 +90,7 @@ bindingDataServer <- function(input, output, session) {
     mod_server_select_targets,
     "target",
     data_target_map,
-    default_choice = NULL,
+    default_choice = integer(),
     r_eligible_targets = r_eligible_targets
   )
 

@@ -1,9 +1,9 @@
 SELECTIVITY_ORDER <- c(
-  "Most selective",
-  "Semi-selective",
-  "Poly-selective",
-  "Unknown",
-  "Other"
+  most_selective = "Most selective",
+  semi_selective = "Semi-selective",
+  poly_selective = "Poly-selective",
+  unknown_selective = "Unknown",
+  other_selective = "Other"
 )
 
 SELECTIVITY_COLORS <- c("#225ea8", "#41b6c4", "#a1dab4", "#969696", "#cccccc") %>%

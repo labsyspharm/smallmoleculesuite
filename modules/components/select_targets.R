@@ -28,10 +28,16 @@ SELECT_TARGET_OPTIONS <- list(
   render = SELECT_TARGET_RENDER_JS
 )
 
+strip_target_suffix <- function(x) {
+  unique(as.integer(
+    str_split_fixed(x, fixed("-"), 2)[, 1]
+  ))
+}
+
 mod_server_select_targets <- function(
   input, output, session,
   target_map,
-  default_choice = NULL,
+  default_choice = integer(),
   r_eligible_targets = NULL,
   selectize_options = NULL
 ) {
@@ -40,12 +46,13 @@ mod_server_select_targets <- function(
 
   onRestore(function(state) {
     # Have to remove -x suffix
-    if (is.null(state$input$select_target))
-      return()
-    if (state$input$select_target[1] == "")
-      r_default_choice(NULL)
+    val <- state$input$select_target
+    if (is.null(val))
+      NULL
+    else if (val[1] == "")
+      r_default_choice(integer())
     else
-      r_default_choice(select_target)
+      r_default_choice(strip_target_suffix(val))
   })
 
   selectize_options_ <- SELECT_TARGET_OPTIONS
@@ -55,7 +62,7 @@ mod_server_select_targets <- function(
 
   r_target_map_eligible <- reactive({
     req(r_eligible_targets())
-    if (r_eligible_targets() == "all")
+    if (r_eligible_targets()[1] == "all")
       target_map
     else
       target_map[
@@ -63,14 +70,12 @@ mod_server_select_targets <- function(
       ]
   })
 
-  observe({
-    req(r_target_map_eligible())
-    # Don't react to r_default_choice() because we are only interested in the initial value
-    default_choice <- isolate(r_default_choice())
+  observeEvent(r_target_map_eligible(), {
+    req(r_target_map_eligible(), !is.null(r_default_choice()))
     # Append already selected compounds on update, but don't react to them
     selected <- c(
-      if (!is.null(default_choice)) paste0(default_choice, "-1"),
-      isolate(input$select_target)
+      if (length(r_default_choice()) > 0) paste0(r_default_choice(), "-1"),
+      if (!is.null(input$select_target) && input$select_target != "") input$select_target
     )
     updateSelectizeInput(
       session,
@@ -81,16 +86,14 @@ mod_server_select_targets <- function(
       options = selectize_options_,
       callback = fast_search
     )
-    r_default_choice(NULL)
+    r_default_choice(integer())
   })
 
   reactive({
-    if (is.null(input$select_target))
-      NULL
+    if (is.null(input$select_target) || input$select_target == "")
+      integer()
     else
-      unique(as.integer(
-        str_split_fixed(input$select_target, fixed("-"), 2)[, 1]
-      ))
+      strip_target_suffix(input$select_target)
   })
 }
 

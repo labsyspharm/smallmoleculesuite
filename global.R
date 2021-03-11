@@ -23,6 +23,9 @@ library(writexl)
 
 # source("awspass.config")
 
+source("utils/utils.R", local = TRUE)
+source("utils/constants.R", local = TRUE)
+
 # Components used in multiple apps
 source("modules/components/chembl_tabs.R", local = TRUE)
 source("modules/components/affinity_tables.R", local = TRUE)
@@ -41,9 +44,6 @@ source("modules/library.R", local = TRUE)
 source("modules/binding.R", local = TRUE)
 
 source("data/load.R", local = TRUE)
-
-source("utils/utils.R", local = TRUE)
-source("utils/constants.R", local = TRUE)
 
 source("app_ui.R", local = TRUE)
 

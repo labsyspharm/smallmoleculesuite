@@ -19,10 +19,19 @@ c(
   imap(
     ~{
       message("Loading ", .y)
-      read_fst(
+      data <- read_fst(
         file.path(dir_data, .x),
         as.data.table = TRUE
       )
+      if ("selectivity_class" %in% colnames(data))
+        data[
+          ,
+          selectivity_class := factor(
+            selectivity_class,
+            levels = names(SELECTIVITY_ORDER), labels = SELECTIVITY_ORDER
+          )
+        ]
+      data
     }
   ) %>%
   iwalk(
