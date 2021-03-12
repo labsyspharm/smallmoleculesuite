@@ -36,12 +36,12 @@ server <- function(input, output, session) {
     module = selectivityServer,
     id = "selectivity"
   )
-#
-#   callModule(
-#     module = similarityServer,
-#     id = "similarity"
-#   )
-#
+
+  callModule(
+    module = similarityServer,
+    id = "similarity"
+  )
+
 #   callModule(
 #     module = libraryServer,
 #     id = "library"

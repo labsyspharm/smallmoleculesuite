@@ -31,23 +31,6 @@ fast_search <- function(data, req) {
     stop("More than one key not supported: ", key)
 
   # Make sure selection is also in results
-  # sel_match <- chmatch(sel, data[[vfd]])
-  # key_match <- str_which(data[[var]], fixed(key, ignore_case = TRUE))
-  # data_out <- data[
-  #   unique(
-  #     c(
-  #       sel_match,
-  #       key_match
-  #     )
-  #   )
-  # ][
-  #   ,
-  #   match_len := str_length(get(var))
-  # [
-  #   o
-  # ] %>%
-  #   head(n = mop)
-  # Make sure selection is also in results
   sel_match <- if (length(sel)) data[[vfd]] == sel else logical(nrow(data))
   key_match <- if (length(key)) str_detect(data[[var]], fixed(key, ignore_case = TRUE)) else logical(nrow(data))
   both_match <- sel_match | key_match
@@ -65,13 +48,6 @@ fast_search <- function(data, req) {
     ,
     match_len := NULL
   ]
-  # data_out <- data_out[
-  #   order(
-  #     !sel_match,
-  #
-  #   )
-  # ] %>%
-  #   head(n = mop)
 
   res <- shiny:::toJSON(shiny:::columnToRowData(data_out))
   shiny:::httpResponse(200, 'application/json', enc2utf8(res))
@@ -91,4 +67,19 @@ table_inputs <- function(table_name) {
   inputs <- outer(table_name, suffixes, FUN = "paste0")
   dim(inputs) <- NULL
   inputs
+}
+
+target_id_to_name <- function(target) {
+  with(
+    data_targets[
+      lspci_target_id == target
+    ],
+    fcoalesce(symbol, as.character(gene_id))
+  )
+}
+
+compound_id_to_name <- function(compound) {
+  data_compounds[
+    lspci_id == compound
+  ][["pref_name"]]
 }

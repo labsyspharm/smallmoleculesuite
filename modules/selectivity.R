@@ -222,18 +222,16 @@ selectivityServer <- function(input, output, session) {
     "query_gene",
     data_target_map,
     default_choice = 487L,
-    r_eligible_targets = r_selection_genes
+    r_eligible_targets = r_selection_genes,
+    selectize_options = list(
+      maxItems = 1L
+    )
   )
 
   r_query_symbol <- reactive({
     req(r_query_target())
     # Show either symbol or, if NA, the gene ID
-    with(
-      data_targets[
-        lspci_target_id == r_query_target()
-      ],
-      fcoalesce(symbol, as.character(gene_id))
-    )
+    target_id_to_name(r_query_target())
   })
 
   r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)

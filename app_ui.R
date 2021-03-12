@@ -326,12 +326,12 @@ nav_content_ui <- function() {
         id = "selectivity"
       )
     ),
-    # navPane(
-    #   id = "similarity",
-    #   similarityUI(
-    #     id = "similarity"
-    #   )
-    # ),
+    navPane(
+      id = "similarity",
+      similarityUI(
+        id = "similarity"
+      )
+    ),
     # navPane(
     #   id = "library",
     #   libraryUI(

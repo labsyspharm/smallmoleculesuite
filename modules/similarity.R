@@ -1,11 +1,11 @@
 tas_weighted_jaccard <- function(query_id, min_n = 6) {
-  query_tas <- data_tas[lspci_id == query_id, .(gene_id, tas)]
+  query_tas <- data_tas[lspci_id == query_id, .(lspci_target_id, tas)]
   data_tas[
     ,
-    .(lspci_id, gene_id, tas)
+    .(lspci_id, lspci_target_id, tas)
   ][
     query_tas,
-    on = "gene_id",
+    on = "lspci_target_id",
     nomatch = NULL
   ][
     ,
@@ -17,9 +17,9 @@ tas_weighted_jaccard <- function(query_id, min_n = 6) {
       "n" = sum(mask),
       "n_prior" = .N
     ) else .(
-      "tas_similarity" = numeric(),
-      "n" = integer(),
-      "n_prior" = integer()
+      tas_similarity = double(),
+      n = integer(),
+      n_prior = .N
     ),
     by = "lspci_id"
   ]
@@ -41,12 +41,12 @@ pfp_correlation <- function(query_id, min_n = 6) {
     ,
     if(sum(mask) >= min_n) .(
       "pfp_correlation" = cor(rscore_tr_1, rscore_tr_2),
-      "n_prior" = .N,
-      "n" = sum(mask)
+      "n" = sum(mask),
+      "n_prior" = .N
     ) else .(
-      "pfp_correlation" = numeric(),
-      "n" = integer(),
-      "n_prior" = integer()
+      pfp_correlation = double(),
+      n = integer(),
+      n_prior = .N
     ),
     by = lspci_id_2
   ] %>%
@@ -115,18 +115,6 @@ similarityUI <- function(id) {
                 class = "active--green",
                 mod_ui_filter_commercial(ns(""))
               )
-            ),
-            formGroup(
-              label = "Use linked data",
-              input = div(
-                class = "active--green",
-                switchInput(
-                  id = ns("use_shared"),
-                  choices = "Using linked data may slow down graph load times, but will allow interaction between the graphs and tables.",
-                  values = "use",
-                  selected = "use"
-                )
-              )
             )
           ),
           navPane(
@@ -148,8 +136,8 @@ similarityUI <- function(id) {
           )
         )
       ) %>%
-        margin(bottom = 3),
-      mod_ui_chembl_tabs(ns("chembl_tabs_1"))
+        margin(bottom = 3)
+      # mod_ui_chembl_tabs(ns("chembl_tabs_1"))
     ),
     column(
       width = 8,
@@ -219,16 +207,19 @@ similarityServer <- function(input, output, session) {
   r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)
 
   r_query_compound <- callModule(
-    mod_server_select_compounds, "query",
-    data_names, r_eligible_ids = r_eligible_lspci_ids, default_choice = 100755L
+    mod_server_select_compounds,
+    "query",
+    data_compound_names,
+    default_choice = 100755L,
+    r_eligible_ids = r_eligible_lspci_ids,
+    selectize_options = list(
+      maxItems = 1L
+    )
   )
 
-  c_binding_msg <- reactive({
-    if (NROW(r_ref_data()) > 0) {
-      paste0(r_query_compound(), "; ", lspci_id_name_map[[r_query_compound()]])
-    } else {
-      paste("No gene target binding data available for", lspci_id_name_map[[r_query_compound()]])
-    }
+  r_query_compound_name <- reactive({
+    req(r_query_compound())
+    compound_id_to_name(r_query_compound())
   })
 
   output$binding_drug <- renderText({
@@ -263,6 +254,12 @@ similarityServer <- function(input, output, session) {
   })
 
   r_sim_data <- reactive({
+    req(
+      r_chem_sim(),
+      r_tas_sim(),
+      r_pfp_sim(),
+      r_eligible_lspci_ids()
+    )
     merge(
       r_chem_sim(),
       merge(r_tas_sim(), r_pfp_sim(), by = "lspci_id", all = TRUE),
@@ -273,7 +270,11 @@ similarityServer <- function(input, output, session) {
         .[
           lspci_id %in% r_eligible_lspci_ids()
         ][
-          , name := lspci_id_name_map[lspci_id]
+          data_compounds[
+            ,
+            .(lspci_id, name = pref_name, chembl_id)
+          ],
+          on = .(lspci_id), nomatch = NULL
         ][
           , c("pfp_correlation", "tas_similarity", "structural_similarity") :=
             lapply(.SD, round, digits = 2),
@@ -285,24 +286,6 @@ similarityServer <- function(input, output, session) {
           setnafill(cols = "pfp_correlation_plot", fill = -1.1) %>%
           setnafill(cols = c("tas_similarity_plot", "structural_similarity_plot"), fill = -0.1)
       }
-  })
-
-  use_shared_data <- reactive({
-    !is.null(input$use_shared)
-  })
-
-  r_ref_data <- reactive({
-    req(r_query_compound())
-
-    data_selectivity[
-      lspci_id == r_query_compound(),
-      .(
-        symbol, selectivity_class, Kd_Q1
-      )
-    ][
-      order(selectivity_class, Kd_Q1)
-    ] %>%
-      unique()
   })
 
   r_sim_selection <- reactive({
@@ -319,18 +302,10 @@ similarityServer <- function(input, output, session) {
   # plots ----
   x_shared_data <- crosstalk::SharedData$new(r_sim_data, ~ lspci_id)
 
-  r_plot_data_shared <- reactive({
-    if (use_shared_data()) {
-      x_shared_data
-    } else {
-      r_sim_data()
-    }
-  })
-
   make_plot <- function(id, x, y, x_axis, y_axis) {
     text_formula <- paste0(
       '~ paste(',
-      '"Drug 1: ", lspci_id_name_map[[r_query_compound()]], "\\n",',
+      '"Drug 1: ", r_query_compound_name(), "\\n",',
       '"Drug 2: ", name, "\\n",',
       '"x: ", ', x, ', "\\n",',
       '"y: ", ', y, ',',
@@ -339,7 +314,7 @@ similarityServer <- function(input, output, session) {
     x_line <- c(x_axis[["tickvals"]][[1]], y_axis[["range"]])
     y_line <- c(y_axis[["tickvals"]][[1]], x_axis[["range"]])
     renderPlotly({
-      r_plot_data_shared() %>%
+      x_shared_data %>%
         plot_ly(
           source = id,
           x = reformulate(x),
@@ -431,41 +406,22 @@ similarityServer <- function(input, output, session) {
     )
   )
 
-  compounds_selected <- reactiveVal()
-
-  walk(
-    c("pheno_struct", "target_struct", "pheno_target"),
-    ~observe({
-      compounds_selected(event_data("plotly_selected", .x)$key)
-    })
-  )
-
-  observeEvent(r_query_compound(), {
-    compounds_selected(NULL)
-  })
-
-# ChEMBL tabs
-###############################################################################-
-
-  o_chembl_tabs <- callModule(
-    mod_server_chembl_tabs, "chembl_tabs_1", data_compounds, r_selection_drugs, lspci_id_name_map
-  )
-
   r_tbl_sim_data <- reactive({
-    selected_ids <- compounds_selected()
-    (if (use_shared_data() && length(selected_ids) > 0) {
-      r_sim_data()[lspci_id %in% selected_ids]
-    } else {
-      r_sim_data()
-    })[
-      data_compounds[, .(lspci_id, chembl_id)], on = "lspci_id", nomatch = NULL
+    req(x_shared_data$data())
+    as.data.table(
+      x_shared_data$data(withSelection = TRUE) %>%
+        filter(is.na(selected_) | selected_) %>%
+        select(-selected_)
+    )[
+      data_compounds[, .(lspci_id, name = pref_name, chembl_id)],
+      on = "lspci_id", nomatch = NULL
     ][
       order(-pfp_correlation, -tas_similarity, -structural_similarity)
     ] %>%
       select(name, chembl_id, everything(), -ends_with("_plot"))
   })
 
-  r_tbl_sim_compound <- reactive({
+  r_dt_sim_data <- reactive({
     .data <- r_tbl_sim_data()
     col_types <- unname(vapply(.data, class, character(1)))
 
@@ -507,13 +463,13 @@ similarityServer <- function(input, output, session) {
   })
 
   output$table_sim_compound = DT::renderDataTable(
-    r_tbl_sim_compound(),
+    r_dt_sim_data(),
     server = TRUE
   )
 
   r_download_name <- reactive({
     create_download_filename(
-      c("similarity", "table", r_query_compound())
+      c("similarity", "table", r_query_compound_name())
     )
   })
 
@@ -528,6 +484,7 @@ similarityServer <- function(input, output, session) {
     mod_server_affinity_tables,
     "affinity_tables_1",
     r_selection_drugs,
-    data_affinity_selectivity, data_tas, data_gene_info, lspci_id_name_map
+    data_selectivity, data_tas, data_targets, data_compounds,
+    r_eligible_lspci_ids = reactive("all")
   )
 }
