@@ -5,45 +5,50 @@ bindingDataUI <- function(id) {
     width = 8,
     columns(
       column(
-        columns(
-          column(
-            width = 11,
-            mod_ui_select_compounds(
-              ns("query"),
-              selectize_options = list(label = "Query by compound", choices = NULL, multiple = TRUE, width = "100%")
-            )
-          ),
-          column(
-            width = 1,
-            class = "m-auto p-0",
-            tags$a(
-              class = "btn p-0",
+        {
+          input <- mod_ui_select_compounds(
+            ns("query"),
+            selectize_options = list(label = "Filter by compound", choices = NULL, multiple = TRUE)
+          )
+          reset_button <- div(
+            class = "input-group-append",
+            tags$button(
+              class = "btn btn-outline-secondary",
+              type = "button",
               onclick = glue("$('#{NS(ns('query'))('select_compound')}').selectize()[0].selectize.clear();"),
               icon("times-circle")
             )
           )
-        )
+          input[["children"]][[2]][["attribs"]][["class"]] <- "input-group"
+          input[["children"]][[2]] <- htmltools::tagAppendChild(
+            input[["children"]][[2]],
+            reset_button
+          )
+          input
+        }
       ),
       column(
-        columns(
-          column(
-            width = 11,
-            mod_ui_select_targets(
-              ns("target"),
-              selectize_options = list(label = "Query by target", choices = NULL, multiple = TRUE, width = "100%")
-            )
-          ),
-          column(
-            width = 1,
-            class = "m-auto p-0",
-            tags$a(
-              class = "btn p-0",
-              # onclick = glue("$('#{ns('select_target')}').selectize()[0].selectize.clear();"),
+        {
+          input <- mod_ui_select_targets(
+            ns("target"),
+            selectize_options = list(label = "Filter by target", choices = NULL, multiple = TRUE)
+          )
+          reset_button <- div(
+            class = "input-group-append",
+            tags$button(
+              class = "btn btn-outline-secondary",
+              type = "button",
               onclick = glue("$('#{NS(ns('target'))('select_target')}').selectize()[0].selectize.clear();"),
               icon("times-circle")
             )
           )
-        )
+          input[["children"]][[2]][["attribs"]][["class"]] <- "input-group"
+          input[["children"]][[2]] <- htmltools::tagAppendChild(
+            input[["children"]][[2]],
+            reset_button
+          )
+          input
+        }
       )
     ) %>%
       margin(b = 2),
@@ -57,11 +62,7 @@ bindingDataUI <- function(id) {
     ),
     mod_ui_affinity_tables(
       ns("table"),
-      headers = list(
-        h4("Affinity and selectivity"),
-        p("Filter by compound and target") %>%
-          margin(b = 1)
-      )
+      headers = NULL
     )
   ) %>%
     margin("auto") %>%

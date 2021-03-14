@@ -33,28 +33,25 @@ selectivityUI <- function(id) {
           navPane(
             id = ns("pane_filters"),
             fade = FALSE,
-            formGroup(
-              label = "Target gene",
-              checkboxInput(
-                id = ns("include_genes"),
-                choices = "Include non-human genes",
-                values = TRUE
+            tags$h5("Target gene") %>%
+              margin(b = 3),
+            mod_ui_select_targets(
+              ns("query_gene"),
+              selectize_options = list(
+                label = NULL,
+                choices = NULL,
+                multiple = FALSE,
+                width = "100%"
               )
             ) %>%
-              margin(b = -3),
-            formGroup(
-              label = NULL,
-              input = mod_ui_select_targets(
-                ns("query_gene"),
-                selectize_options = list(
-                  label = NULL,
-                  choices = NULL,
-                  multiple = FALSE,
-                  width = "100%"
+              tagAppendChild(
+                checkboxInput(
+                  id = ns("include_genes"),
+                  choices = "Include non-human genes",
+                  values = TRUE
                 )
               ),
-              help = "Search for a target gene"
-            ),
+            tags$hr(),
             formGroup(
               label = "Minimum/maximum affinity (nM)",
               input = div(
@@ -89,18 +86,6 @@ selectivityUI <- function(id) {
                 class = "active--pink",
                 mod_ui_filter_commercial(ns(""))
               )
-            ),
-            formGroup(
-              label = "Use linked data",
-              input = div(
-                class = "active--pink",
-                switchInput(
-                  id = ns("use_linked"),
-                  choices = "Using linked data may slow down graph load times, but will allow interaction between the graphs and tables.",
-                  values = "use",
-                  selected = "use"
-                )
-              )
             )
           ),
           navPane(
@@ -129,28 +114,27 @@ selectivityUI <- function(id) {
     column(
       width = 8,
       card(
-        header = tagList(
-          h4("Target affinity and selectivity plot"),
-          htmlOutput(ns("subtitle_plot"), container = p)
-        ),
+        # header = tagList(
+        #   htmlOutput(ns("subtitle_plot"), container = p)
+        # ),
         div(
-          tags$label("x-axis", `for` = ns("x_var"), style = "width: 7em;") %>%
-            margin(b = 0),
+          class = "d-flex align-items-center",
+          tags$label("x-axis", `for` = ns("x_var"), style = "width: 5em;", class = "text-right") %>%
+            margin(b = 0, r = 3),
           selectInput(
             ns("x_var"),
             choices = axis_choices[["label"]],
             values = axis_choices[["value"]],
             selected = "selectivity"
           ),
-          tags$label("y-axis", `for` = ns("y_var"), style = "width: 7em;") %>%
-            margin(l = 2, b = 0),
+          tags$label("y-axis", `for` = ns("y_var"), style = "width: 5em;", class = "text-right") %>%
+            margin(b = 0, r = 3),
           selectInput(
             ns("y_var"),
             choices = axis_choices[["label"]],
             values = axis_choices[["value"]],
             selected = "ontarget_ic50_q1"
-          ),
-          style = "display: flex; align-items: center;"
+          )
         ),
         div(
           plotly::plotlyOutput(
@@ -162,10 +146,10 @@ selectivityUI <- function(id) {
       ) %>%
         margin(bottom = 3),
       card(
-        header = tagList(
-          h4("Target affinity and selectivity"),
-          htmlOutput(ns("subtitle_data"), container = p)
-        ),
+        # header = tagList(
+        #   h4("Target affinity and selectivity"),
+        #   htmlOutput(ns("subtitle_data"), container = p)
+        # ),
         div(
           dataTableOutput(
             outputId = ns("output_table")
@@ -196,11 +180,6 @@ selectivityServer <- function(input, output, session) {
   r_include_non_human <- reactive({
     req(!is.null(input$include_genes))
     input$include_genes
-  })
-
-  r_use_linked_data <- reactive({
-    req(!is.null(input$use_linked))
-    input$use_linked
   })
 
   r_selection_genes <- reactive({
@@ -275,15 +254,15 @@ selectivityServer <- function(input, output, session) {
   })
 
   # titles ----
-  r_subtitle <- reactive({
-    paste(
-      "Showing compounds binding", r_query_symbol(), "that meet the filter criteria<br>
-      Select compounds here for additional information"
-    )
-  })
+  # r_subtitle <- reactive({
+  #   paste(
+  #     "Showing compounds binding", r_query_symbol(), "that meet the filter criteria<br>
+  #     Select compounds here for additional information"
+  #   )
+  # })
 
-  output$subtitle_plot <- renderText(r_subtitle())
-  output$subtitle_data <- renderText(r_subtitle())
+  # output$subtitle_plot <- renderText(r_subtitle())
+  # output$subtitle_data <- renderText(r_subtitle())
 
   # mainplot ----
   output$mainplot <- renderPlotly({
@@ -350,15 +329,16 @@ selectivityServer <- function(input, output, session) {
   observe({message("Plot selected: ", r_selected_compounds_plot())})
 
   r_tbl_data <- reactive({
-    req(r_binding_data(), !is.null(r_use_linked_data()))
-    (if (r_use_linked_data()) {
-      if (length(r_selected_compounds_plot()) > 0)
+    req(r_binding_data())
+    {
+      if (
+        !is.null(r_selected_compounds_plot()) &&
+          length(r_selected_compounds_plot()) > 0
+      )
         r_binding_data()[lspci_id %in% r_selected_compounds_plot()]
       else
         r_binding_data()
-    } else {
-      r_binding_data()
-    })[
+    }[
       is_filter_match == TRUE
     ][
       order(-selectivity_class, ontarget_ic50_q1)
@@ -448,7 +428,6 @@ selectivityServer <- function(input, output, session) {
 
   r_selected_compounds_table <- reactive({
     req(r_tbl_data(), r_selected_rows_table())
-    browser()
     isolate(r_tbl_data())[
       r_selected_rows_table()
     ][["lspci_id"]]

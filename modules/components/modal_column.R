@@ -51,7 +51,7 @@ mod_ui_modal_column <- function(id) {
     tagList(
       htmltools::htmlDependency(
         "modal_column_js", "1.0",
-        c(href="sms/js"),
+        c(href = "sms/js"),
         script = "modal_column.js"
       )
     )

@@ -76,11 +76,16 @@ similarityUI <- function(id) {
         navContent(
           navPane(
             id = ns("pane_filters"),
-            formGroup(
-              label = "Select reference compound",
-              input = mod_ui_select_compounds(ns("query")),
-              help = "Search for a compound"
-            ),
+            tags$h5("Reference compound") %>%
+              margin(b = 3),
+            mod_ui_select_compounds(ns("query")) %>%
+              htmltools::tagAppendChild(
+                tags$small(
+                  class = "form-text text-muted",
+                  "Compare selected compound to all other compounds in the database."
+                )
+              ),
+            tags$hr(),
             formGroup(
               label = "Minimum number of affinity assays in common with reference compound",
               input = div(
@@ -142,13 +147,7 @@ similarityUI <- function(id) {
     column(
       width = 8,
       card(
-        header = tagList(
-          h4("Compound similarity plots"),
-          p(
-            "Select an area of similarity you are interested in.
-            Hover over points for more information. Double-click on plot to un-select region."
-          )
-        ),
+        # header = h6("Drag to filter."),
         div(
           columns(
             column(
@@ -175,10 +174,7 @@ similarityUI <- function(id) {
       ) %>%
         margin(bottom = 3),
       card(
-        header = tagList(
-          h4("Compound similarity data"),
-          p(HTML("Showing compounds that meet the filter criteria<br>Select compounds here for additional information"))
-        ),
+        # header = h6("Select compounds for additional information"),
         div(
           dataTableOutput(
             outputId = ns("table_sim_compound")

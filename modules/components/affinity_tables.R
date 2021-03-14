@@ -75,25 +75,13 @@ mod_server_affinity_tables <- function(
       select(name, chembl_id, symbol, everything())
   })
 
-  r_selection_titles <- reactive({
-    if(is.list(r_selection()))
-      return("")
-    if (length(r_selection()) < 1)
-      return("Select compound above")
-    paste0(
-      "Selected: ", paste(lspci_id_name_map[r_selection()], collapse = "; ")
-    )
-  })
-
   r_download_name <- reactive({
     if(is.list(r_selection()))
       return(create_download_filename(c("affinity", "spectrum")))
     create_download_filename(
-      c("affinity", "spectrum", data_compounds[lspci_id %in%r_selection()][["pref_name"]])
+      c("affinity", "spectrum", compound_id_to_name(r_selection()))
     )
   })
-
-  output$subtitle_selection <- renderText(r_selection_titles())
 
   selectivity_reference_js <- callModule(mod_server_reference_modal, "selectivity")
 
@@ -286,7 +274,6 @@ mod_ui_affinity_tables <- function(
     header = exec(
       tagList,
       !!!headers,
-      textOutput(ns("subtitle_selection"), p),
       navInput(
         appearance = "tabs",
         id = ns("selectivity_nav"),

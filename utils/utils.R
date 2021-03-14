@@ -72,7 +72,7 @@ table_inputs <- function(table_name) {
 target_id_to_name <- function(target) {
   with(
     data_targets[
-      lspci_target_id == target
+      lspci_target_id %in% target
     ],
     fcoalesce(symbol, as.character(gene_id))
   )
@@ -80,6 +80,6 @@ target_id_to_name <- function(target) {
 
 compound_id_to_name <- function(compound) {
   data_compounds[
-    lspci_id == compound
+    lspci_id %in% compound
   ][["pref_name"]]
 }

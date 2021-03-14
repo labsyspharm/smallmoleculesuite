@@ -157,3 +157,8 @@ table.dataTable thead th {
 
 .contains-tooltip {
 }
+
+/* Fix height of selectize inputs */
+.selectize-control .selectize-input {
+  height: 100%;
+}
