@@ -94,7 +94,7 @@ similarityUI <- function(id) {
                   inputId = ns("n_common"),
                   label = NULL,
                   min = 1,
-                  max = 8,
+                  max = 7,
                   step = 1,
                   value = 2
                 )
@@ -108,7 +108,7 @@ similarityUI <- function(id) {
                   inputId = ns("n_pheno"),
                   label = NULL,
                   min = 1,
-                  max = 8,
+                  max = 7,
                   step = 1,
                   value = 2
                 )
@@ -183,8 +183,8 @@ similarityUI <- function(id) {
           mod_ui_download_button(ns("output_table_xlsx_dl"), "Download Excel")
         )
       ) %>%
-        margin(bottom = 3),
-      mod_ui_affinity_tables(ns("affinity_tables_1"))
+        margin(bottom = 3)
+      # mod_ui_affinity_tables(ns("affinity_tables_1"))
     )
   )
 }
@@ -314,12 +314,15 @@ similarityServer <- function(input, output, session) {
         plot_ly(
           source = id,
           x = reformulate(x),
-          y = reformulate(y),
+          y = reformulate(y)
+        ) %>%
+        add_trace(
           type = "scatter",
           mode = "markers",
           color = I("black"),
           text = as.formula(text_formula),
-          alpha = 0.7
+          opacity = 0.7,
+          customdata = ~ lspci_id
         ) %>%
         layout(
           showlegend = FALSE,
@@ -402,12 +405,26 @@ similarityServer <- function(input, output, session) {
     )
   )
 
+  r_compounds_selected_plot <- reactiveVal()
+
+  walk(
+    c("pheno_struct", "target_struct", "pheno_target"),
+    ~observe({
+      r_compounds_selected_plot(event_data("plotly_selected", .x)$customdata)
+    })
+  )
+
+  observeEvent(r_query_compound(), {
+    r_compounds_selected_plot(NULL)
+  })
+
   r_tbl_sim_data <- reactive({
-    req(x_shared_data$data())
-    as.data.table(
-      x_shared_data$data(withSelection = TRUE) %>%
-        filter(is.na(selected_) | selected_) %>%
-        select(-selected_)
+    req(r_sim_data())
+    (
+      if (is.null(r_compounds_selected_plot()))
+        r_sim_data()
+      else
+        r_sim_data()[lspci_id %in% r_compounds_selected_plot()]
     )[
       data_compounds[, .(lspci_id, name = pref_name, chembl_id)],
       on = "lspci_id", nomatch = NULL
@@ -476,11 +493,11 @@ similarityServer <- function(input, output, session) {
   callModule(mod_server_download_button, "output_table_xlsx_dl", r_tbl_sim_data, "excel", r_download_name)
   callModule(mod_server_download_button, "output_table_csv_dl", r_tbl_sim_data, "csv", r_download_name)
 
-  callModule(
-    mod_server_affinity_tables,
-    "affinity_tables_1",
-    r_selection_drugs,
-    data_selectivity, data_tas, data_targets, data_compounds,
-    r_eligible_lspci_ids = reactive("all")
-  )
+  # callModule(
+  #   mod_server_affinity_tables,
+  #   "affinity_tables_1",
+  #   r_selection_drugs,
+  #   data_selectivity, data_tas, data_targets, data_compounds,
+  #   r_eligible_lspci_ids = reactive("all")
+  # )
 }

@@ -158,8 +158,8 @@ selectivityUI <- function(id) {
           mod_ui_download_button(ns("output_table_xlsx_dl"), "Download Excel")
         )
       ) %>%
-        margin(bottom = 3),
-      mod_ui_affinity_tables(ns("affinity_tables"))
+        margin(bottom = 3)
+      # mod_ui_affinity_tables(ns("affinity_tables"))
     )
   )
 }
@@ -326,8 +326,6 @@ selectivityServer <- function(input, output, session) {
     event_data("plotly_selected", "mainplot")$customdata
   })
 
-  observe({message("Plot selected: ", r_selected_compounds_plot())})
-
   r_tbl_data <- reactive({
     req(r_binding_data())
     {
@@ -421,29 +419,30 @@ selectivityServer <- function(input, output, session) {
   callModule(mod_server_download_button, "output_table_xlsx_dl", r_tbl_data, "excel", r_download_name)
   callModule(mod_server_download_button, "output_table_csv_dl", r_tbl_data, "csv", r_download_name)
 
-  r_selected_rows_table <- reactive({
-    req(input$output_table_rows_selected)
-    sort(input$output_table_rows_selected)
-  })
-
-  r_selected_compounds_table <- reactive({
-    req(r_tbl_data(), r_selected_rows_table())
-    isolate(r_tbl_data())[
-      r_selected_rows_table()
-    ][["lspci_id"]]
-  })
+  # r_selected_rows_table <- reactive({
+  #   req(input$output_table_rows_selected)
+  #   sort(input$output_table_rows_selected)
+  # })
+  #
+  # r_selected_compounds_table <- reactive({
+  #   req(r_tbl_data(), r_selected_rows_table())
+  #   isolate(r_tbl_data())[
+  #     r_selected_rows_table()
+  #   ][["lspci_id"]]
+  # })
+  #
+  #
+  # r_eligible_compounds_affinity_tables <- reactive("all")
+  #
+  # callModule(
+  #   mod_server_affinity_tables, "affinity_tables",
+  #   r_selected_compounds_table,
+  #   data_selectivity, data_tas, data_targets, data_compounds,
+  #   r_eligible_lspci_ids = r_eligible_compounds_affinity_tables
+  # )
 
   setBookmarkExclude(
     table_inputs("output_table")
-  )
-
-  r_eligible_compounds_affinity_tables <- reactive("all")
-
-  callModule(
-    mod_server_affinity_tables, "affinity_tables",
-    r_selected_compounds_table,
-    data_selectivity, data_tas, data_targets, data_compounds,
-    r_eligible_lspci_ids = r_eligible_compounds_affinity_tables
   )
 
 }
