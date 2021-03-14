@@ -20,13 +20,13 @@ libraryUI <- function(id) {
               "One gene per line."
             ),
             formGroup(
-              label = "Find ligands for gene symbols",
+              label = NULL,
               input = shiny::textAreaInput(
                 inputId = ns("gene_list"),
                 label = NULL,
                 rows = 5
               ),
-              help = div(
+              help = tagList(
                 "This tool uses HUGO symbols Please see",
                 tags$a(
                   target = "_blank", href = "https://genenames.org",
@@ -86,7 +86,7 @@ libraryUI <- function(id) {
                 choices = c("Most selective", "Semi-selective", "Poly-selective", "Unknown"),
                 selected = "Most selective"
               ),
-              help = "Choose the selectivity levels for which you want chemical probes to be included in the library."
+              help = "Add compounds with the given selectivity to the library."
             ),
             formGroup(
               label = tags$h6("Clinical phases") %>% margin(b = 0),
@@ -98,18 +98,19 @@ libraryUI <- function(id) {
                 values = c(4, 3, 2, 1),
                 selected = 4
               ),
-              help = "Select compounds in clinical development to be added to the library."
+              help = "Add compounds that are approved or in clinical development to the library."
             ),
             formGroup(
               label = tags$h6("Expert opinion compounds") %>% margin(b = 0),
               class = "active--orange",
-              input = checkboxInput(
+              input = switchInput(
                 inline = TRUE,
                 id = ns("filter_expert"),
-                choices = "chemicalprobes.org 4.0 star rating",
-                values = "chem_probe"
+                choices = "chemicalprobes.org 4-star rating",
+                values = "chem_probe",
+                selected = "chem_probe"
               ),
-              help = "Select compounds that are endorsed by other users to be added to the library."
+              help = "Add compounds endorsed by experts to the library."
             ),
             formGroup(
               label = tags$h6("Output table") %>% margin(b = 0),
@@ -182,7 +183,6 @@ libraryUI <- function(id) {
     column(
       width = 8,
       card(
-        h3("Output table"),
         div(
           DT::dataTableOutput(
             outputId = ns("table_results")
@@ -191,8 +191,7 @@ libraryUI <- function(id) {
           mod_ui_download_button(ns("output_table_xlsx_dl"), "Download Excel")
         )
       ) %>%
-        margin(b = 3),
-      mod_ui_chembl_tabs(ns("chembl_tabs_1"))
+        margin(b = 3)
     )
   )
 }
@@ -216,46 +215,44 @@ libraryServer <- function(input, output, session) {
     )
   })
 
-  # Load an example gene list
-  observeEvent(input$gene_example, {
-    shiny::updateTextAreaInput(
-      session = session,
-      inputId = "gene_list",
-      value = paste0(data_genes[[input$gene_example]], collapse = "\n")
+  r_example_gene_symbols <- reactive({
+    req(input$gene_example)
+    paste0(
+      data_gene_lists[gene_list == input$gene_example][["symbol"]],
+      collapse = "\n"
     )
   })
 
-  r_symbol_list <- reactiveVal(NULL)
-
-  observeEvent(c(input$submit, input$gene_example), {
-    gene_list <- input$gene_list
-    if (is.null(gene_list))
-      gene_list <- ""
-    else
-      gene_list <- str_split(gene_list, fixed("\n"))[[1]]
-    r_symbol_list(gene_list)
+  # Load an example gene list
+  observeEvent(r_example_gene_symbols(), {
+    req(r_example_gene_symbols)
+    shiny::updateTextAreaInput(
+      session = session,
+      inputId = "gene_list",
+      value = r_example_gene_symbols()
+    )
   })
 
-  update_gene_list_external <- FALSE
-  gene_list_initialized <- FALSE
+  r_symbol_list <- reactiveVal()
 
-  observeEvent(input$gene_list, {
-    if (!update_gene_list_external && gene_list_initialized)
-      return(NULL)
-    update_gene_list_external <<- FALSE
+  observeEvent(input$submit, {
     gene_list <- input$gene_list
-    if (is.null(gene_list)) {
-      r_symbol_list(NULL)
-      return(NULL)
-    }
-    if (gene_list != "")
-      gene_list_initialized <<- TRUE
-    gene_list <- str_split(gene_list, fixed("\n"))[[1]]
-    r_symbol_list(gene_list)
+    req(gene_list)
+    r_symbol_list(
+      str_split(gene_list, fixed("\n"))[[1]]
+    )
+  })
+
+  observeEvent(r_example_gene_symbols(), {
+    req(r_example_gene_symbols())
+    r_symbol_list(
+      str_split(r_example_gene_symbols(), fixed("\n"))[[1]]
+    )
   })
 
   r_target_id_list <- reactive({
-    data_target_map[
+    req(r_symbol_list())
+    data_targets[
       symbol %in% r_symbol_list()
     ][["lspci_target_id"]]
   })
@@ -277,9 +274,7 @@ libraryServer <- function(input, output, session) {
         header = h5("Unqualified targets"),
         p(paste0("The following ", length(r_gene_unknown()), " targets do not have any annotated ligands: ")),
         p(paste(
-          data_targets[
-            lspci_id %in% r_gene_unknown()
-          ][["symbol"]],
+          target_id_to_name(r_gene_unknown()),
           collapse = ", "
         ))
       )
@@ -314,7 +309,6 @@ libraryServer <- function(input, output, session) {
 
   r_selection_selectivity <- reactive({
     req(r_gene_known())
-
     data_library[
       lspci_target_id %in% r_gene_known() &
         selectivity_class %in% input$filter_probes &
@@ -324,20 +318,18 @@ libraryServer <- function(input, output, session) {
 
   r_selection_clinical <- reactive({
     req(r_gene_known())
-
     data_library[
       lspci_target_id %in% r_gene_known() &
-        highest_approval %in% input$filter_phase &
+        max_phase %in% input$filter_phase &
         reason_included == "clinical"
     ]
   })
 
   r_selection_chemprobes <- reactive({
     req(r_gene_known())
-
     data_chemical_probes[
       lspci_target_id %in% r_gene_known() &
-        avg_rating == 4
+        max_rating == 4
     ][
       , reason_included := "expert_opinion"
     ]
@@ -357,8 +349,8 @@ libraryServer <- function(input, output, session) {
       ),
       fill = TRUE
     )[
-      affinity_Q1 <= 2**input$filter_affinity &
-        affinity_N >= input$filter_measurement &
+      ontarget_ic50_q1 <= 2**input$filter_affinity &
+        ontarget_n >= input$filter_measurement &
         lspci_id %in% r_eligible_lspci_ids()
     ] %>%
       {
@@ -372,18 +364,19 @@ libraryServer <- function(input, output, session) {
     r_selection_table() %>%
       dplyr::inner_join(
         data_compounds %>%
-          dplyr::select(lspci_id, chembl_id, pref_name),
+          dplyr::select(lspci_id, chembl_id, name = pref_name),
         by = "lspci_id"
+      ) %>%
+      dplyr::inner_join(
+        data_targets %>%
+          dplyr::select(lspci_target_id, symbol, gene_id),
+        by = "lspci_target_id"
       ) %>%
       dplyr::distinct() %>%
       dplyr::select(
         symbol, chembl_id,
-        pref_name, selectivity_class, highest_approval, affinity_Q1, affinity_N,
+        name, selectivity_class, max_phase, ontarget_ic50_q1, ontarget_n,
         gene_id, reason_included, lspci_id
-      ) %>%
-      dplyr::mutate_at(           # rounds mean and SD to closest 0.1 if greater than 1.
-        vars(affinity_Q1),    # if less than one, rounds to two significant digits.
-        ~ ifelse(. > 1, round(., 1), signif(., 2))
       )
   })
 
@@ -392,20 +385,25 @@ libraryServer <- function(input, output, session) {
       dplyr::inner_join(
         data_compounds %>%
           dplyr::select(
-            lspci_id, chembl_id, pref_name
+            lspci_id, chembl_id, name = pref_name
           ),
         by = "lspci_id"
       ) %>%
+      dplyr::inner_join(
+        data_targets %>%
+          dplyr::select(lspci_target_id, symbol, gene_id),
+        by = "lspci_target_id"
+      ) %>%
       dplyr::distinct() %>%
       dplyr::group_by(
-        lspci_id, chembl_id, pref_name, highest_approval
+        lspci_id, chembl_id, name, max_phase
       ) %>%
       dplyr::summarise(
         reason_included = paste(symbol, ": ", reason_included, collapse = "; ")
       ) %>%
       dplyr::ungroup() %>%
       dplyr::mutate_at(
-        vars(highest_approval),
+        vars(max_phase),
         as.integer
       )
   })
@@ -445,7 +443,7 @@ libraryServer <- function(input, output, session) {
               pattern = "^(lspci_id|gene_id)$",
               x = names(.data),
               invert = FALSE
-            ) - 1,
+            ) - 1L,
             visible = FALSE
           )
         ),
@@ -471,27 +469,23 @@ libraryServer <- function(input, output, session) {
   callModule(mod_server_download_button, "output_table_csv_dl", r_tbl_data, "csv", r_download_name)
 
   # table row selection ----
-  r_tbl_selection <- reactive({
-    sort(input$table_results_rows_selected)
-  })
+  # r_tbl_selection <- reactive({
+  #   sort(input$table_results_rows_selected)
+  # })
+  #
+  # r_selection_drugs <- reactive({
+  #   if (is.null(r_tbl_selection())) {
+  #     return(integer())
+  #   }
+  #
+  #   r_tbl_data()$lspci_id[r_tbl_selection()]
+  # })
 
-  r_selection_drugs <- reactive({
-    if (is.null(r_tbl_selection())) {
-      return(integer())
-    }
-
-    r_tbl_data()$lspci_id[r_tbl_selection()]
-  })
-
-  o_chembl_tabs <- callModule(
-    mod_server_chembl_tabs, "chembl_tabs_1", data_compounds, r_selection_drugs, lspci_id_name_map
-  )
+  # o_chembl_tabs <- callModule(
+  #   mod_server_chembl_tabs, "chembl_tabs_1", data_compounds, r_selection_drugs, lspci_id_name_map
+  # )
 
   setBookmarkExclude(
     table_inputs("table_results")
-  )
-
-  list(
-    session = session
   )
 }

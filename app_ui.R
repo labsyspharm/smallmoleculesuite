@@ -332,12 +332,12 @@ nav_content_ui <- function() {
         id = "similarity"
       )
     ),
-    # navPane(
-    #   id = "library",
-    #   libraryUI(
-    #     id = "library"
-    #   )
-    # ),
+    navPane(
+      id = "library",
+      libraryUI(
+        id = "library"
+      )
+    ),
     navPane(
       id = "download",
       download_page()

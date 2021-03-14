@@ -6,7 +6,7 @@ mod_server_filter_commercial <- function(
 ) {
   reactive({
     req(!is.null(input$filter_commercial))
-    if (input$filter_commercial)
+    if (input$filter_commercial != FALSE)
       compounds[commercially_available == TRUE][["lspci_id"]] %>%
         unique()
     else

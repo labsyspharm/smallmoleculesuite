@@ -42,10 +42,10 @@ server <- function(input, output, session) {
     id = "similarity"
   )
 
-#   callModule(
-#     module = libraryServer,
-#     id = "library"
-#   )
+  callModule(
+    module = libraryServer,
+    id = "library"
+  )
 }
 
 ui <- function(req) {
