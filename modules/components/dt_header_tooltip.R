@@ -21,6 +21,16 @@ DT_HEADER_FORMAT_JS = r'--{
   }
 }--'
 
+DT_COMPOUND_NAME_JS <- r'--{
+function(data, type, row, meta) {
+    if (
+      type === "display" && data !== null && data.length > 20
+    )
+      return `<span title=\"${data}\">${data.substr(0, 20)}...</span>`;
+    return data;
+  }
+}--'
+
 get_header_tooltip_js <- function(column_specs) {
   glue(
     DT_HEADER_FORMAT_JS, .open = "`", .close = "`",
@@ -62,10 +72,18 @@ datatable_tooltip <- function(..., column_specs = NULL, reorder_cols = FALSE) {
 
 # Add DT column title defs to existing list of defs
 add_column_title_defs <- function(defs, cols, col_map = COLUMN_TITLE_MAP) {
+  name_shorten_def <- if ("name" %in% cols)
+    list(
+      targets = match("name", cols) - 1L,
+      render = JS(DT_COMPOUND_NAME_JS)
+    )
   match(names(col_map), cols) %>%
     set_names(col_map) %>%
     na.omit() %>%
-    imap(~list(targets = .x - 1, title = .y)) %>%
+    imap(~list(targets = .x - 1L, title = .y)) %>%
     unname() %>%
-    c(defs)
+    c(
+      defs,
+      list(name_shorten_def)
+    )
 }

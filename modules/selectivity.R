@@ -341,7 +341,11 @@ selectivityServer <- function(input, output, session) {
     ][
       order(-selectivity_class, ontarget_ic50_q1)
     ] %>%
-      select(name, chembl_id, symbol, gene_id, selectivity_class, ontarget_ic50_q1, offtarget_ic50_q1, everything())
+      select(
+        name, chembl_id, symbol, gene_id, selectivity_class, ontarget_ic50_q1, offtarget_ic50_q1,
+        everything(),
+        -is_filter_match, -plot_alpha
+      )
   })
 
   selectivity_reference_js <- callModule(

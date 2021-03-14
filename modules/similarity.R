@@ -431,7 +431,10 @@ similarityServer <- function(input, output, session) {
     ][
       order(-pfp_correlation, -tas_similarity, -structural_similarity)
     ] %>%
-      select(name, chembl_id, everything(), -ends_with("_plot"))
+      select(
+        name, chembl_id, everything(),
+        -ends_with("_plot"), -starts_with("i.")
+      )
   })
 
   r_dt_sim_data <- reactive({
