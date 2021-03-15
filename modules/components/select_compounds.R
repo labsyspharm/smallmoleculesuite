@@ -40,6 +40,20 @@ strip_compound_suffix <- function(x) {
   ))
 }
 
+eligible_compounds <- function(only_commercial) {
+  if (only_commercial)
+    data_compound_names[
+      lspci_id %in% filter_commercial(TRUE)
+    ][
+      , .(name, name_id, source)
+    ]
+  else
+    data_compound_names[
+      , .(name, name_id, source)
+    ]
+}
+eligible_compounds <- memoise(eligible_compounds)
+
 #' Server module to select compounds
 #'
 #' @param compounds Dataframe of compounds, should contain lspci_id
@@ -47,9 +61,8 @@ strip_compound_suffix <- function(x) {
 #' @return Filtered dataframe
 mod_server_select_compounds <- function(
   input, output, session,
-  compounds,
+  r_commercial_only,
   default_choice = integer(),
-  r_eligible_ids = NULL,
   selectize_options = NULL
 ) {
 
@@ -72,17 +85,8 @@ mod_server_select_compounds <- function(
     selectize_options_[[names(selectize_options)[[i]]]] <- selectize_options[[i]]
 
   r_eligible_compounds <- reactive({
-    req(r_eligible_ids())
-    if (r_eligible_ids()[1] == "all")
-      data_compound_names[
-        , .(name, name_id, source)
-      ]
-    else
-      data_compound_names[
-        lspci_id %in% r_eligible_ids()
-      ][
-        , .(name, name_id, source)
-      ]
+    req(!is.null(r_commercial_only()))
+    eligible_compounds(r_commercial_only())
   })
 
   observeEvent(r_eligible_compounds(), {

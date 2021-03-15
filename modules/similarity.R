@@ -122,7 +122,7 @@ all_similarities_table <- function(
   sim_data,
   tas_n_common,
   pfp_n_common,
-  filter_commercial,
+  only_commercial,
   selected_compounds = NULL
 ) {
   (
@@ -138,7 +138,8 @@ all_similarities_table <- function(
       rbindlist(list(
         .,
         chemical_similarity(query_compound)[
-          !lspci_id %in% .[["lspci_id"]]
+          !lspci_id %in% .[["lspci_id"]] &
+            if (only_commercial) lspci_id %in% filter_commercial(TRUE) else TRUE
         ][
           order(-structural_similarity)
         ][,
@@ -300,15 +301,14 @@ similarityServer <- function(input, output, session) {
 
   l_filter_commercial <- callModule(mod_server_filter_commercial, "")
   r_eligible_lspci_ids <- l_filter_commercial[["r_eligible_lspci_ids"]]
-  r_filter_commercial <- l_filter_commercial[["r_filter_commercial"]]
+  r_only_commercial <- l_filter_commercial[["r_only_commercial"]]
 
 
   r_query_compound <- callModule(
     mod_server_select_compounds,
     "query",
-    data_compound_names,
+    r_only_commercial,
     default_choice = 100755L,
-    r_eligible_ids = r_eligible_lspci_ids,
     selectize_options = list(
       maxItems = 1L
     )
@@ -527,7 +527,7 @@ similarityServer <- function(input, output, session) {
       # Passing these only to make sure memoization works
       isolate(input$n_common),
       isolate(input$n_pheno),
-      isolate(r_filter_commercial()),
+      isolate(r_only_commercial()),
       r_compounds_selected_plot()
     )
   })

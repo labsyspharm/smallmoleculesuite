@@ -72,14 +72,15 @@ bindingDataUI <- function(id) {
 bindingDataServer <- function(input, output, session) {
   ns <- session$ns
 
-  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "")[["r_eligible_lspci_ids"]]
+  l_filter_commercial <- callModule(mod_server_filter_commercial, "")
+  r_eligible_lspci_ids <- l_filter_commercial[["r_eligible_lspci_ids"]]
+  r_only_commercial <- l_filter_commercial[["r_only_commercial"]]
 
   r_selected_lspci_ids <- callModule(
     mod_server_select_compounds,
     "query",
-    data_compound_names,
+    r_only_commercial,
     default_choice = 66153L,
-    r_eligible_ids = r_eligible_lspci_ids,
     selectize_options = list(
       maxItems = 10
     )
