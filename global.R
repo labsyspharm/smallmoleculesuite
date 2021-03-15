@@ -18,6 +18,7 @@ library(DT)
 library(shinycssloaders)
 library(writexl)
 library(scales)
+library(memoise)
 # library(future)
 
 # plan(multicore)

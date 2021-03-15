@@ -52,4 +52,5 @@ Imports:
   stats,
   utils,
   R.utils,
-  scales
+  scales,
+  memoise

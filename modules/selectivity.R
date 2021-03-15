@@ -224,7 +224,7 @@ selectivityServer <- function(input, output, session) {
     target_id_to_name(r_query_target())
   })
 
-  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)
+  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "")[["r_eligible_lspci_ids"]]
 
   r_binding_data <- reactive({
     req(

@@ -72,7 +72,7 @@ bindingDataUI <- function(id) {
 bindingDataServer <- function(input, output, session) {
   ns <- session$ns
 
-  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)
+  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "")[["r_eligible_lspci_ids"]]
 
   r_selected_lspci_ids <- callModule(
     mod_server_select_compounds,

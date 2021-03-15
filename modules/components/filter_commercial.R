@@ -1,18 +1,36 @@
+filter_commercial <- function(filter) {
+  if (filter)
+    data_compounds[commercially_available == TRUE][["lspci_id"]] %>%
+      unique()
+  else
+    data_compounds[["lspci_id"]] %>%
+      unique()
+}
+
+mem_filter_commercial <- memoise(filter_commercial)
+
 #' Server module to filter commercially available compounds
 #'
 #' @return Reactive returning lspci_ids according to current selection
 mod_server_filter_commercial <- function(
   input, output, session, compounds
 ) {
-  reactive({
+  r_filter_commercial <- reactive({
     req(!is.null(input$filter_commercial))
     if (input$filter_commercial != FALSE)
-      compounds[commercially_available == TRUE][["lspci_id"]] %>%
-        unique()
+      TRUE
     else
-      compounds[["lspci_id"]] %>%
-        unique()
-  }, label = "r_commercially_available")
+      FALSE
+  }, label = "r_filter_commercial")
+
+  r_eligible_lspci_ids <- reactive({
+    mem_filter_commercial(r_filter_commercial())
+  }, label = "r_eligible_lspci_ids")
+
+  list(
+    r_filter_commercial = r_filter_commercial,
+    r_eligible_lspci_ids = r_eligible_lspci_ids
+  )
 }
 
 #' UI module to display a switch for commercial availability

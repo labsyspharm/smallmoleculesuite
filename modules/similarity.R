@@ -19,11 +19,12 @@ tas_weighted_jaccard <- function(query_id, min_n = 6) {
     ) else .(
       tas_similarity = double(),
       n = integer(),
-      n_prior = .N
+      n_prior = integer()
     ),
     by = "lspci_id"
   ]
 }
+tas_weighted_jaccard <- memoise(tas_weighted_jaccard)
 
 pfp_correlation <- function(query_id, min_n = 6) {
   query_pfps <- data_pfp[lspci_id == query_id]
@@ -46,12 +47,13 @@ pfp_correlation <- function(query_id, min_n = 6) {
     ) else .(
       pfp_correlation = double(),
       n = integer(),
-      n_prior = .N
+      n_prior = integer()
     ),
     by = lspci_id_2
   ] %>%
     setnames("lspci_id_2", "lspci_id")
 }
+pfp_correlation <- memoise(pfp_correlation)
 
 chemical_similarity <- function(query_id) {
   fps <- data_fingerprints$tanimoto_all(query_id)
@@ -59,6 +61,102 @@ chemical_similarity <- function(query_id) {
   colnames(fps) <- c("lspci_id", "structural_similarity")
   fps
 }
+chemical_similarity <- memoise(chemical_similarity)
+
+#
+# all_similarities <- function(
+#   query_compound,
+#   tas_n_common,
+#   pfp_n_common,
+#   eligible_lspci_ids
+# ) {
+#
+#   tas_sim <- tas_weighted_jaccard(
+#     as.integer(query_compound),
+#     2**tas_n_common
+#   )[
+#     ,
+#     .(lspci_id, tas_similarity, n_tas_similarity = n)
+#   ]
+#
+#   pfp_sim <- pfp_correlation(
+#     as.integer(query_compound),
+#     2**pfp_n_common
+#   )[
+#     ,
+#     .(lspci_id, pfp_correlation, n_pfp_correlation = n)
+#   ]
+#
+#   chem_sim <- chemical_similarity(as.integer(query_compound))
+#
+#   merge(
+#     chem_sim,
+#     merge(tas_sim, pfp_sim, by = "lspci_id", all = TRUE),
+#     all.y = TRUE,
+#     by = "lspci_id"
+#   ) %>%
+#     {
+#       .[
+#         lspci_id %in% eligible_lspci_ids
+#       ][
+#         data_compounds[
+#           ,
+#           .(lspci_id, name = pref_name, chembl_id)
+#         ],
+#         on = .(lspci_id), nomatch = NULL
+#       ][
+#         , c("pfp_correlation", "tas_similarity", "structural_similarity") :=
+#           lapply(.SD, round, digits = 2),
+#         .SDcols = c("pfp_correlation", "tas_similarity", "structural_similarity")
+#       ][
+#         , c("pfp_correlation_plot", "tas_similarity_plot", "structural_similarity_plot") :=
+#           .(pfp_correlation, tas_similarity, structural_similarity)
+#       ] %>%
+#         setnafill(cols = "pfp_correlation_plot", fill = -1.1) %>%
+#         setnafill(cols = c("tas_similarity_plot", "structural_similarity_plot"), fill = -0.1)
+#     }
+# }
+
+all_similarities_table <- function(
+  query_compound,
+  sim_data,
+  tas_n_common,
+  pfp_n_common,
+  filter_commercial,
+  selected_compounds = NULL
+) {
+  (
+    if (is.null(selected_compounds))
+      sim_data
+    else
+      sim_data[lspci_id %in% selected_compounds]
+  )[
+    order(-pfp_correlation, -tas_similarity, -structural_similarity)
+  ] %>% {
+    # Add chemical similarity for compounds that don't have any other similarity
+    if (is.null(selected_compounds))
+      rbindlist(list(
+        .,
+        chemical_similarity(query_compound)[
+          !lspci_id %in% .[["lspci_id"]]
+        ][
+          order(-structural_similarity)
+        ][,
+          structural_similarity := round(structural_similarity, digits = 2)
+        ][
+          data_compounds[, .(lspci_id, name = pref_name, chembl_id)],
+          on = "lspci_id", nomatch = NULL
+        ]
+      ), fill = TRUE)
+    else
+      .
+  } %>%
+    select(
+      name, chembl_id, everything(),
+      -ends_with("_plot"), -starts_with("i.")
+    )
+}
+all_similarities_table <- memoise(all_similarities_table, omit_args = c("sim_data"))
 
 similarityUI <- function(id) {
   ns <- NS(id)
@@ -200,7 +298,10 @@ similarityServer <- function(input, output, session) {
     )
   })
 
-  r_eligible_lspci_ids <- callModule(mod_server_filter_commercial, "", compounds = data_compounds)
+  l_filter_commercial <- callModule(mod_server_filter_commercial, "")
+  r_eligible_lspci_ids <- l_filter_commercial[["r_eligible_lspci_ids"]]
+  r_filter_commercial <- l_filter_commercial[["r_filter_commercial"]]
+
 
   r_query_compound <- callModule(
     mod_server_select_compounds,
@@ -420,21 +521,15 @@ similarityServer <- function(input, output, session) {
 
   r_tbl_sim_data <- reactive({
     req(r_sim_data())
-    (
-      if (is.null(r_compounds_selected_plot()))
-        r_sim_data()
-      else
-        r_sim_data()[lspci_id %in% r_compounds_selected_plot()]
-    )[
-      data_compounds[, .(lspci_id, name = pref_name, chembl_id)],
-      on = "lspci_id", nomatch = NULL
-    ][
-      order(-pfp_correlation, -tas_similarity, -structural_similarity)
-    ] %>%
-      select(
-        name, chembl_id, everything(),
-        -ends_with("_plot"), -starts_with("i.")
-      )
+    all_similarities_table(
+      isolate(r_query_compound()),
+      r_sim_data(),
+      # Passing these only to make sure memoization works
+      isolate(input$n_common),
+      isolate(input$n_pheno),
+      isolate(r_filter_commercial()),
+      r_compounds_selected_plot()
+    )
   })
 
   r_dt_sim_data <- reactive({
