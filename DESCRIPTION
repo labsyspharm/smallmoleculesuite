@@ -26,21 +26,13 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
-Suggests:
-  usethis,
-  devtools,
-  roxygen2,
-  synapser,
-  synExtra
 Imports:
-  htmltools,
   htmltools,
   crosstalk,
   data.table,
   dplyr,
   DT,
   fst,
-  future,
   glue,
   here,
   magrittr,
@@ -58,4 +50,5 @@ Imports:
   shiny,
   forcats,
   stats,
-  utils
+  utils,
+  R.utils
