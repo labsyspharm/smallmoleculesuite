@@ -1,19 +1,30 @@
 
 axis_choices <- tribble(
-  ~label, ~value, ~type,
-  "Affinity Q1 (nM)", "ontarget_ic50_q1", "log",
-  "Selectivity", "selectivity", "linear",
-  "Tool score", "tool_score", "linear",
-  "Offtarget Affinity Q1 (nM)", "offtarget_ic50_q1", "log",
-  "Affinity difference (nM)", "ic50_difference", "linear",
-  "Investigation bias", "investigation_bias", "linear",
-  "Strength", "strength", "linear",
-  "Wilcox p-value", "wilcox_pval", "linear"
+  ~label, ~name, ~type, ~limits,
+  "Affinity Q1 (nM)", "ontarget_ic50_q1", "log", c(0.1, 100000),
+  "Selectivity", "selectivity", "linear", c(0, 1.2),
+  "Tool score", "tool_score", "linear", c(0, 10),
+  "Offtarget Affinity Q1 (nM)", "offtarget_ic50_q1", "log", c(0.1, 100000),
+  "Affinity difference (log10 nM)", "ic50_difference", "linear", c(-5, 5),
+  "Investigation bias", "investigation_bias", "linear", c(0, 1),
+  "Strength", "strength", "linear", c(1, 10),
+  "Wilcox p-value", "wilcox_pval", "linear", c(0, 1)
 ) %>%
   arrange(label)
 
 axis_choice_map <- axis_choices %>%
-  {set_names(map2(.[["label"]], .[["type"]], ~list(label = .x, type = .y)), .[["value"]])}
+  setDT() %>%
+  melt("name") %>%
+  group_by(name) %>%
+  summarize(
+    vals = set_names(
+      value,
+      variable
+    ) %>%
+      list()
+  ) %>% {
+    set_names(.[["vals"]], .[["name"]])
+  }
 
 selectivityUI <- function(id) {
   ns <- NS(id)
@@ -124,7 +135,7 @@ selectivityUI <- function(id) {
           selectInput(
             ns("x_var"),
             choices = axis_choices[["label"]],
-            values = axis_choices[["value"]],
+            values = axis_choices[["name"]],
             selected = "selectivity"
           ),
           tags$label("y-axis", `for` = ns("y_var"), style = "width: 5em;", class = "text-right") %>%
@@ -132,7 +143,7 @@ selectivityUI <- function(id) {
           selectInput(
             ns("y_var"),
             choices = axis_choices[["label"]],
-            values = axis_choices[["value"]],
+            values = axis_choices[["name"]],
             selected = "ontarget_ic50_q1"
           )
         ),
@@ -271,8 +282,25 @@ selectivityServer <- function(input, output, session) {
 
     matched_data <- r_binding_data()
 
-    x_axis_vals <- axis_choice_map[[input$x_var]]
-    y_axis_vals <- axis_choice_map[[input$y_var]]
+    x_axis_props <- axis_choice_map[[input$x_var]]
+    y_axis_props <- axis_choice_map[[input$y_var]]
+
+    x_limits <- c(
+      min(x_axis_props[["limits"]][1], matched_data[[input$x_var]]),
+      max(x_axis_props[["limits"]][2], matched_data[[input$x_var]])
+    )
+    if (x_axis_props[["type"]] == "log")
+      x_limits <- log10(x_limits)
+
+    y_limits <- c(
+      min(y_axis_props[["limits"]][1], matched_data[[input$y_var]]),
+      max(y_axis_props[["limits"]][2], matched_data[[input$y_var]])
+    )
+    if (y_axis_props[["type"]] == "log")
+      y_limits <- log10(y_limits)
+
+    x_limits <- expand_range(x_limits, mul = 0.05)
+    y_limits <- expand_range(y_limits, mul = 0.05)
 
     p <- matched_data %>%
       plot_ly(
@@ -303,12 +331,14 @@ selectivityServer <- function(input, output, session) {
         dragmode = "select",
         showlegend = TRUE,
         xaxis = list(
-          title = x_axis_vals[["label"]],
-          type = x_axis_vals[["type"]]
+          title = x_axis_props[["label"]],
+          type = x_axis_props[["type"]],
+          range = x_limits
         ),
         yaxis = list(
-          title = y_axis_vals[["label"]],
-          type = y_axis_vals[["type"]]
+          title = y_axis_props[["label"]],
+          type = y_axis_props[["type"]],
+          range = y_limits
         )
       )
     # %>%

@@ -17,6 +17,7 @@ library(stringr)
 library(DT)
 library(shinycssloaders)
 library(writexl)
+library(scales)
 # library(future)
 
 # plan(multicore)

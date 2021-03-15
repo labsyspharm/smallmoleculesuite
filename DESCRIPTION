@@ -51,4 +51,5 @@ Imports:
   forcats,
   stats,
   utils,
-  R.utils
+  R.utils,
+  scales
