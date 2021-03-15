@@ -6,7 +6,7 @@ derived_from,TAS derived from,
 emolecules_id,Emolecules ID,
 hmsl_id,HMS LINCS ID,"Primary HMS LINCS compound ID, if available"
 gene_id,Entrez gene ID,Entrez gene ID
-ic50_difference,IC50 log10 difference,Difference between ontarget and offtarget affinity measurements (log10 transformed)
+ic50_difference,Affinity difference (log10 nM),Difference between ontarget and offtarget affinity measurements (log10 transformed)
 investigation_bias,Investigation bias,Measures bias in selectivity due to lack of knowledge about compound
 link,,
 lspci_id,Internal ID,Internal compound ID
@@ -18,9 +18,9 @@ measurement,Measurement,Value of measurement used for TAS assertion
 n_reviews,N of reviews,Number of reviews on Chemicalprobes.org
 name,Name,Compound name
 name_id,,
-offtarget_ic50_q1,Offtarget IC50,Affinity of compound to off-targets (aggregated by taking first quartile)
+offtarget_ic50_q1,Offtarget affinity,Affinity of compound to off-targets (aggregated by taking first quartile)
 offtarget_n,N offtarget measurements,Number of off-target affinity measurements
-ontarget_ic50_q1,IC50,Affinity of compound to target (aggregated by taking first quartile)
+ontarget_ic50_q1,Affinity (nM),Affinity of compound to target (aggregated by taking first quartile)
 ontarget_n,N measurements,Number of affinity measurements
 pref_name,Name,Compound name
 priority,Priority,Annotated as primary or secondary name
