@@ -240,8 +240,8 @@ similarityUI <- function(id) {
           )
         )
       ) %>%
-        margin(bottom = 3)
-      # mod_ui_chembl_tabs(ns("chembl_tabs_1"))
+        margin(bottom = 3),
+      mod_ui_chembl_tabs(ns(""))
     ),
     column(
       width = 8,
@@ -541,6 +541,7 @@ similarityServer <- function(input, output, session) {
       extensions = c("Buttons"),
       style = "bootstrap4",
       rownames = FALSE,
+      selection = "single",
       column_specs = COLUMN_SPECS,
       options = list(
         dom = DT_DOM,
@@ -565,7 +566,6 @@ similarityServer <- function(input, output, session) {
             defaultContent = "NA"
           )
         ),
-        selection = list(mode = "multiple", target = "column"),
         pagingType = "numbers",
         scrollCollapse = TRUE,
         searchHighlight = TRUE
@@ -590,6 +590,17 @@ similarityServer <- function(input, output, session) {
 
   callModule(mod_server_download_button, "output_table_xlsx_dl", r_tbl_sim_data, "excel", r_download_name)
   callModule(mod_server_download_button, "output_table_csv_dl", r_tbl_sim_data, "csv", r_download_name)
+
+  r_selected_compounds_table <- reactive({
+    if (is.null(input$table_sim_compound_rows_selected))
+      NULL
+    else
+      isolate(r_tbl_sim_data())[
+        input$table_sim_compound_rows_selected
+      ][["lspci_id"]]
+  })
+
+  callModule(mod_server_chembl_tabs, "", r_selected_compounds_table)
 
   # callModule(
   #   mod_server_affinity_tables,

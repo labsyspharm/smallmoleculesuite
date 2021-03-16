@@ -120,7 +120,8 @@ selectivityUI <- function(id) {
           )
         )
       ) %>%
-        margin(bottom = 3)
+        margin(bottom = 3),
+      mod_ui_chembl_tabs(ns(""))
     ),
     column(
       width = 8,
@@ -392,7 +393,7 @@ selectivityServer <- function(input, output, session) {
       extensions = c("Buttons"),
       style = "bootstrap4",
       rownames = FALSE,
-      selection = "multiple",
+      selection = "single",
       escape = setdiff(colnames(.data), "references"),
       column_specs = COLUMN_SPECS,
       options = list(
@@ -453,17 +454,17 @@ selectivityServer <- function(input, output, session) {
   callModule(mod_server_download_button, "output_table_xlsx_dl", r_tbl_data, "excel", r_download_name)
   callModule(mod_server_download_button, "output_table_csv_dl", r_tbl_data, "csv", r_download_name)
 
-  # r_selected_rows_table <- reactive({
-  #   req(input$output_table_rows_selected)
-  #   sort(input$output_table_rows_selected)
-  # })
-  #
-  # r_selected_compounds_table <- reactive({
-  #   req(r_tbl_data(), r_selected_rows_table())
-  #   isolate(r_tbl_data())[
-  #     r_selected_rows_table()
-  #   ][["lspci_id"]]
-  # })
+  r_selected_compounds_table <- reactive({
+    if (is.null(input$output_table_rows_selected))
+      NULL
+    else
+      isolate(r_tbl_data())[
+        input$output_table_rows_selected
+      ][["lspci_id"]]
+  })
+
+  callModule(mod_server_chembl_tabs, "", r_selected_compounds_table)
+
   #
   #
   # r_eligible_compounds_affinity_tables <- reactive("all")
