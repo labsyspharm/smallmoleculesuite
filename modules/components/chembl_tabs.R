@@ -14,6 +14,23 @@ make_report_object <- function(type, chembl_id, name) {
   }
 }
 
+make_emolecules_link <- function(emolecules_id) {
+  if (is.null(emolecules_id) || is.na(emolecules_id))
+    NULL
+  else {
+    tags$li(
+      class = "nav-item",
+      tags$a(
+        class = "btn btn-outline-secondary",
+        role = "button",
+        href = paste0("https://orderbb.emolecules.com/search/#?query=", emolecules_id),
+        target = "_blank",
+        "Emolecules ", icon("link")
+      )
+    )
+  }
+}
+
 mod_server_chembl_tabs <- function(input, output, session, r_selected_compound) {
   ns <- session$ns
 
@@ -23,7 +40,7 @@ mod_server_chembl_tabs <- function(input, output, session, r_selected_compound) 
     else
       data_compounds[
         lspci_id == r_selected_compound(),
-        .(chembl_id, pref_name)
+        .(chembl_id, emolecules_id, pref_name)
       ]
   })
 
@@ -37,6 +54,12 @@ mod_server_chembl_tabs <- function(input, output, session, r_selected_compound) 
         name = r_selected_compound_info()[["pref_name"]]
       )
   })
+
+  output$emolecules_link <- renderUI({
+    make_emolecules_link(
+      emolecules_id = r_selected_compound_info()[["emolecules_id"]]
+    )
+  })
 }
 
 #' UI module to display a tabset of ChEMBL compound information cards
@@ -45,12 +68,17 @@ mod_server_chembl_tabs <- function(input, output, session, r_selected_compound) 
 mod_ui_chembl_tabs <- function(id) {
   ns <- NS(id)
   card(
-    header = navInput(
-      appearance = "tabs",
-      id = ns("chembl_report_nav"),
-      choices = names(REPORT_TYPES),
-      values = REPORT_TYPES,
-      class = "card-header-tabs"
+    header = tagList(
+      navInput(
+        appearance = "tabs",
+        id = ns("chembl_report_nav"),
+        choices = names(REPORT_TYPES),
+        values = REPORT_TYPES,
+        class = "card-header-tabs"
+      ) %>%
+        htmltools::tagAppendChild(
+          uiOutput(ns("emolecules_link"), container = partial(tags$span, class = "ml-auto"))
+        )
     ),
     navContent(
       uiOutput(ns("chembl_report"))
