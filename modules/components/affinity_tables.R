@@ -14,6 +14,21 @@ subset_dt <- function(dt, selectors) {
   dt[sel]
 }
 
+dt_style_selectivity <- function(dt) {
+  DT::formatStyle(
+    dt,
+    "selectivity_class",
+    backgroundColor = DT::styleEqual(
+      names(SELECTIVITY_COLORS), SELECTIVITY_COLORS
+    ),
+    color = DT::styleEqual(
+      c("Semi-selective", "Most selective", "Unknown"),
+      rep_len("white", 3),
+      default = "black"
+    )
+  )
+}
+
 #' Server module to display a tabset of tables with affinities and TAS values
 mod_server_affinity_tables <- function(
   input, output, session,
@@ -135,17 +150,7 @@ mod_server_affinity_tables <- function(
         searchHighlight = TRUE
       )
     ) %>%
-      DT::formatStyle(
-        "selectivity_class",
-        backgroundColor = DT::styleEqual(
-          names(SELECTIVITY_COLORS), SELECTIVITY_COLORS
-        ),
-        color = DT::styleEqual(
-          c("Semi-selective", "Most selective", "Unknown"),
-          rep_len("white", 3),
-          default = "black"
-        )
-      )
+      dt_style_selectivity()
   })
 
   output$table_selectivity <- DT::renderDataTable({

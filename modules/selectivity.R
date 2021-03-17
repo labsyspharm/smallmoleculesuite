@@ -425,17 +425,7 @@ selectivityServer <- function(input, output, session) {
         searchHighlight = TRUE
       )
     ) %>%
-      DT::formatStyle(
-        "selectivity_class",
-        backgroundColor = DT::styleEqual(
-          names(SELECTIVITY_COLORS), SELECTIVITY_COLORS
-        ),
-        color = DT::styleEqual(
-          c("Semi-selective", "Most selective", "Unknown"),
-          rep_len("white", 3),
-          default = "black"
-        )
-      )
+      dt_style_selectivity()
   })
 
   output$output_table <- DT::renderDataTable({

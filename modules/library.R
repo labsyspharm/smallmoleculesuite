@@ -421,7 +421,7 @@ libraryServer <- function(input, output, session) {
   r_tbl <- reactive({
     .data <- r_tbl_data()
 
-    datatable_tooltip(
+    dt <- datatable_tooltip(
       data = .data,
       extensions = c("Buttons"),
       style = "bootstrap4",
@@ -452,6 +452,11 @@ libraryServer <- function(input, output, session) {
         scrollX = TRUE
       )
     )
+
+    if (isolate(input$table_display) == "entry")
+      dt <- dt_style_selectivity(dt)
+
+    dt
   })
 
   output$table_results <- DT::renderDataTable(
