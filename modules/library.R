@@ -361,51 +361,48 @@ libraryServer <- function(input, output, session) {
   })
 
   r_table_entry <- reactive({
-    r_selection_table() %>%
-      dplyr::inner_join(
-        data_compounds %>%
-          dplyr::select(lspci_id, chembl_id, name = pref_name),
-        by = "lspci_id"
-      ) %>%
-      dplyr::inner_join(
-        data_targets %>%
-          dplyr::select(lspci_target_id, symbol, gene_id),
-        by = "lspci_target_id"
-      ) %>%
-      dplyr::distinct() %>%
-      dplyr::select(
-        symbol, chembl_id,
+    r_selection_table()[
+      data_compounds[
+        ,
+        .(lspci_id, chembl_id, name = pref_name)
+      ],
+      on = .(lspci_id), nomatch = NULL
+    ][
+      data_targets[
+        ,
+        .(lspci_target_id, symbol, gene_id)
+      ],
+      on = .(lspci_target_id), nomatch = NULL
+    ][
+      ,
+      .(symbol, chembl_id,
         name, selectivity_class, max_phase, ontarget_ic50_q1, ontarget_n,
-        gene_id, reason_included, lspci_id
-      )
+        gene_id, reason_included, lspci_id)
+    ] %>%
+      unique()
   })
 
   r_table_compound <- reactive({
-    r_selection_table() %>%
-      dplyr::inner_join(
-        data_compounds %>%
-          dplyr::select(
-            lspci_id, chembl_id, name = pref_name
-          ),
-        by = "lspci_id"
-      ) %>%
-      dplyr::inner_join(
-        data_targets %>%
-          dplyr::select(lspci_target_id, symbol, gene_id),
-        by = "lspci_target_id"
-      ) %>%
-      dplyr::distinct() %>%
-      dplyr::group_by(
-        lspci_id, chembl_id, name, max_phase
-      ) %>%
-      dplyr::summarise(
-        reason_included = paste(symbol, ": ", reason_included, collapse = "; ")
-      ) %>%
-      dplyr::ungroup() %>%
-      dplyr::mutate_at(
-        vars(max_phase),
-        as.integer
-      )
+    r_selection_table()[
+      ,
+      max_phase := as.integer(max_phase)
+    ][
+      data_compounds[
+        ,
+        .(lspci_id, chembl_id, name = pref_name)
+
+      ], on = .(lspci_id), nomatch = NULL
+    ][
+      data_targets[
+        ,
+        .(lspci_target_id, symbol, gene_id)
+      ], on = .(lspci_target_id), nomatch = NULL
+    ][
+      ,
+      .(reason_included = paste(symbol, ": ", reason_included, collapse = "; ", sep = "")),
+      keyby = .(lspci_id, chembl_id, name, max_phase)
+    ] %>%
+      unique()
   })
 
   r_tbl_data <- reactive({

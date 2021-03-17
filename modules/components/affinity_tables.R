@@ -51,6 +51,8 @@ mod_server_affinity_tables <- function(
       "Making selectivity table for: ", r_selection(),
       " Eligible lspci_ids: ", r_eligible_lspci_ids()
     )
+    if (!length(r_selection()) > 0)
+      return(NULL)
 
     subset_dt(data_selectivity, r_selection())[
       if (r_eligible_lspci_ids() == "all") TRUE else lspci_id %in% r_eligible_lspci_ids()
@@ -78,6 +80,9 @@ mod_server_affinity_tables <- function(
       r_eligible_lspci_ids(),
       !is.null(r_selection())
     )
+    if (!length(r_selection()) > 0)
+      return(NULL)
+
     subset_dt(data_tas, r_selection())[
       if (r_eligible_lspci_ids() == "all") TRUE else lspci_id %in% r_eligible_lspci_ids()
     ][
