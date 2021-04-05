@@ -10,19 +10,19 @@ synLogin()
 ###############################################################################T
 
 syn_parent <- "syn18457321"
-release <- "chembl_v25"
-fp_name <- "morgan_normal"
-
-dir_tmp <- file.path(tempdir(), paste0("sms_tables_", release))
-
-syn <- synDownloader(dir_tmp, ifcollision = "overwrite.local")
+release <- "chembl_v27"
 
 dir_dl <- here("www", "sms", "assets", "downloads")
 dir.create(dir_dl, showWarnings = FALSE)
 
-syn_tables <- synPluck(syn_parent, release, "db_tables", fp_name) %>%
+syn <- synDownloader(dir_dl, ifcollision = "overwrite.local")
+
+syn_tables <- synPluck(syn_parent, release, "db_tables") %>%
   synChildren() %>%
-  magrittr::extract(str_ends(names(.), fixed(".gz")))
+  magrittr::extract(
+    str_ends(names(.), fixed(".gz")) &
+      !str_detect(names(.), fixed("fingerprints"))
+  )
 
 files <- syn(syn_tables)
 
@@ -38,5 +38,4 @@ with_dir(
   )
 )
 
-
-file.copy(files[str_ends(files, fixed(".sql.gz"))], file.path(dir_dl, paste0("sms_db_", release, ".sql.gz")))
+# file.copy(files[str_ends(files, fixed(".sql.gz"))], file.path(dir_dl, paste0("sms_db_", release, ".sql.gz")))

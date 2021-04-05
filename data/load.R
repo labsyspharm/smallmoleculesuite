@@ -46,3 +46,7 @@ data_fingerprints <- MorganFPS$new(
 data_gene_lists <- fread(
   file.path(dir_data, "gene_lists.csv.gz")
 )
+
+dl_table_descriptions <- fread(
+  file.path(dir_data, "dl_table_descriptions.csv")
+)

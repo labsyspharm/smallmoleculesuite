@@ -1,0 +1,22 @@
+name,description
+lsp_compound_dictionary,Primary table listing all compounds in the database. During compound processing distinct salts of the same compound are aggregated into a single compound entry in this table. The constituent compound IDs for each compound in this table are available in the lsp_compound_mapping table.
+lsp_structures,Additional secondary InChIs for compounds.
+lsp_compound_names,Table of all annotated names for compounds. The sources for compound names generally distinguish between primary and alternative (secondary) names.
+lsp_compound_mapping,Table of mappings between compound IDs from different sources to the internal lspci_ids.
+lsp_target_dictionary,Table of drug targets. The original drug targets are mostly annotated as ChEMBL or UniProt IDs. For convenience we converted these IDs to Entrez gene IDs. The original mapping between ChEMBL and UniProt target IDs are in the table `lsp_target_mapping`
+lsp_target_mapping,"Mapping between the original ChEMBL target IDs, their corresponding UniProt IDs and Entrez gene IDs. A single UniProt or ChEMBL ID can refer to protein complexes, therefore multiple gene IDs often map to the same UniProt or ChEMBL ID."
+lsp_references,External references for the data in the database.
+lsp_biochem,Table of biochemical affinity measurements.
+lsp_biochem_agg,Table of aggregated biochemical affinity measurements. All available data for a single compound target pair were aggregated by taking the first quartile.
+lsp_phenotypic,Table of phenotypic assays performed on the compounds.
+lsp_phenotypic_agg,Table of aggregated phenotypic assays performed on the compounds. All available data for a single assay and compound target pair were aggregated by taking the first quartile.
+lsp_tas,Table of Target Affinity Spectrum (TAS) values for the affinity between compound and target. TAS enables aggregation of affinity measurements from heterogeneous sources and assays into a single value. See 10.1016/j.chembiol.2019.02.018 for details.
+lsp_tas_references,Table that makes it easier to link TAS values to the references that were used to compute the TAS values
+lsp_manual_curation,Table of manual compund target binding assertions.
+lsp_selectivity,Table of selectivity assertions of compounds to their targets. See 10.1016/j.chembiol.2019.02.018 for details.
+lsp_one_dose_scans,Table of single dose compound activity measurements as opposed to full dose-response affinity measurements.
+lsp_one_dose_scan_agg,Table of single dose compound activity measurements as opposed to full dose-response affinity measurements. All available data for a single concentration and compound target pair were aggregated by taking the first quartile.
+lsp_clinical_info,Table of the clinical approval status of compounds. Sourced from ChEMBL
+lsp_commercial_availability,Table of the commercial availability of compounds. Sourced from eMolecules (https://www.emolecules.com/).
+lsp_fingerprints,Table of specificity assertions of compounds to their targets. See 10.1016/j.chembiol.2019.02.018 for details.
+lsp_compound_library,Library of optimal compounds for each target. See 10.1016/j.chembiol.2019.02.018 for details.

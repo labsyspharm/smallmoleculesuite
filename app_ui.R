@@ -232,49 +232,78 @@ home_page <- function() {
 }
 
 download_page <- function() {
-  div(
-    card(
-      header = h4("Download Small Molecule Suite data"),
-      p(
-        "The entire Small Molecule Suite dataset is available for download.", tags$br(),
-        "The data are organized in separate normalized tables. Documentation",
-        "for each table and their relationship is available."
-      ),
-      a(
-        h4("Table documentation", class = "btn btn-outline-secondary"),
-        href = "https://dbdocs.io/clemenshug/sms_db",
-        target = "_blank"
+  tagList(
+    columns(
+      class = "justify-content-center",
+      column(
+        width = 10, style = "max-width: 80rem;",
+        card(
+          header = h4("Download Small Molecule Suite data"),
+          p(
+            "The entire Small Molecule Suite dataset is available for download.", tags$br(),
+            "The data are organized in separate tables. Documentation",
+            "for each table and their relationships are available."
+          ),
+          a(
+            h4("Table documentation", class = "btn btn-outline-primary"),
+            href = "https://dbdocs.io/clemenshug/sms_db",
+            target = "_blank"
+          ),
+          div(
+            class = "alert alert-warning", role = "alert",
+            h4(class = "alert-heading", "Understanding compound and target identifiers"),
+            p("Compounds and targets in all tables are referred to using ID numbers",
+              "in the columns", tags$code("lspci_id"), "and", tags$code("lspci_target_id"), ",",
+              "respectively."),
+            p("Compound and target IDS can be translated into compound names and target",
+              "symbols using the tables", tags$code("lsp_compound_dictionary"), "and",
+              tags$code("lsp_target_dictionary"), "."),
+            p("The table", tags$code("lsp_compound_dictionary"), "also contains mappings",
+              "for the most common compound databases, such as ChEMBL, eMolecules and HMS LINCS.")
+          )
+        )
       )
     ) %>%
       margin(bottom = 3),
     columns(
+      class = "justify-content-center",
       column(
-        width = 6,
+        width = 10, style = "max-width: 80rem;",
         card(
-          header = h4("SQL download"),
-          p(
-            "Gzip compressed SQL dump of the Small Molecule Suite database",
-            "in PostgreSQL format."
-          ),
-          p("Based on ChEMBL v25, size 799.9 MB"),
-          a(
-            h4("SQL database", class = "btn btn-outline-secondary"),
-            href = "sms/assets/downloads/sms_db_chembl_v25.sql.gz",
-            target = "_blank"
-          )
-        )
-      ),
-      column(
-        width = 6,
-        card(
-          header = h4("CSV download"),
-          p(
-            "Tarball of gzip compressed CSV files."
-          ),
-          p("Based on ChEMBL v25, size 782.7 MB"),
-          a(
-            h4("CSV files", class = "btn btn-outline-secondary"),
-            href = "sms/assets/downloads/sms_tables_chembl_v25.tar"
+          h5("Tables in CSV format"),
+          h6(class = "text-muted mb-3", "SMS version based on ChEMBL v27"),
+          p("All files are compressed using gzip."),
+          div(
+            class = "list-group",
+            map(
+              list.files(here("www", "sms", "assets", "downloads"), full.name = TRUE) %>%
+                magrittr::extract(str_detect(., fixed(".csv.gz"))),
+              ~a(
+                class = "list-group-item list-group-item-action d-flex justify-content-between align-items-center",
+                h6(
+                  class = "text-primary mr-2",
+                  .x %>%
+                  basename() %>%
+                  str_replace(fixed(".csv.gz"), "")
+                ),
+                span(
+                  class = "flex-grow-1 mr-2",
+                  dl_table_descriptions %>%
+                    filter(name == .x %>%
+                             basename() %>%
+                             str_replace(fixed(".csv.gz"), "")) %>%
+                    pull(description)
+                ),
+                span(
+                  class = "badge badge-secondary",
+                  R.utils::hsize(file.size(.x), standard = "SI")
+                ),
+                href = file.path(
+                  "sms", "assets", "downloads", basename(.x)
+                ),
+                target = "_blank"
+              )
+            )
           )
         )
       )

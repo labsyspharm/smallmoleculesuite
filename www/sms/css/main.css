@@ -162,3 +162,8 @@ table.dataTable thead th {
 .selectize-control .selectize-input {
   height: 100%;
 }
+
+/* Fix links of download tables in card */
+.list-group .card-link + .card-link {
+  margin-left: 0;
+}
