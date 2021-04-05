@@ -238,20 +238,30 @@ download_page <- function() {
       column(
         width = 10, style = "max-width: 80rem;",
         card(
-          header = h4("Download Small Molecule Suite data"),
+          h4("Download Small Molecule Suite data"),
+          h6(class = "text-muted mb-3", "SMS version based on ChEMBL v27"),
           p(
             "The entire Small Molecule Suite dataset is available for download.", tags$br(),
             "The data are organized in separate tables. Documentation",
             "for each table and their relationships are available."
           ),
-          a(
-            h4("Table documentation", class = "btn btn-outline-primary"),
-            href = "https://dbdocs.io/clemenshug/sms_db",
-            target = "_blank"
+          p(
+            a(
+              "Table documentation",
+              class = "btn btn-outline-primary",
+              href = "https://dbdocs.io/clemenshug/sms_db",
+              target = "_blank"
+            ),
+            a(
+              "Download tables from Synapse",
+              class = "btn btn-outline-primary",
+              target = "_blank",
+              href = "https://www.synapse.org/#!Synapse:syn24874048"
+            )
           ),
           div(
             class = "alert alert-warning", role = "alert",
-            h4(class = "alert-heading", "Understanding compound and target identifiers"),
+            h5(class = "alert-heading", "Understanding compound and target identifiers"),
             p("Compounds and targets in all tables are referred to using ID numbers",
               "in the columns", tags$code("lspci_id"), "and", tags$code("lspci_target_id"), ",",
               "respectively."),
@@ -270,40 +280,47 @@ download_page <- function() {
       column(
         width = 10, style = "max-width: 80rem;",
         card(
-          h5("Tables in CSV format"),
+          h5("Download tables in CSV format"),
           h6(class = "text-muted mb-3", "SMS version based on ChEMBL v27"),
-          p("All files are compressed using gzip."),
-          div(
-            class = "list-group",
+          # p("All files are compressed using gzip."),
+          tags$table(
+            class = "table",
+            tags$tr(
+              tags$th("Name"), tags$th("Description"), tags$th("Size")
+            ) %>%
+              tags$thead(),
             map(
               list.files(here("www", "sms", "assets", "downloads"), full.name = TRUE) %>%
                 magrittr::extract(str_detect(., fixed(".csv.gz"))),
-              ~a(
-                class = "list-group-item list-group-item-action d-flex justify-content-between align-items-center",
-                h6(
-                  class = "text-primary mr-2",
-                  .x %>%
-                  basename() %>%
-                  str_replace(fixed(".csv.gz"), "")
+              ~tags$tr(
+                tags$td(
+                  a(
+                    .x %>%
+                      basename() %>%
+                      str_replace(fixed(".csv.gz"), ""),
+                    href = file.path(
+                      "sms", "assets", "downloads", basename(.x)
+                    ),
+                    target = "_blank"
+                  )
                 ),
-                span(
-                  class = "flex-grow-1 mr-2",
+                tags$td(
                   dl_table_descriptions %>%
                     filter(name == .x %>%
                              basename() %>%
                              str_replace(fixed(".csv.gz"), "")) %>%
                     pull(description)
                 ),
-                span(
-                  class = "badge badge-secondary",
-                  R.utils::hsize(file.size(.x), standard = "SI")
+                tags$td(
+                  span(
+                    class = "badge badge-secondary",
+                    style = "font-size: 90%;",
+                    R.utils::hsize(file.size(.x), standard = "SI")
+                  )
                 ),
-                href = file.path(
-                  "sms", "assets", "downloads", basename(.x)
-                ),
-                target = "_blank"
               )
-            )
+            ) %>%
+              tags$tbody()
           )
         )
       )
