@@ -285,7 +285,8 @@ similarityUI <- function(id) {
         margin(bottom = 3)
       # mod_ui_affinity_tables(ns("affinity_tables_1"))
     )
-  )
+  ) %>%
+    container()
 }
 
 similarityServer <- function(input, output, session) {

@@ -173,7 +173,8 @@ selectivityUI <- function(id) {
         margin(bottom = 3)
       # mod_ui_affinity_tables(ns("affinity_tables"))
     )
-  )
+  ) %>%
+    container()
 }
 
 selectivityServer <- function(input, output, session) {

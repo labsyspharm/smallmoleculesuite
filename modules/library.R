@@ -193,7 +193,8 @@ libraryUI <- function(id) {
       ) %>%
         margin(b = 3)
     )
-  )
+  ) %>%
+    container()
 }
 
 libraryServer <- function(input, output, session) {

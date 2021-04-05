@@ -66,7 +66,8 @@ bindingDataUI <- function(id) {
     )
   ) %>%
     margin("auto") %>%
-    columns()
+    columns() %>%
+    container()
 }
 
 bindingDataServer <- function(input, output, session) {

@@ -232,7 +232,7 @@ home_page <- function() {
 }
 
 download_page <- function() {
-  tagList(
+  container(
     columns(
       class = "justify-content-center",
       column(
