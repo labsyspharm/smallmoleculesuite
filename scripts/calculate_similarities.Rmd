@@ -1,14 +1,25 @@
-## Compute compound similarity metrics
+---
+title: "Compute compound similarity metrics"
+output:
+  md_document:
+    variant: markdown_github
+---
 
-## Run `install.packages(remotes)`, if not already installed.
-## Download the following files from synapse and place them in the same
-## folder as this script.
-##
-## https://www.synapse.org/#!Synapse:syn24986654
-## https://www.synapse.org/#!Synapse:syn24986663
-## https://www.synapse.org/#!Synapse:syn25163837
-## https://www.synapse.org/#!Synapse:syn24986667
+# Compute compound similarity metrics
 
+Run `install.packages(remotes)`, if not already installed.
+
+Download the following files from synapse and place them in the same
+folder as this script.
+
+* https://www.synapse.org/#!Synapse:syn24986654
+* https://www.synapse.org/#!Synapse:syn24986663
+* https://www.synapse.org/#!Synapse:syn25163837
+* https://www.synapse.org/#!Synapse:syn24986667
+
+## Load packages
+
+```{r packages, message=FALSE, warning=FALSE}
 if(!require(fst)) install.packages("fst")
 if(!require(tidyverse)) install.packages("tidyverse")
 if(!require(data.table)) install.packages("data.table")
@@ -18,12 +29,20 @@ library(fst)
 library(tidyverse)
 library(data.table)
 library(morgancpp)
+```
 
+## Load data
+
+```{r data_loading, results='hide', message=FALSE, warning=FALSE}
 data_tas <- read_fst("shiny_tas.fst", as.data.table = TRUE)
 data_compound_names <- read_fst("shiny_compound_names.fst", as.data.table = TRUE)
 data_fingerprints <- MorganFPS$new("shiny_fingerprints.bin", from_file = TRUE)
 data_compounds <- read_fst("shiny_compounds.fst", as.data.table = TRUE)
+```
 
+## Similarity functions
+
+```{r similarity_functions}
 tas_weighted_jaccard <- function(query_ids, target_ids = NULL, min_n = 6) {
   query_ids <- convert_compound_ids(query_ids)
   target_ids <- convert_compound_ids(target_ids)
@@ -139,10 +158,24 @@ convert_compound_ids <- function(ids) {
     find_compound_ids(ids)[["lspci_id"]]
   }
 }
+```
 
 ## Examples
 
+In these examples, we compute the target similarity (TAS similarity) between
+Ruxolitinib and two other compounds, or with all other compounds.
+
+```{r example_jaccard}
 tas_weighted_jaccard("ruxolitinib", c("tofacitinib", "ruxolitinib"))
 
+tas_weighted_jaccard("ruxolitinib")
+```
+
+Same as above, except we calculate chemical similarities based on the Morgan
+fingerprints of each compound.
+
+```{r example_chemsim}
 chemical_similarity("ruxolitinib", c("tofacitinib", "ruxolitinib"))
 
+chemical_similarity("ruxolitinib")
+```
