@@ -1,0 +1,148 @@
+## Compute compound similarity metrics
+
+## Run `install.packages(remotes)`, if not already installed.
+## Download the following files from synapse and place them in the same
+## folder as this script.
+##
+## https://www.synapse.org/#!Synapse:syn24986654
+## https://www.synapse.org/#!Synapse:syn24986663
+## https://www.synapse.org/#!Synapse:syn25163837
+## https://www.synapse.org/#!Synapse:syn24986667
+
+if(!require(fst)) install.packages("fst")
+if(!require(tidyverse)) install.packages("tidyverse")
+if(!require(data.table)) install.packages("data.table")
+if(!require(morgancpp)) remotes::install_github("labsyspharm/morgancpp")
+
+library(fst)
+library(tidyverse)
+library(data.table)
+library(morgancpp)
+
+data_tas <- read_fst("shiny_tas.fst", as.data.table = TRUE)
+data_compound_names <- read_fst("shiny_compound_names.fst", as.data.table = TRUE)
+data_fingerprints <- MorganFPS$new("shiny_fingerprints.bin", from_file = TRUE)
+data_compounds <- read_fst("shiny_compounds.fst", as.data.table = TRUE)
+
+tas_weighted_jaccard <- function(query_ids, target_ids = NULL, min_n = 6) {
+  query_ids <- convert_compound_ids(query_ids)
+  target_ids <- convert_compound_ids(target_ids)
+
+  query_tas <- data_tas[
+    lspci_id %in% query_ids,
+    .(query_lspci_id = lspci_id, lspci_target_id, tas)
+  ]
+  target_tas <- data_tas[
+    if (is.null(target_ids)) TRUE else lspci_id %in% target_ids,
+    .(target_lspci_id = lspci_id, lspci_target_id, tas)
+  ]
+  target_tas[
+    query_tas,
+    on = .(lspci_target_id),
+    nomatch = NULL
+  ][
+    ,
+    mask := tas < 10 | i.tas < 10
+  ][
+    ,
+    if (sum(mask) >= min_n) .(
+      "tas_similarity" = sum(pmin(tas[mask], i.tas[mask])) / sum(pmax(tas[mask], i.tas[mask])),
+      "n" = sum(mask),
+      "n_prior" = .N
+    ) else .(
+      tas_similarity = double(),
+      n = integer(),
+      n_prior = integer()
+    ),
+    by = .(query_lspci_id, target_lspci_id)
+  ] %>%
+    merge_compound_names()
+}
+
+chemical_similarity <- function(query_ids, target_ids = NULL) {
+  query_ids <- convert_compound_ids(query_ids)
+  target_ids <- convert_compound_ids(target_ids)
+
+  query_ids %>%
+    set_names() %>%
+    map(
+      data_fingerprints$tanimoto_all
+    ) %>%
+    map(setDT) %>%
+    rbindlist(idcol = "query_lspci_id") %>% {
+      .[
+        ,
+        .(
+          query_lspci_id = as.integer(query_lspci_id),
+          target_lspci_id = id,
+          structural_similarity
+        )
+      ][
+        if (is.null(target_ids)) TRUE else target_lspci_id %in% target_ids
+      ]
+    } %>%
+    merge_compound_names()
+}
+
+find_compound_ids <- function(compound_names) {
+  if (is.null(compound_names))
+    return(NULL)
+  key_match <- map(
+    compound_names,
+    ~str_detect(
+      data_compound_names[["name"]], fixed(.x, ignore_case = TRUE)
+    )
+  ) %>%
+    reduce(`|`)
+  data_compound_names[
+    key_match
+  ][
+    ,
+    match_len := str_length(name)
+  ][
+    order(
+      match_len
+    )
+  ][
+    ,
+    .(name = head(name, 1)),
+    by = .(lspci_id)
+  ] %>%
+    unique()
+}
+
+merge_compound_names <- function(df) {
+  reduce(
+    array_branch(str_match(names(df), "^(.*)lspci_id$"), margin = 1),
+    function(df, match) {
+      lspci_id_col <- match[1]
+      compound_col <- paste0(match[2], "compound")
+      if (any(is.na(c(lspci_id_col, compound_col))))
+        return(df)
+      merge(
+        df,
+        data_compounds[lspci_id %in% df[[lspci_id_col]]][
+          , .(lspci_id, pref_name)
+        ] %>%
+          setnames("pref_name", compound_col),
+        by.x = lspci_id_col, by.y = "lspci_id", all = FALSE
+      )
+    }, .init = df
+  )
+}
+
+convert_compound_ids <- function(ids) {
+  if (is.numeric(ids))
+    # Assume it's already lspci_ids
+    ids
+  else {
+    find_compound_ids(ids)[["lspci_id"]]
+  }
+}
+
+## Examples
+
+tas_weighted_jaccard("ruxolitinib", c("tofacitinib", "ruxolitinib"))
+
+chemical_similarity("ruxolitinib", c("tofacitinib", "ruxolitinib"))
+
