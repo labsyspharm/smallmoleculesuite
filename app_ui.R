@@ -142,32 +142,33 @@ home_page <- function() {
                   class = "btn btn-link text-left",
                   href = "?_inputs_&tab=%22similarity%22",
                   icon("share"),
-                  "I would like to know which small molecules are similar to my of interest"
+                  "I want to find which small molecules are similar to my of interest"
                 ) %>%
                   tags$p(),
                 tags$a(
                   class = "btn btn-link text-left",
                   href = "?_inputs_&tab=%22binding%22",
                   icon("share"),
-                  "What are the targets of my compound?"
+                  "I want to know what the targets of my compound are"
                 ) %>%
                   tags$p()
               ) %>%
                 shadow("small"),
               card(
-                h5("I want to download data—"),
+                h5("I want to analyze large amounts of data and—"),
                 tags$a(
                   class = "btn btn-link text-left",
                   href = "?_inputs_&tab=%22download%22",
                   icon("share"),
-                  "As flat CSV files"
+                  "Download all SMS data as CSV files"
                 ) %>%
                   tags$p(),
                 tags$a(
                   class = "btn btn-link text-left",
-                  href = "?_inputs_&tab=%22download%22",
+                  href = "https://labsyspharm.shinyapps.io/smsquery/",
+                  target = "_blank",
                   icon("share"),
-                  "As database tables"
+                  "Batch query similarity of many compounds at once"
                 ) %>%
                   tags$p()
               ) %>%
