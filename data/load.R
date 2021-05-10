@@ -38,6 +38,8 @@ c(
     ~assign(.y, .x, envir = .GlobalEnv)
   )
 
+data_targets[["symbol_lower"]] <- str_to_lower(data_targets[["symbol"]])
+
 data_fingerprints <- MorganFPS$new(
   file.path(dir_data, "shiny_fingerprints.bin"),
   from_file = TRUE

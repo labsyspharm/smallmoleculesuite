@@ -254,7 +254,7 @@ libraryServer <- function(input, output, session) {
   r_target_id_list <- reactive({
     req(r_symbol_list())
     data_targets[
-      symbol %in% r_symbol_list()
+      symbol_lower %in% str_to_lower(r_symbol_list())
     ][["lspci_target_id"]]
   })
 
