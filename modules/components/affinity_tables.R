@@ -47,10 +47,6 @@ mod_server_affinity_tables <- function(
       r_eligible_lspci_ids(),
       !is.null(r_selection())
     )
-    message(
-      "Making selectivity table for: ", r_selection(),
-      " Eligible lspci_ids: ", r_eligible_lspci_ids()
-    )
     if (!length(r_selection()) > 0)
       return(NULL)
 
@@ -107,7 +103,6 @@ mod_server_affinity_tables <- function(
 
   r_table_selected_selectivity <- reactive({
     req(r_selectivity_data())
-    message("Preparing selectivity table: ", nrow(r_selectivity_data()))
 
     .data <- r_selectivity_data()
 
@@ -160,7 +155,6 @@ mod_server_affinity_tables <- function(
 
   output$table_selectivity <- DT::renderDataTable({
       req(r_table_selected_selectivity())
-      message("Drawing selectivity table")
       r_table_selected_selectivity()
     },
     server = TRUE
