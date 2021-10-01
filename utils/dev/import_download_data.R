@@ -10,7 +10,7 @@ synLogin()
 ###############################################################################T
 
 syn_parent <- "syn18457321"
-release <- "chembl_v27"
+release <- "chembl_v29"
 
 dir_dl <- here("www", "sms", "assets", "downloads")
 dir.create(dir_dl, showWarnings = FALSE)
@@ -25,17 +25,17 @@ syn_tables <- synPluck(syn_parent, release, "db_tables") %>%
   )
 
 files <- syn(syn_tables)
-
-with_dir(
-  tempdir(),
-  system2(
-    "tar",
-    c(
-      "-cf",
-      file.path(dir_dl, paste0("sms_tables_", release, ".tar")),
-      file.path(paste0("sms_tables_", release), basename(files[str_ends(files, fixed(".csv.gz"))]))
-    )
-  )
-)
+#
+# with_dir(
+#   tempdir(),
+#   system2(
+#     "tar",
+#     c(
+#       "-cf",
+#       file.path(dir_dl, paste0("lsp_", release, ".tar")),
+#       file.path(paste0("lsp_", release), basename(files[str_ends(files, fixed(".csv.gz"))]))
+#     )
+#   )
+# )
 
 # file.copy(files[str_ends(files, fixed(".sql.gz"))], file.path(dir_dl, paste0("sms_db_", release, ".sql.gz")))

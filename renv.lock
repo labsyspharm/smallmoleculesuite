@@ -431,15 +431,14 @@
     },
     "morgancpp": {
       "Package": "morgancpp",
-      "Version": "0.1.3",
+      "Version": "0.3.1",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "morgancpp",
-      "RemoteUsername": "clemenshug",
-      "RemoteRef": "zstd",
-      "RemoteSha": "d953666c56cad61eaf6675509157c677fc88204e",
-      "Hash": "72c4d3b7243459374c60f255b69c78b9"
+      "RemoteUsername": "labsyspharm",
+      "RemoteRef": "master",
+      "RemoteSha": "3cd206fc14ce7ceff8dc782f85e81969c068ab06"
     },
     "munsell": {
       "Package": "munsell",
@@ -555,15 +554,8 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "0.12.5-72",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "renv",
-      "RemoteUsername": "rstudio",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "b761222daea1d746957523f59e15309caa4533b2",
-      "Hash": "a6018a6fecf05bf3db1a8937506026a7"
+      "Version": "0.14.0",
+      "Source": "Repository"
     },
     "rlang": {
       "Package": "rlang",

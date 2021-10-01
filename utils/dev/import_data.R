@@ -9,7 +9,7 @@ synLogin()
 ###############################################################################T
 
 syn_parent <- "syn18457321"
-release <- "chembl_v27"
+release <- "chembl_v29"
 syn_release <- synPluck(syn_parent, release)
 
 dir_data <- here("data")
