@@ -431,14 +431,14 @@
     },
     "morgancpp": {
       "Package": "morgancpp",
-      "Version": "0.3.1",
+      "Version": "0.4.0",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "morgancpp",
       "RemoteUsername": "labsyspharm",
       "RemoteRef": "master",
-      "RemoteSha": "3cd206fc14ce7ceff8dc782f85e81969c068ab06"
+      "RemoteSha": "7657f8ae2cf5c851ed790376b28cdbb213662cdc"
     },
     "munsell": {
       "Package": "munsell",

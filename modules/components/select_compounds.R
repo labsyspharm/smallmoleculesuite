@@ -8,6 +8,7 @@ SELECT_COMPOUND_RENDER_JS <- I(
         "emolecules_id": "<span class=\"compound-source vendor-source\"> Emolecules ID</span>",
         "chembl_id": "<span class=\"compound-source chembl-source\"><img alt=\"ChEMBL logo\" src=\"sms/assets/img/chembl_logo.png\" class=\"source-logo\"> ChEMBL ID</span>",
         "hmsl_id": "<span class=\"compound-source hmsl-source\"><img alt=\"LINCS logo\" src=\"sms/assets/img/lincs_logo.png\" class=\"source-logo\"> HMS LINCS ID</span>",
+        "lspci_id": "<span class=\"compound-source\"> SMS ID</span>",
       };
       return `<div class="compound-result"><span><strong>${escape(item.name)}</strong></span>
         ${type_map[escape(item.source)]}</div>`.replace(

@@ -213,7 +213,7 @@ selectivityServer <- function(input, output, session) {
     mod_server_select_targets,
     "query_gene",
     data_target_map,
-    default_choice = 487L,
+    default_choice = 489,
     r_eligible_targets = r_selection_genes,
     selectize_options = list(
       maxItems = 1L
