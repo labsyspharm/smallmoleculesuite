@@ -250,7 +250,7 @@ download_page <- function() {
         width = 10, style = "max-width: 80rem;",
         card(
           h4("Download Small Molecule Suite data"),
-          h6(class = "text-muted mb-3", "SMS version based on ChEMBL v27"),
+          h6(class = "text-muted mb-3", "SMS version based on ChEMBL v29"),
           p(
             "The entire Small Molecule Suite dataset is available for download.", tags$br(),
             "The data are organized in separate tables. Documentation",
@@ -292,7 +292,7 @@ download_page <- function() {
         width = 10, style = "max-width: 80rem;",
         card(
           h5("Download tables in CSV format"),
-          h6(class = "text-muted mb-3", "SMS version based on ChEMBL v27"),
+          h6(class = "text-muted mb-3", "SMS version based on ChEMBL v29"),
           # p("All files are compressed using gzip."),
           tags$table(
             class = "table",
